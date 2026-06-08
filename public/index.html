@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KanbanQube</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span>
+          </div>
+          <div class="brand-copy">
+            <strong>KanbanQube</strong>
+            <span id="saveStatus" class="save-status">Loading board…</span>
+          </div>
+        </div>
+
+        <label class="search-shell" for="searchInput">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0-2a8.5 8.5 0 1 0 5.31 15.13l4.03 4.04 1.41-1.41-4.04-4.03A8.5 8.5 0 0 0 10.5 2Z"/>
+          </svg>
+          <input id="searchInput" type="search" placeholder="Search cards" autocomplete="off" />
+        </label>
+
+        <div class="topbar-actions">
+          <button id="addLaneButton" class="primary-button" type="button">Add lane</button>
+          <button id="syncButton" class="ghost-button" type="button">Sync</button>
+          <button id="settingsButton" class="ghost-button" type="button">Settings</button>
+        </div>
+      </header>
+
+      <section class="board-header">
+        <div>
+          <p class="eyebrow">Git-synced board</p>
+          <h1 id="boardTitle">KanbanQube Board</h1>
+        </div>
+        <div class="board-meta">
+          <span id="boardFileBadge" class="meta-badge">board.json</span>
+          <span id="userBadge" class="meta-badge">Guest</span>
+        </div>
+      </section>
+
+      <main id="boardScroller" class="board-scroller" aria-label="Kanban board"></main>
+    </div>
+
+    <dialog id="cardDialog" class="modal modal-large">
+      <form method="dialog" class="modal-card">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Card details</p>
+            <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" />
+          </div>
+          <button id="closeCardButton" type="button" class="icon-button" aria-label="Close card dialog">✕</button>
+        </header>
+
+        <div class="modal-grid">
+          <section class="modal-main">
+            <label class="field">
+              <span>Description</span>
+              <textarea id="cardDescriptionInput" rows="6" placeholder="Add a description"></textarea>
+            </label>
+
+            <label class="field">
+              <span>Lane</span>
+              <select id="cardLaneSelect"></select>
+            </label>
+
+            <section class="checklists-panel">
+              <div class="panel-header">
+                <h2>Checklists</h2>
+                <button id="addChecklistButton" class="ghost-button" type="button">Add checklist</button>
+              </div>
+              <div id="checklistsContainer" class="checklists-container"></div>
+            </section>
+          </section>
+
+          <aside class="modal-sidebar">
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Labels</h2>
+                <button id="addLabelButton" class="icon-button" type="button" aria-label="Open labels panel">+</button>
+              </div>
+              <div id="cardLabels" class="label-cloud"></div>
+              <div id="labelEditorContainer"></div>
+            </section>
+
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Activity</h2>
+              </div>
+              <div class="comment-composer">
+                <textarea id="commentInput" rows="3" placeholder="Write a comment"></textarea>
+                <button id="addCommentButton" class="primary-button" type="button">Add comment</button>
+              </div>
+              <div id="activityList" class="activity-list"></div>
+            </section>
+
+            <button id="deleteCardButton" type="button" class="danger-button">Delete card</button>
+          </aside>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settingsDialog" class="modal">
+      <form method="dialog" class="modal-card modal-small">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Settings</p>
+            <h2>Board preferences</h2>
+          </div>
+          <button id="closeSettingsButton" type="button" class="icon-button" aria-label="Close settings">✕</button>
+        </header>
+
+        <label class="field">
+          <span>Your name</span>
+          <input id="settingsUserName" type="text" maxlength="120" readonly />
+        </label>
+
+        <label class="field">
+          <span>Your email</span>
+          <input id="settingsUserEmail" type="email" maxlength="200" readonly />
+        </label>
+
+        <label class="field">
+          <span>Board title</span>
+          <input id="settingsBoardName" type="text" maxlength="200" placeholder="Board title" />
+        </label>
+
+        <div class="settings-meta">
+          <span id="settingsBoardFile"></span>
+          <span id="settingsRemote"></span>
+        </div>
+
+        <footer class="modal-footer">
+          <button id="saveSettingsButton" type="button" class="primary-button">Save settings</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="promptDialog" class="modal">
+      <form method="dialog" class="modal-card modal-small">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label" id="promptLabel">Update</p>
+            <h2 id="promptTitle">Enter a value</h2>
+          </div>
+        </header>
+
+        <label class="field">
+          <span id="promptInputLabel">Name</span>
+          <input id="promptInput" type="text" maxlength="200" />
+        </label>
+
+        <footer class="modal-footer">
+          <button id="promptCancelButton" type="button" class="ghost-button">Cancel</button>
+          <button id="promptConfirmButton" type="submit" class="primary-button">Save</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <template id="laneTemplate">
+      <section class="lane" draggable="true">
+        <header class="lane-header">
+          <div class="lane-title-row">
+            <h2 class="lane-title"></h2>
+            <span class="lane-count"></span>
+          </div>
+          <div class="lane-actions">
+            <button class="icon-button rename-lane-button" type="button" aria-label="Rename lane">✎</button>
+            <button class="icon-button delete-lane-button" type="button" aria-label="Delete lane">🗑</button>
+          </div>
+        </header>
+        <div class="card-list"></div>
+        <button class="add-card-button" type="button">+ Add a card</button>
+      </section>
+    </template>
+
+    <template id="cardTemplate">
+      <article class="card" draggable="true">
+        <div class="card-label-strip"></div>
+        <div class="card-cover"></div>
+        <h3 class="card-title"></h3>
+        <p class="card-description"></p>
+        <footer class="card-footer"></footer>
+      </article>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+  </html>
