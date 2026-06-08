@@ -15,7 +15,7 @@
           </div>
           <div class="brand-copy">
             <strong>KanbanQube</strong>
-            <span id="saveStatus" class="save-status">Loading board…</span>
+            <button id="saveStatus" class="save-status-button" type="button">Loading board…</button>
           </div>
         </div>
 
@@ -27,7 +27,7 @@
         </label>
 
         <div class="topbar-actions">
-          <button id="syncButton" class="ghost-button" type="button">Sync</button>
+          <button id="syncButton" class="primary-button" type="button">Sync</button>
           <button id="settingsButton" class="ghost-button" type="button">Settings</button>
         </div>
       </header>
@@ -64,7 +64,7 @@
                 <button id="editDescriptionButton" class="ghost-button" type="button">Edit</button>
               </div>
               <div id="cardDescriptionDisplay" class="description-display"></div>
-              <textarea id="cardDescriptionInput" rows="8" placeholder="Add a description" hidden></textarea>
+              <textarea id="cardDescriptionInput" class="description-editor" rows="8" placeholder="Add a description" hidden></textarea>
             </section>
 
             <section class="checklists-panel">
@@ -141,6 +141,19 @@
         <footer class="modal-footer">
           <button id="saveSettingsButton" type="button" class="primary-button">Save settings</button>
         </footer>
+      </form>
+    </dialog>
+
+    <dialog id="syncLogDialog" class="modal">
+      <form method="dialog" class="modal-card modal-small">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Git sync</p>
+            <h2>Sync log</h2>
+          </div>
+          <button id="closeSyncLogButton" type="button" class="icon-button" aria-label="Close sync log">✕</button>
+        </header>
+        <pre id="syncLogContent" class="sync-log-content"></pre>
       </form>
     </dialog>
 

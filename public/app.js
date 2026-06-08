@@ -18,6 +18,9 @@ const state = {
   saveTimer: null,
   isSaving: false,
   saveMessage: "Loading board…",
+  syncStatusMessage: "",
+  lastSyncLog: "",
+  isSyncing: false,
   drag: null
 };
 
@@ -29,6 +32,9 @@ const searchInput = document.getElementById("searchInput");
 const saveStatus = document.getElementById("saveStatus");
 const syncButton = document.getElementById("syncButton");
 const settingsButton = document.getElementById("settingsButton");
+const syncLogDialog = document.getElementById("syncLogDialog");
+const syncLogContent = document.getElementById("syncLogContent");
+const closeSyncLogButton = document.getElementById("closeSyncLogButton");
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
@@ -112,6 +118,7 @@ async function bootstrap() {
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
   wireEvents();
+  setSaveMessage("Ready");
   render();
 }
 
@@ -126,6 +133,8 @@ function wireEvents() {
   saveSettingsButton.addEventListener("click", saveSettings);
 
   syncButton.addEventListener("click", syncBoard);
+  saveStatus.addEventListener("click", openSyncLogDialog);
+  closeSyncLogButton.addEventListener("click", () => syncLogDialog.close());
   boardScroller.addEventListener("dragover", handleLaneDragOver);
   boardScroller.addEventListener("drop", handleLaneDrop);
 
@@ -185,7 +194,10 @@ function render() {
 function renderHeader() {
   boardTitle.textContent = state.board?.name || "KanbanQube Board";
   userBadge.textContent = state.currentUserName.trim() || "Guest";
-  saveStatus.textContent = state.saveMessage;
+  saveStatus.textContent = state.syncStatusMessage || state.saveMessage;
+  const canOpenLog = state.isSyncing || Boolean(state.lastSyncLog.trim());
+  saveStatus.disabled = !canOpenLog;
+  saveStatus.classList.toggle("is-clickable", canOpenLog);
 }
 
 function renderBoard() {
@@ -959,6 +971,9 @@ function openSettingsDialog() {
 
 async function syncBoard() {
   syncButton.disabled = true;
+  state.isSyncing = true;
+  state.syncStatusMessage = "Syncing with git…";
+  state.lastSyncLog = "Syncing with git…";
   setSaveMessage("Syncing with git…");
   try {
     if (state.isSaving) {
@@ -967,15 +982,29 @@ async function syncBoard() {
 
     const response = await fetch("/api/sync", { method: "POST" });
     const payload = await response.json();
+    state.lastSyncLog = payload.output || "No sync output was returned.";
     if (!response.ok || !payload.ok) {
       throw new Error(payload.output || "Git sync failed.");
     }
+    state.syncStatusMessage = "Board synced";
     setSaveMessage("Board synced");
   } catch (error) {
+    state.syncStatusMessage = error.message || "Git sync failed.";
+    state.lastSyncLog = error.message || "Git sync failed.";
     setSaveMessage(error.message || "Git sync failed.");
     window.alert(error.message || "Git sync failed.");
   } finally {
+    state.isSyncing = false;
     syncButton.disabled = false;
+    renderHeader();
+  }
+}
+
+function openSyncLogDialog() {
+  if (!state.isSyncing && !state.lastSyncLog.trim()) return;
+  syncLogContent.textContent = state.lastSyncLog || "No git sync has run yet.";
+  if (!syncLogDialog.open) {
+    syncLogDialog.showModal();
   }
 }
 
