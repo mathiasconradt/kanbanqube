@@ -333,6 +333,104 @@ button {
   line-height: 1.35;
 }
 
+.card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.card-title-main {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.card-done-toggle {
+  width: 0;
+  min-width: 0;
+  height: calc(22px * var(--ui-scale));
+  margin: 0;
+  margin-right: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  background: transparent;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  flex: 0 0 auto;
+  pointer-events: none;
+  transition: width 140ms ease, margin-right 140ms ease, opacity 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.card:hover .card-done-toggle,
+.card.is-done .card-done-toggle {
+  width: calc(22px * var(--ui-scale));
+  min-width: calc(22px * var(--ui-scale));
+  margin-right: 0.5rem;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card.is-done .card-done-toggle {
+  border-color: rgba(34, 197, 94, 0.92);
+  background: #22c55e;
+}
+
+.card-archive-button {
+  width: calc(22px * var(--ui-scale));
+  min-width: calc(22px * var(--ui-scale));
+  height: calc(22px * var(--ui-scale));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.card-archive-button svg {
+  width: calc(17px * var(--ui-scale));
+  height: calc(17px * var(--ui-scale));
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card.is-done:hover .card-archive-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card-archive-button:hover {
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.card:hover .card-done-toggle:not([aria-pressed="true"]) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card-title.is-done {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
 .card-title.is-placeholder {
   color: var(--muted);
   font-style: italic;
@@ -417,6 +515,10 @@ button {
 
 .modal-small {
   width: min(calc(520px * var(--ui-scale)), calc(100vw - 2rem));
+}
+
+.modal-archive {
+  width: min(720px, calc(100vw - 2rem));
 }
 
 .modal-header {
@@ -774,6 +876,50 @@ button {
   word-break: break-word;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1.45;
+}
+
+.archive-list {
+  display: grid;
+  gap: 0.9rem;
+  max-height: min(70vh, 720px);
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.archive-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: calc(18px * var(--ui-scale));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.archive-item-main {
+  min-width: 0;
+}
+
+.archive-item-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.archive-item-meta {
+  margin: 0;
+  color: var(--muted);
+}
+
+.archive-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.archive-empty-state {
+  padding: 1rem;
 }
 
 .empty-state {

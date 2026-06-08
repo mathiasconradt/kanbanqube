@@ -31,10 +31,14 @@ const userBadge = document.getElementById("userBadge");
 const searchInput = document.getElementById("searchInput");
 const saveStatus = document.getElementById("saveStatus");
 const syncButton = document.getElementById("syncButton");
+const archiveButton = document.getElementById("archiveButton");
 const settingsButton = document.getElementById("settingsButton");
 const syncLogDialog = document.getElementById("syncLogDialog");
 const syncLogContent = document.getElementById("syncLogContent");
 const closeSyncLogButton = document.getElementById("closeSyncLogButton");
+const archiveDialog = document.getElementById("archiveDialog");
+const archiveList = document.getElementById("archiveList");
+const closeArchiveButton = document.getElementById("closeArchiveButton");
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
@@ -129,7 +133,9 @@ function wireEvents() {
   });
 
   settingsButton.addEventListener("click", openSettingsDialog);
+  archiveButton.addEventListener("click", openArchiveDialog);
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
+  closeArchiveButton.addEventListener("click", () => archiveDialog.close());
   saveSettingsButton.addEventListener("click", saveSettings);
 
   syncButton.addEventListener("click", syncBoard);
@@ -189,11 +195,14 @@ function render() {
   renderHeader();
   renderBoard();
   renderCardDialog();
+  renderArchiveDialog();
 }
 
 function renderHeader() {
   boardTitle.textContent = state.board?.name || "KanbanQube Board";
   userBadge.textContent = state.currentUserName.trim() || "Guest";
+  const archivedCount = archivedCards().length;
+  archiveButton.textContent = archivedCount ? `Archive (${archivedCount})` : "Archive";
   saveStatus.textContent = state.syncStatusMessage || state.saveMessage;
   const canOpenLog = state.isSyncing || Boolean(state.lastSyncLog.trim());
   saveStatus.disabled = !canOpenLog;
@@ -270,6 +279,7 @@ async function createLane() {
 function renderCard(card) {
   const node = cardTemplate.content.firstElementChild.cloneNode(true);
   node.dataset.cardId = card.id;
+  node.classList.toggle("is-done", isCardDone(card));
 
   const cardLabelsStrip = node.querySelector(".card-label-strip");
   const labels = labelsForCard(card).slice(0, 4);
@@ -288,10 +298,28 @@ function renderCard(card) {
     coverNode.style.backgroundImage = `url("${coverUrl}")`;
   }
 
+  const doneToggle = node.querySelector(".card-done-toggle");
+  const done = isCardDone(card);
+  doneToggle.textContent = done ? "✓" : "";
+  doneToggle.setAttribute("aria-pressed", String(done));
+  doneToggle.setAttribute("aria-label", done ? "Mark task not done" : "Mark task done");
+  doneToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleCardDone(card);
+  });
+
+  const archiveButton = node.querySelector(".card-archive-button");
+  archiveButton.hidden = !done;
+  archiveButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    archiveCard(card);
+  });
+
   const titleNode = node.querySelector(".card-title");
   const hasTitle = Boolean(card.name && card.name.trim());
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
+  titleNode.classList.toggle("is-done", done);
   const descriptionNode = node.querySelector(".card-description");
   descriptionNode.textContent = card.desc || "";
   descriptionNode.hidden = !state.showCardDescriptions || !card.desc;
@@ -323,6 +351,58 @@ function renderCardDialog() {
   renderLabelsEditor(card);
   renderChecklists(card);
   renderActivity(card);
+}
+
+function renderArchiveDialog() {
+  archiveList.textContent = "";
+  const cards = archivedCards();
+
+  if (cards.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state archive-empty-state";
+    empty.textContent = "No archived cards.";
+    archiveList.append(empty);
+    return;
+  }
+
+  for (const card of cards) {
+    const row = document.createElement("article");
+    row.className = "archive-item";
+
+    const main = document.createElement("div");
+    main.className = "archive-item-main";
+
+    const title = document.createElement("h3");
+    title.className = "archive-item-title";
+    title.textContent = (card.name && card.name.trim()) || "Task";
+    main.append(title);
+
+    const meta = document.createElement("p");
+    meta.className = "archive-item-meta";
+    const lane = listById(card.idList);
+    meta.textContent = `In ${lane?.name || "Unknown lane"}`;
+    main.append(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "archive-item-actions";
+
+    const restoreButton = document.createElement("button");
+    restoreButton.type = "button";
+    restoreButton.className = "ghost-button";
+    restoreButton.textContent = "Restore";
+    restoreButton.addEventListener("click", () => restoreArchivedCard(card.id));
+    actions.append(restoreButton);
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "danger-button";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteArchivedCard(card.id));
+    actions.append(deleteButton);
+
+    row.append(main, actions);
+    archiveList.append(row);
+  }
 }
 
 function renderLabelsEditor(card) {
@@ -709,6 +789,8 @@ async function addCard(listId) {
     dueComplete: false,
     start: null,
     subscribed: false,
+    kanbanQubeDone: false,
+    kanbanQubeArchived: false,
     shortLink: createHexId().slice(-8),
     shortUrl: "",
     url: "",
@@ -746,6 +828,69 @@ async function addCard(listId) {
   render();
 }
 
+function toggleCardDone(card) {
+  const wasDone = isCardDone(card);
+  card.kanbanQubeDone = !wasDone;
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { kanbanQubeDone: wasDone },
+    kanbanQubeDone: card.kanbanQubeDone
+  });
+  queueSave(card.kanbanQubeDone ? "Card marked done" : "Card marked not done");
+  render();
+}
+
+function archiveCard(card) {
+  if (!isCardDone(card) || isCardArchived(card)) return;
+  card.kanbanQubeArchived = true;
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { kanbanQubeArchived: false },
+    kanbanQubeArchived: true
+  });
+  queueSave("Card archived");
+  render();
+}
+
+function restoreArchivedCard(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card || !isCardArchived(card)) return;
+  card.kanbanQubeArchived = false;
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { kanbanQubeArchived: true },
+    kanbanQubeArchived: false
+  });
+  queueSave("Card restored");
+  render();
+}
+
+function deleteArchivedCard(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card || !isCardArchived(card)) return;
+  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
+  if (!confirmed) return;
+  card.closed = true;
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { closed: false, kanbanQubeArchived: true }
+  });
+  queueSave("Archived card deleted");
+  render();
+}
+
 async function renameLane(listId) {
   const list = listById(listId);
   if (!list) return;
@@ -770,13 +915,13 @@ async function renameLane(listId) {
 function deleteLane(listId) {
   const list = listById(listId);
   if (!list) return;
-  const cardCount = cardsForList(listId).length;
+  const cardCount = openCardsForList(listId).length;
   const confirmed = window.confirm(`Delete "${list.name}" and ${cardCount} card(s) in it?`);
   if (!confirmed) return;
 
   list.closed = true;
   list.dateClosed = new Date().toISOString();
-  for (const card of cardsForList(listId)) {
+  for (const card of openCardsForList(listId)) {
     card.closed = true;
   }
   pushAction("updateList", {
@@ -1131,9 +1276,14 @@ function openLists() {
 }
 
 function cardsForList(listId) {
-  return [...(state.board?.cards || [])]
-    .filter((card) => !card.closed && card.idList === listId)
+  return openCardsForList(listId)
+    .filter((card) => !isCardArchived(card))
     .sort((left, right) => left.pos - right.pos);
+}
+
+function openCardsForList(listId) {
+  return [...(state.board?.cards || [])]
+    .filter((card) => !card.closed && card.idList === listId);
 }
 
 function visibleCardsForList(listId) {
@@ -1153,7 +1303,25 @@ function listById(listId) {
 }
 
 function getSelectedCard() {
-  return (state.board?.cards || []).find((card) => card.id === state.selectedCardId && !card.closed) || null;
+  return (state.board?.cards || []).find((card) => card.id === state.selectedCardId && !card.closed && !isCardArchived(card)) || null;
+}
+
+function isCardDone(card) {
+  return Boolean(card?.kanbanQubeDone);
+}
+
+function isCardArchived(card) {
+  return Boolean(card?.kanbanQubeArchived);
+}
+
+function archivedCards() {
+  return [...(state.board?.cards || [])]
+    .filter((card) => !card.closed && isCardArchived(card))
+    .sort((left, right) => {
+      const leftDate = Date.parse(left.dateLastActivity || 0);
+      const rightDate = Date.parse(right.dateLastActivity || 0);
+      return rightDate - leftDate;
+    });
 }
 
 function nextLanePos() {
@@ -1162,7 +1330,7 @@ function nextLanePos() {
 }
 
 function nextCardPos(listId) {
-  const cards = cardsForList(listId);
+  const cards = openCardsForList(listId);
   return cards.length ? Math.max(...cards.map((card) => Number(card.pos) || 0)) + 16384 : 16384;
 }
 
@@ -1337,6 +1505,13 @@ function humanizeAction(action) {
     commentCard: "commented on this card"
   };
   return `${actor} ${verbs[action.type] || action.type}`;
+}
+
+function openArchiveDialog() {
+  renderArchiveDialog();
+  if (!archiveDialog.open) {
+    archiveDialog.showModal();
+  }
 }
 
 function hydrateIdentityFromGitConfig() {
