@@ -22,6 +22,13 @@ const gitExecutableCandidates = [
   "/opt/homebrew/bin/git"
 ];
 const gitSafePath = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin";
+const syncStatus = {
+  running: false,
+  startedAt: "",
+  finishedAt: "",
+  ok: null,
+  output: ""
+};
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -55,7 +62,19 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, 200, board);
     }
 
+    if (request.method === "GET" && url.pathname === "/api/sync-status") {
+      return sendJson(response, 200, syncStatus);
+    }
+
     if (request.method === "POST" && url.pathname === "/api/sync") {
+      if (syncStatus.running) {
+        return sendJson(response, 409, {
+          ok: false,
+          output: syncStatus.output || "A git sync is already in progress.",
+          startedAt: syncStatus.startedAt,
+          finishedAt: syncStatus.finishedAt
+        });
+      }
       const result = await syncBoardRepository();
       return sendJson(response, result.ok ? 200 : 500, result);
     }
@@ -590,46 +609,89 @@ function defaultBoardSkeleton() {
 }
 
 async function syncBoardRepository() {
+  syncStatus.running = true;
+  syncStatus.startedAt = new Date().toISOString();
+  syncStatus.finishedAt = "";
+  syncStatus.ok = null;
+  syncStatus.output = "Syncing with git…";
+
   if (!(await hasGitRepository(WORKSPACE_DIR))) {
-    return {
+    const result = {
       ok: false,
-      output: `This folder does not contain a .git directory.\nWorkspace: ${WORKSPACE_DIR}`
+      output: `This folder does not contain a .git directory.\nWorkspace: ${WORKSPACE_DIR}`,
+      startedAt: syncStatus.startedAt,
+      finishedAt: new Date().toISOString()
     };
+    Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+    return result;
   }
 
   const remote = await gitRemoteOrigin(WORKSPACE_DIR);
   const output = [];
+  const updateOutput = () => {
+    syncStatus.output = output.join("\n\n") || "Syncing with git…";
+  };
+  const startCommand = (label) => {
+    output.push(`${label}\n\nRunning…`);
+    updateOutput();
+    return output.length - 1;
+  };
+  const finishCommand = (index, text) => {
+    output[index] = text;
+    updateOutput();
+  };
   await checkSshAuth(WORKSPACE_DIR, remote, output);
+  updateOutput();
 
+  let commandIndex = startCommand("git pull --ff-only");
   const pull = await runGit(WORKSPACE_DIR, ["pull", "--ff-only"]);
-  output.push(formatGitCommandOutput("git pull --ff-only", pull));
+  finishCommand(commandIndex, formatGitCommandOutput("git pull --ff-only", pull));
   if (pull.code !== 0) {
-    return { ok: false, output: output.join("\n\n") };
+    const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
+    Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+    return result;
   }
 
+  commandIndex = startCommand("git status --porcelain -- board.json");
   const status = await runGit(WORKSPACE_DIR, ["status", "--porcelain", "--", BOARD_FILE_NAME]);
-  output.push(formatGitCommandOutput("git status --porcelain -- board.json", status, status.stdout.trim() ? "" : "Board file is clean."));
+  finishCommand(commandIndex, formatGitCommandOutput("git status --porcelain -- board.json", status, status.stdout.trim() ? "" : "Board file is clean."));
   if (status.code !== 0) {
-    return { ok: false, output: output.join("\n\n") };
+    const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
+    Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+    return result;
   }
 
   if (status.stdout.trim()) {
+    commandIndex = startCommand("git add -- board.json");
     const add = await runGit(WORKSPACE_DIR, ["add", "--", BOARD_FILE_NAME]);
-    output.push(formatGitCommandOutput("git add -- board.json", add));
+    finishCommand(commandIndex, formatGitCommandOutput("git add -- board.json", add));
     if (add.code !== 0) {
-      return { ok: false, output: output.join("\n\n") };
+      const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
+      Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+      return result;
     }
 
+    commandIndex = startCommand("git commit -m \"Update KanbanQube board\"");
     const commit = await runGit(WORKSPACE_DIR, ["commit", "-m", "Update KanbanQube board"]);
-    output.push(formatGitCommandOutput("git commit -m \"Update KanbanQube board\"", commit));
+    finishCommand(commandIndex, formatGitCommandOutput("git commit -m \"Update KanbanQube board\"", commit));
     if (commit.code !== 0) {
-      return { ok: false, output: output.join("\n\n") };
+      const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
+      Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+      return result;
     }
   }
 
+  commandIndex = startCommand("git push");
   const push = await runGit(WORKSPACE_DIR, ["push"]);
-  output.push(formatGitCommandOutput("git push", push));
-  return { ok: push.code === 0, output: output.join("\n\n") };
+  finishCommand(commandIndex, formatGitCommandOutput("git push", push));
+  const result = {
+    ok: push.code === 0,
+    output: output.join("\n\n"),
+    startedAt: syncStatus.startedAt,
+    finishedAt: new Date().toISOString()
+  };
+  Object.assign(syncStatus, { running: false, ok: result.ok, output: result.output, finishedAt: result.finishedAt });
+  return result;
 }
 
 function resolveWorkspaceDirectory(argument) {

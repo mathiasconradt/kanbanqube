@@ -198,6 +198,22 @@ button {
   transform: translateY(-1px);
 }
 
+.primary-button:disabled,
+.ghost-button:disabled,
+.danger-button:disabled,
+.add-card-button:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+  box-shadow: none;
+}
+
+.primary-button:disabled {
+  background: rgba(110, 131, 167, 0.3);
+  border-color: rgba(110, 131, 167, 0.28);
+}
+
 .board-header {
   display: flex;
   justify-content: space-between;
@@ -383,9 +399,10 @@ button {
 }
 
 .card-archive-button {
-  width: calc(22px * var(--ui-scale));
-  min-width: calc(22px * var(--ui-scale));
-  height: calc(22px * var(--ui-scale));
+  width: calc(30px * var(--ui-scale));
+  min-width: calc(30px * var(--ui-scale));
+  height: calc(30px * var(--ui-scale));
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -401,9 +418,30 @@ button {
   transition: opacity 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
+.card-archive-button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.32rem 0.5rem;
+  border-radius: calc(10px * var(--ui-scale));
+  background: rgba(12, 15, 21, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 calc(10px * var(--ui-scale)) calc(24px * var(--ui-scale)) rgba(0, 0, 0, 0.32);
+  transition: opacity 90ms ease;
+}
+
 .card-archive-button svg {
-  width: calc(17px * var(--ui-scale));
-  height: calc(17px * var(--ui-scale));
+  width: calc(23px * var(--ui-scale));
+  height: calc(23px * var(--ui-scale));
   stroke: currentColor;
   fill: none;
   stroke-width: 1.8;
@@ -419,6 +457,11 @@ button {
 .card-archive-button:hover {
   color: var(--text);
   transform: translateY(-1px);
+}
+
+.card-archive-button:hover::after,
+.card-archive-button:focus-visible::after {
+  opacity: 1;
 }
 
 .card:hover .card-done-toggle:not([aria-pressed="true"]) {
@@ -517,6 +560,10 @@ button {
   width: min(calc(520px * var(--ui-scale)), calc(100vw - 2rem));
 }
 
+.modal-sync-log {
+  width: min(calc(1040px * var(--ui-scale)), calc(100vw - 2rem));
+}
+
 .modal-archive {
   width: min(720px, calc(100vw - 2rem));
 }
@@ -531,6 +578,12 @@ button {
 
 .modal-header h2 {
   margin: 0;
+}
+
+.modal-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .title-input {
@@ -551,6 +604,16 @@ button {
 
 .modal-large .title-input {
   width: 100%;
+}
+
+.archived-card-banner {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: calc(14px * var(--ui-scale));
+  border: 1px solid rgba(244, 180, 0, 0.38);
+  background: rgba(244, 180, 0, 0.12);
+  color: #f8d778;
+  font-weight: 600;
 }
 
 .modal-grid {
@@ -895,6 +958,16 @@ button {
   border-radius: calc(18px * var(--ui-scale));
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.archive-item:hover,
+.archive-item:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 .archive-item-main {

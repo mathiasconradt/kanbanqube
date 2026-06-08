@@ -3,6 +3,15 @@
 const USER_STORAGE_KEY = "kanbanqube.userName";
 const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
 const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
+const SYNC_TIMESTAMP_FORMAT = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: true
+};
 
 const state = {
   board: null,
@@ -20,6 +29,7 @@ const state = {
   saveMessage: "Loading board…",
   syncStatusMessage: "",
   lastSyncLog: "",
+  lastSyncAt: "",
   isSyncing: false,
   drag: null
 };
@@ -35,6 +45,7 @@ const archiveButton = document.getElementById("archiveButton");
 const settingsButton = document.getElementById("settingsButton");
 const syncLogDialog = document.getElementById("syncLogDialog");
 const syncLogContent = document.getElementById("syncLogContent");
+const syncLogTimestamp = document.getElementById("syncLogTimestamp");
 const closeSyncLogButton = document.getElementById("closeSyncLogButton");
 const archiveDialog = document.getElementById("archiveDialog");
 const archiveList = document.getElementById("archiveList");
@@ -42,6 +53,7 @@ const closeArchiveButton = document.getElementById("closeArchiveButton");
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
+const archivedCardBanner = document.getElementById("archivedCardBanner");
 const cardDescriptionDisplay = document.getElementById("cardDescriptionDisplay");
 const cardDescriptionInput = document.getElementById("cardDescriptionInput");
 const editDescriptionButton = document.getElementById("editDescriptionButton");
@@ -76,6 +88,8 @@ const promptCancelButton = document.getElementById("promptCancelButton");
 
 const laneTemplate = document.getElementById("laneTemplate");
 const cardTemplate = document.getElementById("cardTemplate");
+let syncStatusPollTimer = null;
+let syncStatusPollInFlight = false;
 
 const labelColorMap = {
   green: "#22c55e",
@@ -122,7 +136,12 @@ async function bootstrap() {
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
   wireEvents();
-  setSaveMessage("Ready");
+  if (migrateLegacyBoardData()) {
+    setSaveMessage("Updating board format…");
+    await saveBoardNow();
+  } else {
+    setSaveMessage("Ready");
+  }
   render();
 }
 
@@ -161,11 +180,13 @@ function wireEvents() {
   cardTitleInput.addEventListener("input", () => {
     const card = getSelectedCard();
     if (!card) return;
-    card.name = cardTitleInput.value.trim();
+    card.name = cardTitleInput.value;
     touchCard(card);
     queueSave("Card updated");
     renderBoard();
-    renderCardDialog();
+    if (archiveDialog.open) {
+      renderArchiveDialog();
+    }
   });
 
   cardDescriptionInput.addEventListener("input", () => {
@@ -203,6 +224,7 @@ function renderHeader() {
   userBadge.textContent = state.currentUserName.trim() || "Guest";
   const archivedCount = archivedCards().length;
   archiveButton.textContent = archivedCount ? `Archive (${archivedCount})` : "Archive";
+  syncButton.disabled = state.isSyncing;
   saveStatus.textContent = state.syncStatusMessage || state.saveMessage;
   const canOpenLog = state.isSyncing || Boolean(state.lastSyncLog.trim());
   saveStatus.disabled = !canOpenLog;
@@ -341,6 +363,7 @@ function renderCardDialog() {
   if (!card) return;
 
   cardTitleInput.value = card.name || "";
+  archivedCardBanner.hidden = !isCardArchived(card);
   cardDescriptionInput.value = card.desc || "";
   commentInput.value = "";
   renderDescriptionDisplay(card.desc || "");
@@ -368,6 +391,7 @@ function renderArchiveDialog() {
   for (const card of cards) {
     const row = document.createElement("article");
     row.className = "archive-item";
+    row.tabIndex = 0;
 
     const main = document.createElement("div");
     main.className = "archive-item-main";
@@ -390,17 +414,30 @@ function renderArchiveDialog() {
     restoreButton.type = "button";
     restoreButton.className = "ghost-button";
     restoreButton.textContent = "Restore";
-    restoreButton.addEventListener("click", () => restoreArchivedCard(card.id));
+    restoreButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      restoreArchivedCard(card.id);
+    });
     actions.append(restoreButton);
 
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.className = "danger-button";
     deleteButton.textContent = "Delete";
-    deleteButton.addEventListener("click", () => deleteArchivedCard(card.id));
+    deleteButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteArchivedCard(card.id);
+    });
     actions.append(deleteButton);
 
     row.append(main, actions);
+    row.addEventListener("click", () => openArchivedCard(card.id));
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openArchivedCard(card.id);
+      }
+    });
     archiveList.append(row);
   }
 }
@@ -790,7 +827,6 @@ async function addCard(listId) {
     start: null,
     subscribed: false,
     kanbanQubeDone: false,
-    kanbanQubeArchived: false,
     shortLink: createHexId().slice(-8),
     shortUrl: "",
     url: "",
@@ -845,48 +881,41 @@ function toggleCardDone(card) {
 
 function archiveCard(card) {
   if (!isCardDone(card) || isCardArchived(card)) return;
-  card.kanbanQubeArchived = true;
-  touchCard(card);
-  pushAction("updateCard", {
-    idCard: card.id,
-    card: cardActionSnapshot(card),
-    list: { id: card.idList, name: listById(card.idList)?.name || "" },
-    old: { kanbanQubeArchived: false },
-    kanbanQubeArchived: true
-  });
-  queueSave("Card archived");
-  render();
-}
-
-function restoreArchivedCard(cardId) {
-  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
-  if (!card || !isCardArchived(card)) return;
-  card.kanbanQubeArchived = false;
-  touchCard(card);
-  pushAction("updateCard", {
-    idCard: card.id,
-    card: cardActionSnapshot(card),
-    list: { id: card.idList, name: listById(card.idList)?.name || "" },
-    old: { kanbanQubeArchived: true },
-    kanbanQubeArchived: false
-  });
-  queueSave("Card restored");
-  render();
-}
-
-function deleteArchivedCard(cardId) {
-  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
-  if (!card || !isCardArchived(card)) return;
-  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
-  if (!confirmed) return;
   card.closed = true;
   touchCard(card);
   pushAction("updateCard", {
     idCard: card.id,
     card: cardActionSnapshot(card),
     list: { id: card.idList, name: listById(card.idList)?.name || "" },
-    old: { closed: false, kanbanQubeArchived: true }
+    old: { closed: false },
+    closed: true
   });
+  queueSave("Card archived");
+  render();
+}
+
+function restoreArchivedCard(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
+  if (!card || !isCardArchived(card)) return;
+  card.closed = false;
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { closed: true },
+    closed: false
+  });
+  queueSave("Card restored");
+  render();
+}
+
+function deleteArchivedCard(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
+  if (!card || !isCardArchived(card)) return;
+  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
+  if (!confirmed) return;
+  removeCardCompletely(card.id);
   queueSave("Archived card deleted");
   render();
 }
@@ -915,13 +944,13 @@ async function renameLane(listId) {
 function deleteLane(listId) {
   const list = listById(listId);
   if (!list) return;
-  const cardCount = openCardsForList(listId).length;
+  const cardCount = allCardsForList(listId).length;
   const confirmed = window.confirm(`Delete "${list.name}" and ${cardCount} card(s) in it?`);
   if (!confirmed) return;
 
   list.closed = true;
   list.dateClosed = new Date().toISOString();
-  for (const card of openCardsForList(listId)) {
+  for (const card of allCardsForList(listId)) {
     card.closed = true;
   }
   pushAction("updateList", {
@@ -947,17 +976,9 @@ function openCard(cardId) {
 function deleteSelectedCard() {
   const card = getSelectedCard();
   if (!card) return;
-  const confirmed = window.confirm(`Delete "${card.name}"?`);
+  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
   if (!confirmed) return;
-
-  card.closed = true;
-  touchCard(card);
-  pushAction("updateCard", {
-    idCard: card.id,
-    card: cardActionSnapshot(card),
-    list: { id: card.idList, name: listById(card.idList)?.name || "" },
-    old: { closed: false }
-  });
+  removeCardCompletely(card.id);
   queueSave("Card deleted");
   cardDialog.close();
   render();
@@ -1115,11 +1136,12 @@ function openSettingsDialog() {
 }
 
 async function syncBoard() {
-  syncButton.disabled = true;
   state.isSyncing = true;
   state.syncStatusMessage = "Syncing with git…";
   state.lastSyncLog = "Syncing with git…";
+  state.lastSyncAt = new Date().toISOString();
   setSaveMessage("Syncing with git…");
+  startSyncStatusPolling();
   try {
     if (state.isSaving) {
       await saveBoardNow();
@@ -1128,6 +1150,7 @@ async function syncBoard() {
     const response = await fetch("/api/sync", { method: "POST" });
     const payload = await response.json();
     state.lastSyncLog = payload.output || "No sync output was returned.";
+    state.lastSyncAt = payload.startedAt || state.lastSyncAt;
     if (!response.ok || !payload.ok) {
       throw new Error(payload.output || "Git sync failed.");
     }
@@ -1139,17 +1162,70 @@ async function syncBoard() {
     setSaveMessage(error.message || "Git sync failed.");
     window.alert(error.message || "Git sync failed.");
   } finally {
+    stopSyncStatusPolling();
     state.isSyncing = false;
-    syncButton.disabled = false;
     renderHeader();
+    renderSyncLogDialogContent();
   }
 }
 
 function openSyncLogDialog() {
   if (!state.isSyncing && !state.lastSyncLog.trim()) return;
-  syncLogContent.textContent = state.lastSyncLog || "No git sync has run yet.";
+  renderSyncLogDialogContent();
   if (!syncLogDialog.open) {
     syncLogDialog.showModal();
+  }
+}
+
+function renderSyncLogDialogContent() {
+  syncLogContent.textContent = state.lastSyncLog || "No git sync has run yet.";
+  syncLogTimestamp.textContent = state.lastSyncAt
+    ? `Ran ${formatSyncTimestamp(state.lastSyncAt)}`
+    : "No git sync has run yet.";
+}
+
+function formatSyncTimestamp(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Unknown time";
+  const parts = new Intl.DateTimeFormat(undefined, SYNC_TIMESTAMP_FORMAT).formatToParts(date);
+  const month = parts.find((part) => part.type === "month")?.value || "";
+  const day = parts.find((part) => part.type === "day")?.value || "";
+  const year = parts.find((part) => part.type === "year")?.value || "";
+  const hour = parts.find((part) => part.type === "hour")?.value || "";
+  const minute = parts.find((part) => part.type === "minute")?.value || "";
+  const second = parts.find((part) => part.type === "second")?.value || "";
+  const dayPeriod = parts.find((part) => part.type === "dayPeriod")?.value || "";
+  return `${month} ${day} ${year}, ${hour}:${minute}:${second} ${dayPeriod}`.trim();
+}
+
+function startSyncStatusPolling() {
+  stopSyncStatusPolling();
+  syncStatusPollTimer = window.setInterval(() => {
+    void refreshSyncStatus();
+  }, 500);
+}
+
+function stopSyncStatusPolling() {
+  if (syncStatusPollTimer !== null) {
+    window.clearInterval(syncStatusPollTimer);
+    syncStatusPollTimer = null;
+  }
+}
+
+async function refreshSyncStatus() {
+  if (syncStatusPollInFlight) return;
+  syncStatusPollInFlight = true;
+  try {
+    const response = await fetch("/api/sync-status");
+    if (!response.ok) return;
+    const payload = await response.json();
+    state.lastSyncLog = payload.output || state.lastSyncLog;
+    state.lastSyncAt = payload.startedAt || state.lastSyncAt;
+    if (syncLogDialog.open) {
+      renderSyncLogDialogContent();
+    }
+  } finally {
+    syncStatusPollInFlight = false;
   }
 }
 
@@ -1276,14 +1352,16 @@ function openLists() {
 }
 
 function cardsForList(listId) {
-  return openCardsForList(listId)
-    .filter((card) => !isCardArchived(card))
-    .sort((left, right) => left.pos - right.pos);
+  return openCardsForList(listId).sort((left, right) => left.pos - right.pos);
 }
 
 function openCardsForList(listId) {
   return [...(state.board?.cards || [])]
     .filter((card) => !card.closed && card.idList === listId);
+}
+
+function allCardsForList(listId) {
+  return [...(state.board?.cards || [])].filter((card) => card.idList === listId);
 }
 
 function visibleCardsForList(listId) {
@@ -1303,7 +1381,7 @@ function listById(listId) {
 }
 
 function getSelectedCard() {
-  return (state.board?.cards || []).find((card) => card.id === state.selectedCardId && !card.closed && !isCardArchived(card)) || null;
+  return (state.board?.cards || []).find((card) => card.id === state.selectedCardId) || null;
 }
 
 function isCardDone(card) {
@@ -1311,12 +1389,12 @@ function isCardDone(card) {
 }
 
 function isCardArchived(card) {
-  return Boolean(card?.kanbanQubeArchived);
+  return Boolean(card?.closed);
 }
 
 function archivedCards() {
   return [...(state.board?.cards || [])]
-    .filter((card) => !card.closed && isCardArchived(card))
+    .filter((card) => isCardArchived(card))
     .sort((left, right) => {
       const leftDate = Date.parse(left.dateLastActivity || 0);
       const rightDate = Date.parse(right.dateLastActivity || 0);
@@ -1497,6 +1575,7 @@ function humanizeAction(action) {
   const actor = action.memberCreator?.fullName || action.memberCreator?.username || "Someone";
   const verbs = {
     createCard: "created this card",
+    deleteCard: "deleted this card",
     updateCard: "updated this card",
     updateBoard: "updated the board",
     createList: "created a lane",
@@ -1507,11 +1586,47 @@ function humanizeAction(action) {
   return `${actor} ${verbs[action.type] || action.type}`;
 }
 
+function migrateLegacyBoardData() {
+  let changed = false;
+  for (const card of state.board?.cards || []) {
+    if (card.kanbanQubeArchived) {
+      if (!card.closed) {
+        card.closed = true;
+      }
+      delete card.kanbanQubeArchived;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function removeCardCompletely(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
+  if (!card) return;
+  touchCard(card);
+  state.board.actions = (state.board.actions || []).filter((action) => {
+    const targetCardId = action?.data?.idCard || action?.data?.card?.id;
+    return targetCardId !== cardId;
+  });
+  pushAction("deleteCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" }
+  });
+  state.board.cards = (state.board.cards || []).filter((candidate) => candidate.id !== cardId);
+  state.board.checklists = (state.board.checklists || []).filter((checklist) => checklist.idCard !== cardId);
+}
+
 function openArchiveDialog() {
   renderArchiveDialog();
   if (!archiveDialog.open) {
     archiveDialog.showModal();
   }
+}
+
+function openArchivedCard(cardId) {
+  archiveDialog.close();
+  openCard(cardId);
 }
 
 function hydrateIdentityFromGitConfig() {
