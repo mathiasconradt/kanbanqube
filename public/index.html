@@ -27,7 +27,6 @@
         </label>
 
         <div class="topbar-actions">
-          <button id="addLaneButton" class="primary-button" type="button">Add lane</button>
           <button id="syncButton" class="ghost-button" type="button">Sync</button>
           <button id="settingsButton" class="ghost-button" type="button">Settings</button>
         </div>
@@ -59,15 +58,14 @@
 
         <div class="modal-grid">
           <section class="modal-main">
-            <label class="field">
-              <span>Description</span>
-              <textarea id="cardDescriptionInput" rows="6" placeholder="Add a description"></textarea>
-            </label>
-
-            <label class="field">
-              <span>Lane</span>
-              <select id="cardLaneSelect"></select>
-            </label>
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Description</h2>
+                <button id="editDescriptionButton" class="ghost-button" type="button">Edit</button>
+              </div>
+              <div id="cardDescriptionDisplay" class="description-display"></div>
+              <textarea id="cardDescriptionInput" rows="8" placeholder="Add a description" hidden></textarea>
+            </section>
 
             <section class="checklists-panel">
               <div class="panel-header">
@@ -128,6 +126,11 @@
         <label class="field">
           <span>Board title</span>
           <input id="settingsBoardName" type="text" maxlength="200" placeholder="Board title" />
+        </label>
+
+        <label class="checkbox-field">
+          <input id="settingsShowCardDescriptions" type="checkbox" />
+          <span>Show card descriptions in board lanes</span>
         </label>
 
         <div class="settings-meta">

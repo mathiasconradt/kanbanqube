@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 
 const http = require("node:http");
@@ -7,11 +8,12 @@ const path = require("node:path");
 const { spawn, execFile } = require("node:child_process");
 const crypto = require("node:crypto");
 
-const ROOT_DIR = __dirname;
-const PUBLIC_DIR = path.join(ROOT_DIR, "public");
+const APP_DIR = __dirname;
+const WORKSPACE_DIR = resolveWorkspaceDirectory(process.argv[2]);
+const PUBLIC_DIR = path.join(APP_DIR, "public");
 const BOARD_FILE_NAME = "board.json";
-const BOARD_FILE_PATH = path.join(ROOT_DIR, BOARD_FILE_NAME);
-const SAMPLE_EXPORT_DIR = path.join(ROOT_DIR, "trello_export");
+const BOARD_FILE_PATH = path.join(WORKSPACE_DIR, BOARD_FILE_NAME);
+const SAMPLE_EXPORT_DIR = path.join(WORKSPACE_DIR, "trello_export");
 const PORT = Number(process.env.PORT || 3000);
 const gitExecutableCandidates = [
   "/usr/bin/git",
@@ -39,10 +41,11 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && url.pathname === "/api/config") {
       return sendJson(response, 200, {
         boardFile: BOARD_FILE_NAME,
-        hasGitRepo: await hasGitRepository(ROOT_DIR),
-        gitRemote: await gitRemoteOrigin(ROOT_DIR),
-        gitUserName: await gitUserName(ROOT_DIR),
-        gitUserEmail: await gitUserEmail(ROOT_DIR)
+        workspacePath: WORKSPACE_DIR,
+        hasGitRepo: await hasGitRepository(WORKSPACE_DIR),
+        gitRemote: await gitRemoteOrigin(WORKSPACE_DIR),
+        gitUserName: await gitUserName(WORKSPACE_DIR),
+        gitUserEmail: await gitUserEmail(WORKSPACE_DIR)
       });
     }
 
@@ -69,7 +72,7 @@ const server = http.createServer(async (request, response) => {
 
 server.listen(PORT, async () => {
   await ensureBoardFile();
-  console.log(`KanbanQube running on http://localhost:${PORT}`);
+  console.log(`KanbanQube running on http://localhost:${PORT} (workspace: ${WORKSPACE_DIR})`);
 });
 
 async function serveStatic(requestPath, response) {
@@ -587,46 +590,53 @@ function defaultBoardSkeleton() {
 }
 
 async function syncBoardRepository() {
-  if (!(await hasGitRepository(ROOT_DIR))) {
+  if (!(await hasGitRepository(WORKSPACE_DIR))) {
     return {
       ok: false,
-      output: "This folder does not contain a .git directory."
+      output: `This folder does not contain a .git directory.\nWorkspace: ${WORKSPACE_DIR}`
     };
   }
 
-  const remote = await gitRemoteOrigin(ROOT_DIR);
+  const remote = await gitRemoteOrigin(WORKSPACE_DIR);
   const output = [];
-  await checkSshAuth(ROOT_DIR, remote, output);
+  await checkSshAuth(WORKSPACE_DIR, remote, output);
 
-  const pull = await runGit(ROOT_DIR, ["pull", "--ff-only"]);
+  const pull = await runGit(WORKSPACE_DIR, ["pull", "--ff-only"]);
   output.push(formatGitCommandOutput("git pull --ff-only", pull));
   if (pull.code !== 0) {
     return { ok: false, output: output.join("\n\n") };
   }
 
-  const status = await runGit(ROOT_DIR, ["status", "--porcelain", "--", BOARD_FILE_NAME]);
+  const status = await runGit(WORKSPACE_DIR, ["status", "--porcelain", "--", BOARD_FILE_NAME]);
   output.push(formatGitCommandOutput("git status --porcelain -- board.json", status, status.stdout.trim() ? "" : "Board file is clean."));
   if (status.code !== 0) {
     return { ok: false, output: output.join("\n\n") };
   }
 
   if (status.stdout.trim()) {
-    const add = await runGit(ROOT_DIR, ["add", "--", BOARD_FILE_NAME]);
+    const add = await runGit(WORKSPACE_DIR, ["add", "--", BOARD_FILE_NAME]);
     output.push(formatGitCommandOutput("git add -- board.json", add));
     if (add.code !== 0) {
       return { ok: false, output: output.join("\n\n") };
     }
 
-    const commit = await runGit(ROOT_DIR, ["commit", "-m", "Update KanbanQube board"]);
+    const commit = await runGit(WORKSPACE_DIR, ["commit", "-m", "Update KanbanQube board"]);
     output.push(formatGitCommandOutput("git commit -m \"Update KanbanQube board\"", commit));
     if (commit.code !== 0) {
       return { ok: false, output: output.join("\n\n") };
     }
   }
 
-  const push = await runGit(ROOT_DIR, ["push"]);
+  const push = await runGit(WORKSPACE_DIR, ["push"]);
   output.push(formatGitCommandOutput("git push", push));
   return { ok: push.code === 0, output: output.join("\n\n") };
+}
+
+function resolveWorkspaceDirectory(argument) {
+  if (typeof argument === "string" && argument.trim()) {
+    return path.resolve(argument);
+  }
+  return process.cwd();
 }
 
 async function hasGitRepository(rootPath) {

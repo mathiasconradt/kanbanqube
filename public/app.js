@@ -2,15 +2,18 @@
 
 const USER_STORAGE_KEY = "kanbanqube.userName";
 const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
+const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
 
 const state = {
   board: null,
   config: null,
   currentUserName: localStorage.getItem(USER_STORAGE_KEY) || "",
   currentUserEmail: localStorage.getItem(USER_EMAIL_STORAGE_KEY) || "",
+  showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
   searchTerm: "",
   labelSearchTerm: "",
   labelEditorOpen: false,
+  descriptionEditing: false,
   selectedCardId: null,
   saveTimer: null,
   isSaving: false,
@@ -24,14 +27,14 @@ const boardFileBadge = document.getElementById("boardFileBadge");
 const userBadge = document.getElementById("userBadge");
 const searchInput = document.getElementById("searchInput");
 const saveStatus = document.getElementById("saveStatus");
-const addLaneButton = document.getElementById("addLaneButton");
 const syncButton = document.getElementById("syncButton");
 const settingsButton = document.getElementById("settingsButton");
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
+const cardDescriptionDisplay = document.getElementById("cardDescriptionDisplay");
 const cardDescriptionInput = document.getElementById("cardDescriptionInput");
-const cardLaneSelect = document.getElementById("cardLaneSelect");
+const editDescriptionButton = document.getElementById("editDescriptionButton");
 const checklistsContainer = document.getElementById("checklistsContainer");
 const cardLabels = document.getElementById("cardLabels");
 const labelEditorContainer = document.getElementById("labelEditorContainer");
@@ -47,6 +50,7 @@ const settingsDialog = document.getElementById("settingsDialog");
 const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsBoardName = document.getElementById("settingsBoardName");
+const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsBoardFile = document.getElementById("settingsBoardFile");
 const settingsRemote = document.getElementById("settingsRemote");
 const saveSettingsButton = document.getElementById("saveSettingsButton");
@@ -117,34 +121,6 @@ function wireEvents() {
     renderBoard();
   });
 
-  addLaneButton.addEventListener("click", async () => {
-    const title = await openPrompt({
-      label: "Lane",
-      title: "Create a lane",
-      inputLabel: "Lane name",
-      confirmLabel: "Create",
-      value: ""
-    });
-
-    if (!title) return;
-
-    const list = {
-      id: createHexId(),
-      idBoard: state.board.id,
-      name: title,
-      closed: false,
-      pos: nextLanePos()
-    };
-
-    state.board.lists.push(list);
-    pushAction("createList", {
-      list: { id: list.id, name: list.name },
-      board: { id: state.board.id, name: state.board.name }
-    });
-    queueSave("Lane added");
-    render();
-  });
-
   settingsButton.addEventListener("click", openSettingsDialog);
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
   saveSettingsButton.addEventListener("click", saveSettings);
@@ -158,6 +134,7 @@ function wireEvents() {
   addLabelButton.addEventListener("click", toggleLabelEditor);
   addCommentButton.addEventListener("click", addCommentToSelectedCard);
   addChecklistButton.addEventListener("click", addChecklistToSelectedCard);
+  editDescriptionButton.addEventListener("click", toggleDescriptionEditing);
 
   commentInput.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -183,12 +160,7 @@ function wireEvents() {
     touchCard(card);
     queueSave("Card updated");
     renderBoard();
-  });
-
-  cardLaneSelect.addEventListener("change", () => {
-    const card = getSelectedCard();
-    if (!card) return;
-    moveCardToLane(card, cardLaneSelect.value);
+    renderCardDialog();
   });
 
   promptCancelButton.addEventListener("click", () => promptDialog.close("cancel"));
@@ -200,6 +172,7 @@ function wireEvents() {
 
   cardDialog.addEventListener("close", () => {
     state.selectedCardId = null;
+    state.descriptionEditing = false;
   });
 }
 
@@ -249,9 +222,37 @@ function renderBoard() {
   button.type = "button";
   button.className = "ghost-button";
   button.textContent = "+ Add another lane";
-  button.addEventListener("click", () => addLaneButton.click());
+  button.addEventListener("click", createLane);
   addLaneCard.append(button);
   boardScroller.append(addLaneCard);
+}
+
+async function createLane() {
+  const title = await openPrompt({
+    label: "Lane",
+    title: "Create a lane",
+    inputLabel: "Lane name",
+    confirmLabel: "Create",
+    value: ""
+  });
+
+  if (!title) return;
+
+  const list = {
+    id: createHexId(),
+    idBoard: state.board.id,
+    name: title,
+    closed: false,
+    pos: nextLanePos()
+  };
+
+  state.board.lists.push(list);
+  pushAction("createList", {
+    list: { id: list.id, name: list.name },
+    board: { id: state.board.id, name: state.board.name }
+  });
+  queueSave("Lane added");
+  render();
 }
 
 function renderCard(card) {
@@ -279,8 +280,9 @@ function renderCard(card) {
   const hasTitle = Boolean(card.name && card.name.trim());
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
-  node.querySelector(".card-description").textContent = card.desc || "";
-  node.querySelector(".card-description").hidden = !card.desc;
+  const descriptionNode = node.querySelector(".card-description");
+  descriptionNode.textContent = card.desc || "";
+  descriptionNode.hidden = !state.showCardDescriptions || !card.desc;
 
   const footer = node.querySelector(".card-footer");
   for (const badge of buildCardBadges(card)) {
@@ -301,15 +303,10 @@ function renderCardDialog() {
   cardTitleInput.value = card.name || "";
   cardDescriptionInput.value = card.desc || "";
   commentInput.value = "";
-
-  cardLaneSelect.textContent = "";
-  for (const list of openLists()) {
-    const option = document.createElement("option");
-    option.value = list.id;
-    option.textContent = list.name;
-    option.selected = list.id === card.idList;
-    cardLaneSelect.append(option);
-  }
+  renderDescriptionDisplay(card.desc || "");
+  cardDescriptionDisplay.hidden = state.descriptionEditing;
+  cardDescriptionInput.hidden = !state.descriptionEditing;
+  editDescriptionButton.textContent = state.descriptionEditing ? "Done" : "Edit";
 
   renderLabelsEditor(card);
   renderChecklists(card);
@@ -783,6 +780,7 @@ function openCard(cardId) {
   state.selectedCardId = cardId;
   state.labelEditorOpen = false;
   state.labelSearchTerm = "";
+  state.descriptionEditing = false;
   renderCardDialog();
   if (!cardDialog.open) {
     cardDialog.showModal();
@@ -826,26 +824,132 @@ function addChecklistToSelectedCard() {
   renderBoard();
 }
 
+function toggleDescriptionEditing() {
+  state.descriptionEditing = !state.descriptionEditing;
+  renderCardDialog();
+  if (state.descriptionEditing) {
+    cardDescriptionInput.focus();
+    cardDescriptionInput.setSelectionRange(cardDescriptionInput.value.length, cardDescriptionInput.value.length);
+  }
+}
+
+function renderDescriptionDisplay(text) {
+  const content = typeof text === "string" ? text : "";
+  cardDescriptionDisplay.textContent = "";
+  cardDescriptionDisplay.classList.toggle("is-empty", !content.trim());
+
+  if (!content.trim()) {
+    cardDescriptionDisplay.textContent = "No description yet.";
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  const blocks = content.split(/\n{2,}/);
+
+  for (const block of blocks) {
+    const headingMatch = block.trim().match(/^(#{1,6})\s+(.+)$/);
+    const node = headingMatch
+      ? document.createElement(`h${headingMatch[1].length}`)
+      : document.createElement("p");
+    const blockContent = headingMatch ? headingMatch[2] : block;
+    const lines = blockContent.split("\n");
+
+    lines.forEach((line, index) => {
+      appendFormattedText(node, line);
+      if (index < lines.length - 1) {
+        node.append(document.createElement("br"));
+      }
+    });
+
+    fragment.append(node);
+  }
+
+  cardDescriptionDisplay.append(fragment);
+}
+
+function appendFormattedText(container, text) {
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)|(https?:\/\/[^\s<]+)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      container.append(document.createTextNode(text.slice(lastIndex, match.index)));
+    }
+
+    const label = match[1];
+    const href = match[2] || match[4];
+    const title = match[3] || "";
+    const link = createSafeLink(label || href, href, title);
+
+    if (link) {
+      container.append(link);
+    } else {
+      container.append(document.createTextNode(match[0]));
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    container.append(document.createTextNode(text.slice(lastIndex)));
+  }
+}
+
+function createSafeLink(label, href, title = "") {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(href);
+  } catch {
+    return null;
+  }
+
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    return null;
+  }
+
+  const link = document.createElement("a");
+  link.href = parsedUrl.toString();
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = label;
+  if (title) link.title = title;
+  return link;
+}
+
 function saveSettings() {
   const nextBoardName = settingsBoardName.value.trim() || "KanbanQube Board";
+  const nextShowCardDescriptions = settingsShowCardDescriptions.checked;
+  let didPersistLocalSetting = false;
+
+  if (state.showCardDescriptions !== nextShowCardDescriptions) {
+    state.showCardDescriptions = nextShowCardDescriptions;
+    localStorage.setItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY, String(nextShowCardDescriptions));
+    didPersistLocalSetting = true;
+  }
+
   if (state.board.name !== nextBoardName) {
     state.board.name = nextBoardName;
     pushAction("updateBoard", {
       board: { id: state.board.id, name: state.board.name }
     });
     queueSave("Settings saved");
+  } else if (didPersistLocalSetting) {
+    setSaveMessage("Settings saved locally");
+    renderBoard();
   } else {
     setSaveMessage("Settings saved locally");
   }
 
   settingsDialog.close();
-  renderHeader();
+  render();
 }
 
 function openSettingsDialog() {
   settingsUserName.value = state.currentUserName;
   settingsUserEmail.value = state.currentUserEmail;
   settingsBoardName.value = state.board?.name || "";
+  settingsShowCardDescriptions.checked = state.showCardDescriptions;
 
   if (!settingsDialog.open) {
     settingsDialog.showModal();

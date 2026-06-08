@@ -2,7 +2,9 @@
   "name": "kanbanqube",
   "version": "1.0.0",
   "description": "Git-synced Trello-style Kanban board with a single JSON data file",
-  "private": true,
+  "bin": {
+    "kanbanqube": "./server.js"
+  },
   "scripts": {
     "start": "node server.js",
     "test": "node --check server.js && node --check public/app.js"
