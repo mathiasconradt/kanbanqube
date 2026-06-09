@@ -1,16 +1,19 @@
 :root {
   color-scheme: dark;
   --ui-scale: 0.75;
-  --bg-top: #20232b;
-  --bg-board: linear-gradient(180deg, #154289 0%, #0a214d 100%);
-  --panel: rgba(21, 24, 29, 0.92);
-  --panel-2: rgba(36, 39, 45, 0.96);
-  --panel-3: rgba(44, 48, 55, 0.96);
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #ecf0f7;
-  --muted: #a8b3c7;
-  --accent: #4f8cff;
-  --accent-2: #2f6dde;
+  --bg-top: rgba(24, 27, 31, 0.96);
+  --bg-board:
+    radial-gradient(circle at 70% 18%, rgba(78, 75, 116, 0.34) 0%, rgba(78, 75, 116, 0) 30%),
+    radial-gradient(circle at 12% 8%, rgba(205, 211, 218, 0.2) 0%, rgba(205, 211, 218, 0) 28%),
+    linear-gradient(145deg, #2d333b 0%, #20242b 42%, #15181e 100%);
+  --panel: rgba(30, 33, 38, 0.93);
+  --panel-2: rgba(45, 49, 56, 0.96);
+  --panel-3: rgba(55, 59, 66, 0.96);
+  --border: rgba(236, 240, 247, 0.1);
+  --text: #f1f3f6;
+  --muted: #bbc0ca;
+  --accent: #a9b4d8;
+  --accent-2: #747fae;
   --success: #22c55e;
   --warning: #f4b400;
   --danger: #ff6b6b;
@@ -27,7 +30,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: #09152c;
+  background: #15181e;
   color: var(--text);
 }
 
@@ -76,11 +79,20 @@ button {
 .brand-mark {
   width: calc(40px * var(--ui-scale));
   height: calc(40px * var(--ui-scale));
+  padding: 0;
   border-radius: calc(12px * var(--ui-scale));
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
   display: grid;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.brand-mark:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07));
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .brand-mark span {
@@ -96,6 +108,64 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+}
+
+.about-dialog {
+  width: auto;
+  max-width: 92vw;
+  max-height: 92vh;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.about-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.74);
+  backdrop-filter: blur(10px);
+}
+
+.about-figure {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0;
+  line-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.about-figure img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+}
+
+.about-figure figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  padding: 0 2rem;
+  color: #fff;
+  font-size: clamp(0.78rem, 0.9vw, 1rem);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+}
+
+.about-figure figcaption a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 400;
 }
 
 .save-status-button {
@@ -174,7 +244,7 @@ button {
 
 .primary-button {
   background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-  border-color: rgba(79, 140, 255, 0.65);
+  border-color: rgba(188, 197, 230, 0.5);
 }
 
 .danger-button {
@@ -332,7 +402,7 @@ button {
 }
 
 .card.is-file-drop-target {
-  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline: 2px solid rgba(188, 197, 230, 0.86);
   outline-offset: 3px;
 }
 
@@ -983,9 +1053,9 @@ button {
 }
 
 .attachment-drop-zone.is-dragging {
-  border-color: rgba(96, 165, 250, 0.85);
+  border-color: rgba(188, 197, 230, 0.76);
   color: var(--text);
-  background: rgba(59, 130, 246, 0.14);
+  background: rgba(116, 127, 174, 0.18);
 }
 
 .attachments-list {
@@ -1017,8 +1087,8 @@ button {
   min-width: 44px;
   padding: 0.3rem 0.45rem;
   border-radius: calc(10px * var(--ui-scale));
-  background: rgba(59, 130, 246, 0.22);
-  color: #b8d3ff;
+  background: rgba(116, 127, 174, 0.24);
+  color: #d8deef;
   font-size: 0.72rem;
   font-weight: 800;
   text-align: center;

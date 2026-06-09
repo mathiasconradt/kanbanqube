@@ -43,6 +43,8 @@ const state = {
 };
 
 const boardScroller = document.getElementById("boardScroller");
+const aboutButton = document.getElementById("aboutButton");
+const aboutDialog = document.getElementById("aboutDialog");
 const boardTitle = document.getElementById("boardTitle");
 const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
 const boardFileBadge = document.getElementById("boardFileBadge");
@@ -170,6 +172,13 @@ async function bootstrap() {
 }
 
 function wireEvents() {
+  aboutButton.addEventListener("click", openAboutDialog);
+  aboutDialog.addEventListener("click", (event) => {
+    if (event.target === aboutDialog) {
+      aboutDialog.close();
+    }
+  });
+
   searchInput.addEventListener("input", () => {
     state.searchTerm = searchInput.value.trim().toLowerCase();
     renderBoard();
@@ -267,6 +276,12 @@ function wireEvents() {
     state.selectedCardId = null;
     state.descriptionEditing = false;
   });
+}
+
+function openAboutDialog() {
+  if (!aboutDialog.open) {
+    aboutDialog.showModal();
+  }
 }
 
 function render() {

@@ -93,6 +93,10 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, result.ok ? 200 : 500, result);
     }
 
+    if (request.method === "GET" && url.pathname === "/about.jpg") {
+      return serveRootAsset("about.jpg", response);
+    }
+
     if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
       return serveUpload(url.pathname, response);
     }
@@ -125,6 +129,24 @@ async function serveStatic(requestPath, response) {
     return sendText(response, 403, "Forbidden.");
   }
 
+  try {
+    const stat = await fs.stat(filePath);
+    if (!stat.isFile()) return sendText(response, 404, "Not found.");
+    const ext = path.extname(filePath).toLowerCase();
+    const body = await fs.readFile(filePath);
+    response.writeHead(200, {
+      "Content-Type": mimeTypes[ext] || "application/octet-stream",
+      "Cache-Control": "no-store"
+    });
+    response.end(body);
+  } catch (error) {
+    if (error.code === "ENOENT") return sendText(response, 404, "Not found.");
+    throw error;
+  }
+}
+
+async function serveRootAsset(fileName, response) {
+  const filePath = path.join(APP_DIR, fileName);
   try {
     const stat = await fs.stat(filePath);
     if (!stat.isFile()) return sendText(response, 404, "Not found.");
@@ -801,9 +823,9 @@ async function syncBoardRepository() {
     return result;
   }
 
-  commandIndex = startCommand("git status --porcelain -- board.json");
-  const status = await runGit(WORKSPACE_DIR, ["status", "--porcelain", "--", BOARD_FILE_NAME]);
-  finishCommand(commandIndex, formatGitCommandOutput("git status --porcelain -- board.json", status, status.stdout.trim() ? "" : "Board file is clean."));
+  commandIndex = startCommand("git status --porcelain");
+  const status = await runGit(WORKSPACE_DIR, ["status", "--porcelain"]);
+  finishCommand(commandIndex, formatGitCommandOutput("git status --porcelain", status, status.stdout.trim() ? "" : "Repository is clean."));
   if (status.code !== 0) {
     const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
     Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
@@ -811,18 +833,18 @@ async function syncBoardRepository() {
   }
 
   if (status.stdout.trim()) {
-    commandIndex = startCommand("git add -- board.json");
-    const add = await runGit(WORKSPACE_DIR, ["add", "--", BOARD_FILE_NAME]);
-    finishCommand(commandIndex, formatGitCommandOutput("git add -- board.json", add));
+    commandIndex = startCommand("git add --all");
+    const add = await runGit(WORKSPACE_DIR, ["add", "--all"]);
+    finishCommand(commandIndex, formatGitCommandOutput("git add --all", add));
     if (add.code !== 0) {
       const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
       Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
       return result;
     }
 
-    commandIndex = startCommand("git commit -m \"Update KanbanQube board\"");
-    const commit = await runGit(WORKSPACE_DIR, ["commit", "-m", "Update KanbanQube board"]);
-    finishCommand(commandIndex, formatGitCommandOutput("git commit -m \"Update KanbanQube board\"", commit));
+    commandIndex = startCommand("git commit -m \"Update KanbanQube vault\"");
+    const commit = await runGit(WORKSPACE_DIR, ["commit", "-m", "Update KanbanQube vault"]);
+    finishCommand(commandIndex, formatGitCommandOutput("git commit -m \"Update KanbanQube vault\"", commit));
     if (commit.code !== 0) {
       const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
       Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });

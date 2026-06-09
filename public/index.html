@@ -11,9 +11,9 @@
     <div class="app-shell">
       <header class="topbar">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
+          <button id="aboutButton" class="brand-mark" type="button" aria-label="About KanbanQube">
             <span>看</span>
-          </div>
+          </button>
           <div class="brand-copy">
             <strong>KanbanQube</strong>
             <button id="saveStatus" class="save-status-button" type="button">Loading board…</button>
@@ -234,6 +234,16 @@
           <button id="appDialogConfirmButton" type="submit" class="primary-button" value="confirm">Confirm</button>
         </footer>
       </form>
+    </dialog>
+
+    <dialog id="aboutDialog" class="about-dialog">
+      <figure class="about-figure">
+        <img src="/about.jpg" alt="KanbanQube" />
+        <figcaption>
+          <span>KanbanQube • &copy; Mathias Conradt • Apache 2.0 License</span>
+          <a href="https://github.com/mathiasconradt/kanbanqube" target="_blank" rel="noopener noreferrer">⌘ https://github.com/mathiasconradt/kanbanqube</a>
+        </figcaption>
+      </figure>
     </dialog>
 
     <template id="laneTemplate">

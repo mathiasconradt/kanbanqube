@@ -1,6 +1,6 @@
 # KanbanQube
 
-![KanbanQube preview](promo.png)
+![KanbanQube preview](promo.jpg)
 
 KanbanQube is a local-first Kanban board app backed by a single `board.json` file. It is designed for personal or team workflows where the board should live in a normal folder, optionally inside a Git repository, so changes can be versioned and synced with the tools you already use.
 
@@ -95,8 +95,8 @@ When Sync runs, KanbanQube:
 
 1. Saves pending board changes.
 2. Runs `git pull --ff-only`.
-3. Checks whether `board.json` changed.
-4. Stages and commits `board.json` when needed.
+3. Checks whether anything in the vault repository changed.
+4. Stages and commits all repository changes when needed, including `board.json`, `uploads/`, and newly added files.
 5. Pushes to the configured remote.
 
 If the vault is not a Git repository, or no remote is configured, Sync stays disabled. You can still use the board locally.
