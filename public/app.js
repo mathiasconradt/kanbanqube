@@ -63,6 +63,7 @@ const closeArchiveButton = document.getElementById("closeArchiveButton");
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
 const archivedCardBanner = document.getElementById("archivedCardBanner");
+const cardDetailsCover = document.getElementById("cardDetailsCover");
 const cardDescriptionDisplay = document.getElementById("cardDescriptionDisplay");
 const cardDescriptionInput = document.getElementById("cardDescriptionInput");
 const editDescriptionButton = document.getElementById("editDescriptionButton");
@@ -461,6 +462,9 @@ function renderCardDialog() {
 
   cardTitleInput.value = card.name || "";
   archivedCardBanner.hidden = !isCardArchived(card);
+  const coverUrl = coverUrlForCard(card);
+  cardDetailsCover.hidden = !coverUrl;
+  cardDetailsCover.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : "";
   cardDescriptionInput.value = card.desc || "";
   commentInput.value = "";
   renderDescriptionDisplay(card.desc || "");
@@ -1128,7 +1132,7 @@ function renderDescriptionDisplay(text) {
     const lines = blockContent.split("\n");
 
     lines.forEach((line, index) => {
-      appendFormattedText(node, line);
+      appendFormattedLine(node, line);
       if (index < lines.length - 1) {
         node.append(document.createElement("br"));
       }
@@ -1138,6 +1142,22 @@ function renderDescriptionDisplay(text) {
   }
 
   cardDescriptionDisplay.append(fragment);
+}
+
+function appendFormattedLine(container, text) {
+  const imageMatch = text.trim().match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)$/);
+  if (!imageMatch) {
+    appendFormattedText(container, text);
+    return;
+  }
+
+  const image = createSafeImage(imageMatch[2], unescapeMarkdownText(imageMatch[1]), imageMatch[3] || "");
+  if (image) {
+    container.append(image);
+    return;
+  }
+
+  appendFormattedText(container, text);
 }
 
 function appendFormattedText(container, text) {
@@ -1170,6 +1190,37 @@ function appendFormattedText(container, text) {
   }
 }
 
+function createSafeImage(href, alt = "", title = "") {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(href);
+  } catch {
+    return null;
+  }
+
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    return null;
+  }
+
+  const link = document.createElement("a");
+  link.className = "description-image-link";
+  link.href = parsedUrl.toString();
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  if (title) link.title = title;
+
+  const image = document.createElement("img");
+  image.className = "description-image";
+  image.src = parsedUrl.toString();
+  image.alt = alt || title || "Attached image";
+  image.loading = "lazy";
+  image.decoding = "async";
+  if (title) image.title = title;
+
+  link.append(image);
+  return link;
+}
+
 function createSafeLink(label, href, title = "") {
   let parsedUrl;
   try {
@@ -1189,6 +1240,10 @@ function createSafeLink(label, href, title = "") {
   link.textContent = label;
   if (title) link.title = title;
   return link;
+}
+
+function unescapeMarkdownText(text) {
+  return String(text).replace(/\\([\\`*_[\]{}()#+\-.!|>])/g, "$1");
 }
 
 function saveSettings() {
