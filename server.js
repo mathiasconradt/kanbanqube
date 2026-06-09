@@ -13,6 +13,8 @@ const WORKSPACE_DIR = resolveWorkspaceDirectory(process.argv[2]);
 const PUBLIC_DIR = path.join(APP_DIR, "public");
 const BOARD_FILE_NAME = "board.json";
 const BOARD_FILE_PATH = path.join(WORKSPACE_DIR, BOARD_FILE_NAME);
+const UPLOADS_DIR_NAME = "uploads";
+const UPLOADS_DIR = path.join(WORKSPACE_DIR, UPLOADS_DIR_NAME);
 const SAMPLE_EXPORT_DIR = path.join(WORKSPACE_DIR, "trello_export");
 const PORT = Number(process.env.PORT || 3000);
 const gitExecutableCandidates = [
@@ -34,7 +36,14 @@ const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml"
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".pdf": "application/pdf",
+  ".txt": "text/plain; charset=utf-8"
 };
 
 const server = http.createServer(async (request, response) => {
@@ -62,6 +71,11 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, 200, board);
     }
 
+    if (request.method === "POST" && url.pathname === "/api/uploads") {
+      const files = await saveUploadedFiles(request);
+      return sendJson(response, 200, { files });
+    }
+
     if (request.method === "GET" && url.pathname === "/api/sync-status") {
       return sendJson(response, 200, syncStatus);
     }
@@ -77,6 +91,10 @@ const server = http.createServer(async (request, response) => {
       }
       const result = await syncBoardRepository();
       return sendJson(response, result.ok ? 200 : 500, result);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
+      return serveUpload(url.pathname, response);
     }
 
     if (request.method === "GET") {
@@ -123,6 +141,34 @@ async function serveStatic(requestPath, response) {
   }
 }
 
+async function serveUpload(requestPath, response) {
+  let relativePath = decodeURIComponent(requestPath.slice(`/${UPLOADS_DIR_NAME}/`.length));
+  if (!relativePath || relativePath.includes("\0") || relativePath.includes("/") || relativePath.includes("\\")) {
+    return sendText(response, 400, "Invalid upload path.");
+  }
+
+  relativePath = path.basename(relativePath);
+  const filePath = path.join(UPLOADS_DIR, relativePath);
+  if (!filePath.startsWith(UPLOADS_DIR)) {
+    return sendText(response, 403, "Forbidden.");
+  }
+
+  try {
+    const stat = await fs.stat(filePath);
+    if (!stat.isFile()) return sendText(response, 404, "Not found.");
+    const ext = path.extname(filePath).toLowerCase();
+    const body = await fs.readFile(filePath);
+    response.writeHead(200, {
+      "Content-Type": mimeTypes[ext] || "application/octet-stream",
+      "Cache-Control": "no-store"
+    });
+    response.end(body);
+  } catch (error) {
+    if (error.code === "ENOENT") return sendText(response, 404, "Not found.");
+    throw error;
+  }
+}
+
 async function readJsonBody(request) {
   const chunks = [];
   let size = 0;
@@ -136,6 +182,87 @@ async function readJsonBody(request) {
 
   const raw = Buffer.concat(chunks).toString("utf8").trim();
   return raw ? JSON.parse(raw) : {};
+}
+
+async function readBody(request, maxSize = 25 * 1024 * 1024) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maxSize) {
+      throw new Error("Request body too large.");
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+async function saveUploadedFiles(request) {
+  const contentType = request.headers["content-type"] || "";
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) {
+    throw new Error("Upload request must use multipart/form-data.");
+  }
+
+  const boundary = boundaryMatch[1] || boundaryMatch[2];
+  const body = await readBody(request);
+  const parts = parseMultipartBody(body, boundary);
+  await fs.mkdir(UPLOADS_DIR, { recursive: true });
+
+  const files = [];
+  for (const part of parts) {
+    if (!part.filename || part.data.length === 0) continue;
+    const originalName = displayOriginalFileName(part.filename);
+    const storedName = createStoredFileName(originalName);
+    const filePath = path.join(UPLOADS_DIR, storedName);
+    await fs.writeFile(filePath, part.data);
+    files.push({
+      id: createHexId(),
+      name: originalName,
+      fileName: storedName,
+      url: `/${UPLOADS_DIR_NAME}/${encodeURIComponent(storedName)}`,
+      mimeType: part.contentType || mimeTypeForFileName(originalName),
+      bytes: part.data.length,
+      date: new Date().toISOString(),
+      isUpload: true
+    });
+  }
+
+  return files;
+}
+
+function parseMultipartBody(body, boundary) {
+  const delimiter = Buffer.from(`--${boundary}`);
+  const parts = [];
+  let start = body.indexOf(delimiter);
+
+  while (start !== -1) {
+    start += delimiter.length;
+    if (body[start] === 45 && body[start + 1] === 45) break;
+    if (body[start] === 13 && body[start + 1] === 10) start += 2;
+
+    const next = body.indexOf(delimiter, start);
+    if (next === -1) break;
+
+    let part = body.subarray(start, next);
+    if (part.length >= 2 && part[part.length - 2] === 13 && part[part.length - 1] === 10) {
+      part = part.subarray(0, part.length - 2);
+    }
+
+    const headerEnd = part.indexOf(Buffer.from("\r\n\r\n"));
+    if (headerEnd !== -1) {
+      const rawHeaders = part.subarray(0, headerEnd).toString("utf8");
+      const data = part.subarray(headerEnd + 4);
+      const disposition = rawHeaders.match(/content-disposition:\s*([^\r\n]+)/i)?.[1] || "";
+      const contentType = rawHeaders.match(/content-type:\s*([^\r\n]+)/i)?.[1]?.trim() || "";
+      const filename = disposition.match(/filename="([^"]*)"/i)?.[1] || "";
+      parts.push({ filename, contentType, data });
+    }
+
+    start = next;
+  }
+
+  return parts;
 }
 
 function sendJson(response, statusCode, payload) {
@@ -153,6 +280,28 @@ function sendText(response, statusCode, body) {
     "Cache-Control": "no-store"
   });
   response.end(body);
+}
+
+function displayOriginalFileName(value) {
+  const baseName = path.basename(String(value || "attachment"));
+  return baseName.replace(/[\0\r\n]/g, "").trim() || "attachment";
+}
+
+function createStoredFileName(originalName) {
+  const ext = path.extname(originalName);
+  const base = sanitizeStoredFileName(path.basename(originalName, ext) || "attachment");
+  const stamp = new Date().toISOString().replace(/[^0-9A-Za-z]/g, "");
+  const suffix = crypto.randomBytes(3).toString("hex");
+  return `${base}.kbq_${stamp}${suffix}${ext}`;
+}
+
+function sanitizeStoredFileName(value) {
+  return String(value).replace(/[^\w()[\]-]+/g, "_").replace(/^_+|_+$/g, "") || "attachment";
+}
+
+function mimeTypeForFileName(fileName) {
+  const ext = path.extname(fileName).toLowerCase();
+  return mimeTypes[ext] || "application/octet-stream";
 }
 
 async function ensureBoardFile() {

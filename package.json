@@ -1,7 +1,7 @@
 {
   "name": "kanbanqube",
   "version": "1.0.0",
-  "description": "Git-synced Trello-style Kanban board with a single JSON data file",
+  "description": "Git-synced Kanban board with a single JSON data file",
   "bin": {
     "kanbanqube": "./server.js"
   },

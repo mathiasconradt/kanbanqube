@@ -64,8 +64,13 @@ const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
 const archivedCardBanner = document.getElementById("archivedCardBanner");
 const cardDetailsCover = document.getElementById("cardDetailsCover");
+const removeCoverButton = document.getElementById("removeCoverButton");
 const cardDescriptionDisplay = document.getElementById("cardDescriptionDisplay");
 const cardDescriptionInput = document.getElementById("cardDescriptionInput");
+const attachmentInput = document.getElementById("attachmentInput");
+const addAttachmentButton = document.getElementById("addAttachmentButton");
+const attachmentDropZone = document.getElementById("attachmentDropZone");
+const attachmentsContainer = document.getElementById("attachmentsContainer");
 const editDescriptionButton = document.getElementById("editDescriptionButton");
 const checklistsContainer = document.getElementById("checklistsContainer");
 const cardLabels = document.getElementById("cardLabels");
@@ -184,10 +189,23 @@ function wireEvents() {
   boardScroller.addEventListener("drop", handleLaneDrop);
 
   closeCardButton.addEventListener("click", () => cardDialog.close());
+  removeCoverButton.addEventListener("click", removeCoverFromSelectedCard);
   deleteCardButton.addEventListener("click", deleteSelectedCard);
   addLabelButton.addEventListener("click", toggleLabelEditor);
   addCommentButton.addEventListener("click", addCommentToSelectedCard);
   addChecklistButton.addEventListener("click", addChecklistToSelectedCard);
+  addAttachmentButton.addEventListener("click", () => attachmentInput.click());
+  attachmentInput.addEventListener("change", () => {
+    const files = [...attachmentInput.files];
+    attachmentInput.value = "";
+    uploadFilesToSelectedCard(files);
+  });
+  attachmentDropZone.addEventListener("dragover", handleAttachmentDragOver);
+  attachmentDropZone.addEventListener("dragleave", handleAttachmentDragLeave);
+  attachmentDropZone.addEventListener("drop", handleAttachmentDrop);
+  cardDialog.addEventListener("dragover", handleAttachmentDragOver);
+  cardDialog.addEventListener("dragleave", handleAttachmentDragLeave);
+  cardDialog.addEventListener("drop", handleAttachmentDrop);
   editDescriptionButton.addEventListener("click", toggleDescriptionEditing);
 
   commentInput.addEventListener("keydown", (event) => {
@@ -453,6 +471,23 @@ function renderCard(card) {
   }
 
   node.addEventListener("click", () => openCard(card.id));
+  node.addEventListener("dragover", (event) => {
+    if (!eventHasFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = "copy";
+    node.classList.add("is-file-drop-target");
+  });
+  node.addEventListener("dragleave", () => {
+    node.classList.remove("is-file-drop-target");
+  });
+  node.addEventListener("drop", (event) => {
+    if (!eventHasFiles(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    node.classList.remove("is-file-drop-target");
+    uploadFilesToCard(card.id, [...event.dataTransfer.files]);
+  });
   return node;
 }
 
@@ -465,6 +500,7 @@ function renderCardDialog() {
   const coverUrl = coverUrlForCard(card);
   cardDetailsCover.hidden = !coverUrl;
   cardDetailsCover.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : "";
+  removeCoverButton.hidden = !coverUrl;
   cardDescriptionInput.value = card.desc || "";
   commentInput.value = "";
   renderDescriptionDisplay(card.desc || "");
@@ -473,6 +509,7 @@ function renderCardDialog() {
   editDescriptionButton.textContent = state.descriptionEditing ? "Done" : "Edit";
 
   renderLabelsEditor(card);
+  renderAttachments(card);
   renderChecklists(card);
   renderActivity(card);
 }
@@ -693,6 +730,60 @@ function renderLabelsEditor(card) {
   labelEditorContainer.append(panel);
 }
 
+function renderAttachments(card) {
+  attachmentsContainer.textContent = "";
+  attachmentDropZone.classList.remove("is-dragging");
+
+  const attachments = Array.isArray(card.attachments) ? card.attachments : [];
+
+  if (attachments.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No attachments yet.";
+    attachmentsContainer.append(empty);
+    return;
+  }
+
+  for (const attachment of attachments) {
+    const row = document.createElement("a");
+    row.className = "attachment-row";
+    row.href = attachment.url;
+    row.target = "_blank";
+    row.rel = "noopener noreferrer";
+
+    const icon = document.createElement("span");
+    icon.className = "attachment-icon";
+    icon.textContent = isImageAttachment(attachment) ? "IMG" : "FILE";
+
+    const main = document.createElement("span");
+    main.className = "attachment-main";
+
+    const name = document.createElement("strong");
+    name.textContent = attachment.name || "Attachment";
+    main.append(name);
+
+    const meta = document.createElement("span");
+    meta.textContent = formatAttachmentMeta(attachment);
+    main.append(meta);
+
+    row.append(icon, main);
+    if (isImageAttachment(attachment)) {
+      const coverButton = document.createElement("button");
+      coverButton.type = "button";
+      coverButton.className = "ghost-button attachment-cover-button";
+      coverButton.textContent = card.cover?.idAttachment === attachment.id ? "Cover" : "Make cover";
+      coverButton.disabled = card.cover?.idAttachment === attachment.id;
+      coverButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setAttachmentAsCover(card.id, attachment.id);
+      });
+      row.append(coverButton);
+    }
+    attachmentsContainer.append(row);
+  }
+}
+
 function renderChecklists(card) {
   checklistsContainer.textContent = "";
   const checklists = checklistsForCard(card.id);
@@ -832,7 +923,7 @@ function renderActivity(card) {
     title.textContent = humanizeAction(action);
 
     const detail = document.createElement("div");
-    const detailText = action.data?.text || action.data?.checkItem?.name || action.data?.listAfter?.name || action.data?.list?.name || "";
+    const detailText = action.data?.text || action.data?.attachment?.name || action.data?.checkItem?.name || action.data?.listAfter?.name || action.data?.list?.name || "";
     appendFormattedText(detail, detailText);
 
     const time = document.createElement("time");
@@ -963,6 +1054,139 @@ async function addCard(listId) {
   });
   queueSave("Card added");
   openCard(card.id);
+  render();
+}
+
+async function uploadFilesToSelectedCard(files) {
+  const card = getSelectedCard();
+  if (!card) return;
+  await uploadFilesToCard(card.id, files);
+}
+
+async function uploadFilesToCard(cardId, files) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  const uploadFiles = files.filter((file) => file && file.size > 0);
+  if (!card || uploadFiles.length === 0) return;
+
+  setSaveMessage(`Uploading ${uploadFiles.length} file${uploadFiles.length === 1 ? "" : "s"}…`);
+
+  try {
+    const formData = new FormData();
+    for (const file of uploadFiles) {
+      formData.append("files", file, file.name);
+    }
+
+    const response = await fetch("/api/uploads", {
+      method: "POST",
+      body: formData
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Upload failed.");
+    }
+
+    const attachments = Array.isArray(payload.files) ? payload.files : [];
+    if (attachments.length === 0) return;
+
+    card.attachments = Array.isArray(card.attachments) ? card.attachments : [];
+    card.attachments.push(...attachments);
+    if (card.badges) {
+      card.badges.attachments = card.attachments.length;
+      card.badges.attachmentsByType = {
+        trello: { board: 0, card: card.attachments.length }
+      };
+    }
+
+    const firstImage = attachments.find(isImageAttachment);
+    if (firstImage && !card.cover?.idAttachment) {
+      card.cover = {
+        ...(card.cover || {}),
+        idAttachment: firstImage.id,
+        color: null,
+        size: "normal",
+        brightness: "dark",
+        yPosition: 0.5,
+        idUploadedBackground: null,
+        idPlugin: null
+      };
+    }
+
+    touchCard(card);
+    pushAction("addAttachmentToCard", {
+      idCard: card.id,
+      card: cardActionSnapshot(card),
+      attachment: {
+        id: attachments[0].id,
+        name: attachments.length === 1 ? attachments[0].name : `${attachments.length} files`
+      },
+      list: { id: card.idList, name: listById(card.idList)?.name || "" }
+    });
+    queueSave("Attachment added");
+    render();
+    if (cardDialog.open && state.selectedCardId === card.id) {
+      renderCardDialog();
+    }
+  } catch (error) {
+    setSaveMessage(error.message || "Upload failed.");
+    await openMessageDialog({
+      label: "Upload",
+      title: "Upload failed",
+      message: error.message || "Upload failed."
+    });
+  }
+}
+
+function removeCoverFromSelectedCard(event) {
+  event?.stopPropagation();
+  const card = getSelectedCard();
+  if (!card?.cover?.idAttachment) return;
+
+  card.cover = {
+    ...(card.cover || {}),
+    idAttachment: null,
+    color: null,
+    idUploadedBackground: null,
+    size: "normal",
+    brightness: "dark",
+    yPosition: 0.5,
+    idPlugin: null
+  };
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { cover: true },
+    cover: false
+  });
+  queueSave("Cover removed");
+  render();
+}
+
+function setAttachmentAsCover(cardId, attachmentId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  const attachment = card?.attachments?.find((candidate) => candidate.id === attachmentId);
+  if (!card || !attachment || !isImageAttachment(attachment)) return;
+
+  card.cover = {
+    ...(card.cover || {}),
+    idAttachment: attachment.id,
+    color: null,
+    idUploadedBackground: null,
+    size: "normal",
+    brightness: "dark",
+    yPosition: 0.5,
+    idPlugin: null
+  };
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    cover: true
+  });
+  queueSave("Cover updated");
   render();
 }
 
@@ -1767,6 +1991,32 @@ function enableLaneDnD(laneNode) {
   });
 }
 
+function eventHasFiles(event) {
+  return [...(event.dataTransfer?.types || [])].includes("Files");
+}
+
+function handleAttachmentDragOver(event) {
+  if (!eventHasFiles(event)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.dataTransfer.dropEffect = "copy";
+  attachmentDropZone.classList.add("is-dragging");
+}
+
+function handleAttachmentDragLeave(event) {
+  if (!eventHasFiles(event)) return;
+  if (event.currentTarget === cardDialog && cardDialog.contains(event.relatedTarget)) return;
+  attachmentDropZone.classList.remove("is-dragging");
+}
+
+function handleAttachmentDrop(event) {
+  if (!eventHasFiles(event)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  attachmentDropZone.classList.remove("is-dragging");
+  uploadFilesToSelectedCard([...event.dataTransfer.files]);
+}
+
 function handleLaneDragOver(event) {
   if (!state.drag || state.drag.type !== "lane") return;
   event.preventDefault();
@@ -1860,6 +2110,29 @@ function coverUrlForCard(card) {
   return match?.url || match?.previewUrl || "";
 }
 
+function isImageAttachment(attachment) {
+  const mimeType = String(attachment?.mimeType || "").toLowerCase();
+  const name = String(attachment?.name || attachment?.url || "").toLowerCase();
+  return mimeType.startsWith("image/") || /\.(png|jpe?g|gif|webp|svg)$/.test(name);
+}
+
+function formatAttachmentMeta(attachment) {
+  const parts = [];
+  if (Number.isFinite(attachment.bytes)) {
+    parts.push(formatBytes(attachment.bytes));
+  }
+  if (attachment.mimeType) {
+    parts.push(attachment.mimeType);
+  }
+  return parts.join(" · ") || "Uploaded file";
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 102.4) / 10} KB`;
+  return `${Math.round(bytes / 1024 / 102.4) / 10} MB`;
+}
+
 function cardActionSnapshot(card) {
   return {
     id: card.id,
@@ -1879,6 +2152,7 @@ function humanizeAction(action) {
     createList: "created a lane",
     updateList: "updated a lane",
     updateCheckItemStateOnCard: "updated a checklist item",
+    addAttachmentToCard: "attached a file to this card",
     commentCard: "commented on this card"
   };
   return `${actor} ${verbs[action.type] || action.type}`;

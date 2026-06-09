@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KanbanQube</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -61,7 +62,9 @@
         </header>
 
         <div id="archivedCardBanner" class="archived-card-banner" hidden>This is an archived card.</div>
-        <div id="cardDetailsCover" class="card-details-cover" hidden></div>
+        <div id="cardDetailsCover" class="card-details-cover" hidden>
+          <button id="removeCoverButton" class="cover-remove-button" type="button" aria-label="Remove cover image">×</button>
+        </div>
 
         <div class="modal-grid">
           <section class="modal-main">
@@ -72,6 +75,16 @@
               </div>
               <div id="cardDescriptionDisplay" class="description-display"></div>
               <textarea id="cardDescriptionInput" class="description-editor" rows="8" placeholder="Add a description" hidden></textarea>
+            </section>
+
+            <section class="attachments-panel">
+              <div class="panel-header">
+                <h2>Attachments</h2>
+                <button id="addAttachmentButton" class="ghost-button" type="button">Add files</button>
+              </div>
+              <input id="attachmentInput" type="file" multiple hidden />
+              <div id="attachmentDropZone" class="attachment-drop-zone">Drop files here</div>
+              <div id="attachmentsContainer" class="attachments-list"></div>
             </section>
 
             <section class="checklists-panel">

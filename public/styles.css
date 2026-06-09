@@ -329,6 +329,11 @@ button {
   background: var(--panel-3);
 }
 
+.card.is-file-drop-target {
+  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 3px;
+}
+
 .card-label-strip {
   display: flex;
   gap: 0.35rem;
@@ -726,6 +731,7 @@ button {
 }
 
 .card-details-cover {
+  position: relative;
   height: clamp(140px, 22vh, 260px);
   margin-bottom: 1rem;
   border-radius: calc(18px * var(--ui-scale));
@@ -738,6 +744,28 @@ button {
 
 .card-details-cover[hidden] {
   display: none !important;
+}
+
+.cover-remove-button {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: calc(30px * var(--ui-scale));
+  height: calc(30px * var(--ui-scale));
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(12, 15, 21, 0.72);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.cover-remove-button:hover {
+  background: rgba(12, 15, 21, 0.9);
 }
 
 .modal-grid {
@@ -766,7 +794,7 @@ button {
 }
 
 .modal-large .modal-main {
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .modal-large .modal-sidebar {
@@ -774,6 +802,7 @@ button {
 }
 
 .sidebar-panel,
+.attachments-panel,
 .checklists-panel {
   padding: 1rem;
   border-radius: calc(18px * var(--ui-scale));
@@ -782,14 +811,20 @@ button {
 }
 
 .modal-large .sidebar-panel,
+.modal-large .attachments-panel,
 .modal-large .checklists-panel {
   min-height: 0;
 }
 
 .modal-large .checklists-panel,
+.modal-large .attachments-panel,
 .modal-large .modal-sidebar .sidebar-panel:nth-of-type(2) {
   display: grid;
   overflow: hidden;
+}
+
+.modal-large .attachments-panel {
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .modal-large .checklists-panel {
@@ -935,6 +970,86 @@ button {
   width: 100%;
   max-height: min(46vh, 520px);
   object-fit: contain;
+}
+
+.attachment-drop-zone {
+  padding: 0.8rem 0.95rem;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: calc(14px * var(--ui-scale));
+  color: var(--muted);
+  background: rgba(12, 15, 21, 0.35);
+}
+
+.attachment-drop-zone.is-dragging {
+  border-color: rgba(96, 165, 250, 0.85);
+  color: var(--text);
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.attachments-list {
+  display: grid;
+  gap: 0.7rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.attachment-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: calc(14px * var(--ui-scale));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.attachment-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.attachment-icon {
+  min-width: 44px;
+  padding: 0.3rem 0.45rem;
+  border-radius: calc(10px * var(--ui-scale));
+  background: rgba(59, 130, 246, 0.22);
+  color: #b8d3ff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.attachment-main {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.attachment-main strong,
+.attachment-main span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-main span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.attachment-cover-button {
+  min-height: calc(34px * var(--ui-scale));
+  padding: 0 0.75rem;
+  white-space: nowrap;
+}
+
+.attachment-cover-button:disabled {
+  cursor: default;
+  opacity: 0.62;
 }
 
 .checklists-container,
