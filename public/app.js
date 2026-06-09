@@ -31,11 +31,16 @@ const state = {
   lastSyncLog: "",
   lastSyncAt: "",
   isSyncing: false,
+  editingBoardTitle: false,
+  editingBoardTitleValue: "",
+  editingCardTitleId: null,
+  editingCardTitleValue: "",
   drag: null
 };
 
 const boardScroller = document.getElementById("boardScroller");
 const boardTitle = document.getElementById("boardTitle");
+const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
 const boardFileBadge = document.getElementById("boardFileBadge");
 const userBadge = document.getElementById("userBadge");
 const searchInput = document.getElementById("searchInput");
@@ -153,6 +158,7 @@ function wireEvents() {
 
   settingsButton.addEventListener("click", openSettingsDialog);
   archiveButton.addEventListener("click", openArchiveDialog);
+  boardTitle.addEventListener("click", startBoardTitleEdit);
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
   closeArchiveButton.addEventListener("click", () => archiveDialog.close());
   saveSettingsButton.addEventListener("click", saveSettings);
@@ -206,6 +212,23 @@ function wireEvents() {
     promptDialog.close("confirm");
   });
 
+  boardTitleInlineInput.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  boardTitleInlineInput.addEventListener("input", () => {
+    state.editingBoardTitleValue = boardTitleInlineInput.value;
+  });
+  boardTitleInlineInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitBoardTitleEdit();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelBoardTitleEdit();
+    }
+  });
+  boardTitleInlineInput.addEventListener("blur", commitBoardTitleEdit);
+
   cardDialog.addEventListener("close", () => {
     state.selectedCardId = null;
     state.descriptionEditing = false;
@@ -221,6 +244,10 @@ function render() {
 
 function renderHeader() {
   boardTitle.textContent = state.board?.name || "KanbanQube Board";
+  boardTitle.hidden = state.editingBoardTitle;
+  boardTitle.classList.toggle("is-inline-editable", true);
+  boardTitleInlineInput.hidden = !state.editingBoardTitle;
+  boardTitleInlineInput.value = state.editingBoardTitleValue;
   userBadge.textContent = state.currentUserName.trim() || "Guest";
   const archivedCount = archivedCards().length;
   archiveButton.textContent = archivedCount ? `Archive (${archivedCount})` : "Archive";
@@ -338,10 +365,37 @@ function renderCard(card) {
   });
 
   const titleNode = node.querySelector(".card-title");
+  const titleInput = node.querySelector(".card-title-inline-input");
   const hasTitle = Boolean(card.name && card.name.trim());
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
   titleNode.classList.toggle("is-done", done);
+  titleNode.classList.toggle("is-inline-editable", true);
+  const isEditingTitle = state.editingCardTitleId === card.id;
+  titleNode.hidden = isEditingTitle;
+  titleInput.hidden = !isEditingTitle;
+  titleInput.value = state.editingCardTitleValue;
+  titleInput.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  titleNode.addEventListener("click", (event) => {
+    event.stopPropagation();
+    startCardTitleEdit(card.id);
+  });
+  titleInput.addEventListener("input", () => {
+    state.editingCardTitleValue = titleInput.value;
+  });
+  titleInput.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitCardTitleEdit(card.id);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelCardTitleEdit();
+    }
+  });
+  titleInput.addEventListener("blur", () => commitCardTitleEdit(card.id));
   const descriptionNode = node.querySelector(".card-description");
   descriptionNode.textContent = card.desc || "";
   descriptionNode.hidden = !state.showCardDescriptions || !card.desc;
@@ -1107,11 +1161,7 @@ function saveSettings() {
   }
 
   if (state.board.name !== nextBoardName) {
-    state.board.name = nextBoardName;
-    pushAction("updateBoard", {
-      board: { id: state.board.id, name: state.board.name }
-    });
-    queueSave("Settings saved");
+    updateBoardName(nextBoardName, "Settings saved");
   } else if (didPersistLocalSetting) {
     setSaveMessage("Settings saved locally");
     renderBoard();
@@ -1133,6 +1183,86 @@ function openSettingsDialog() {
     settingsDialog.showModal();
   }
   settingsBoardName.focus();
+}
+
+function startBoardTitleEdit() {
+  state.editingBoardTitle = true;
+  state.editingBoardTitleValue = state.board?.name || "";
+  renderHeader();
+  focusInlineInput(boardTitleInlineInput);
+}
+
+function commitBoardTitleEdit() {
+  if (!state.editingBoardTitle) return;
+  const nextBoardName = state.editingBoardTitleValue.trim() || "KanbanQube Board";
+  state.editingBoardTitle = false;
+  state.editingBoardTitleValue = "";
+  if (state.board.name !== nextBoardName) {
+    updateBoardName(nextBoardName, "Board updated");
+  } else {
+    renderHeader();
+  }
+}
+
+function cancelBoardTitleEdit() {
+  state.editingBoardTitle = false;
+  state.editingBoardTitleValue = "";
+  renderHeader();
+}
+
+function startCardTitleEdit(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card) return;
+  state.editingCardTitleId = cardId;
+  state.editingCardTitleValue = card.name || "";
+  renderBoard();
+  focusInlineInput(document.querySelector(`.card[data-card-id="${cardId}"] .card-title-inline-input`));
+}
+
+function commitCardTitleEdit(cardId) {
+  if (state.editingCardTitleId !== cardId) return;
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card) {
+    cancelCardTitleEdit();
+    return;
+  }
+  const nextName = state.editingCardTitleValue.trim();
+  state.editingCardTitleId = null;
+  state.editingCardTitleValue = "";
+  if (card.name !== nextName) {
+    card.name = nextName;
+    touchCard(card);
+    queueSave("Card updated");
+    renderBoard();
+    if (archiveDialog.open) {
+      renderArchiveDialog();
+    }
+    return;
+  }
+  renderBoard();
+}
+
+function cancelCardTitleEdit() {
+  state.editingCardTitleId = null;
+  state.editingCardTitleValue = "";
+  renderBoard();
+}
+
+function focusInlineInput(input) {
+  if (!input) return;
+  requestAnimationFrame(() => {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  });
+}
+
+function updateBoardName(name, saveMessage) {
+  state.board.name = name;
+  pushAction("updateBoard", {
+    board: { id: state.board.id, name: state.board.name }
+  });
+  queueSave(saveMessage);
+  render();
 }
 
 async function syncBoard() {

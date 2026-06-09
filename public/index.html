@@ -36,7 +36,10 @@
       <section class="board-header">
         <div>
           <p class="eyebrow">Git-synced board</p>
-          <h1 id="boardTitle">KanbanQube Board</h1>
+          <div class="board-title-shell">
+            <h1 id="boardTitle">KanbanQube Board</h1>
+            <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" hidden />
+          </div>
         </div>
         <div class="board-meta">
           <span id="boardFileBadge" class="meta-badge">board.json</span>
@@ -220,6 +223,7 @@
           <div class="card-title-main">
             <button class="card-done-toggle" type="button" aria-label="Mark task done"></button>
             <h3 class="card-title"></h3>
+            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
           </div>
           <button class="card-archive-button" type="button" aria-label="Archive card" data-tooltip="Archive">
             <svg viewBox="0 0 24 24" aria-hidden="true">
