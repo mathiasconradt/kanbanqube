@@ -792,16 +792,7 @@ async function syncBoardRepository() {
   await checkSshAuth(WORKSPACE_DIR, remote, output);
   updateOutput();
 
-  let commandIndex = startCommand("git pull --ff-only");
-  const pull = await runGit(WORKSPACE_DIR, ["pull", "--ff-only"]);
-  finishCommand(commandIndex, formatGitCommandOutput("git pull --ff-only", pull));
-  if (pull.code !== 0) {
-    const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
-    Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
-    return result;
-  }
-
-  commandIndex = startCommand("git status --porcelain");
+  let commandIndex = startCommand("git status --porcelain");
   const status = await runGit(WORKSPACE_DIR, ["status", "--porcelain"]);
   finishCommand(commandIndex, formatGitCommandOutput("git status --porcelain", status, status.stdout.trim() ? "" : "Repository is clean."));
   if (status.code !== 0) {
@@ -828,6 +819,15 @@ async function syncBoardRepository() {
       Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
       return result;
     }
+  }
+
+  commandIndex = startCommand("git pull --rebase");
+  const pull = await runGit(WORKSPACE_DIR, ["pull", "--rebase"]);
+  finishCommand(commandIndex, formatGitCommandOutput("git pull --rebase", pull));
+  if (pull.code !== 0) {
+    const result = { ok: false, output: output.join("\n\n"), startedAt: syncStatus.startedAt, finishedAt: new Date().toISOString() };
+    Object.assign(syncStatus, { running: false, ok: false, output: result.output, finishedAt: result.finishedAt });
+    return result;
   }
 
   commandIndex = startCommand("git push");

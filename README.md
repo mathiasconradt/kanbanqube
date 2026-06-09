@@ -94,9 +94,9 @@ Git sync is optional. If the vault is a Git repository with a configured `origin
 When Sync runs, KanbanQube:
 
 1. Saves pending board changes.
-2. Runs `git pull --ff-only`.
-3. Checks whether anything in the vault repository changed.
-4. Stages and commits all repository changes when needed, including `board.json`, `uploads/`, and newly added files.
+2. Checks whether anything in the vault repository changed.
+3. Stages and commits all repository changes when needed, including `board.json`, `uploads/`, and newly added files.
+4. Runs `git pull --rebase` to bring in remote changes after local work is committed.
 5. Pushes to the configured remote.
 
 If the vault is not a Git repository, or no remote is configured, Sync stays disabled. You can still use the board locally.
