@@ -93,10 +93,6 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, result.ok ? 200 : 500, result);
     }
 
-    if (request.method === "GET" && url.pathname === "/about.jpg") {
-      return serveRootAsset("about.jpg", response);
-    }
-
     if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
       return serveUpload(url.pathname, response);
     }
@@ -129,24 +125,6 @@ async function serveStatic(requestPath, response) {
     return sendText(response, 403, "Forbidden.");
   }
 
-  try {
-    const stat = await fs.stat(filePath);
-    if (!stat.isFile()) return sendText(response, 404, "Not found.");
-    const ext = path.extname(filePath).toLowerCase();
-    const body = await fs.readFile(filePath);
-    response.writeHead(200, {
-      "Content-Type": mimeTypes[ext] || "application/octet-stream",
-      "Cache-Control": "no-store"
-    });
-    response.end(body);
-  } catch (error) {
-    if (error.code === "ENOENT") return sendText(response, 404, "Not found.");
-    throw error;
-  }
-}
-
-async function serveRootAsset(fileName, response) {
-  const filePath = path.join(APP_DIR, fileName);
   try {
     const stat = await fs.stat(filePath);
     if (!stat.isFile()) return sendText(response, 404, "Not found.");

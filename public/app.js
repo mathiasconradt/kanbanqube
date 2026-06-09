@@ -4,6 +4,11 @@ const USER_STORAGE_KEY = "kanbanqube.userName";
 const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
 const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
 const INLINE_CARD_TITLE_EDIT_STORAGE_KEY = "kanbanqube.inlineCardTitleEdit";
+const ICON_STYLE_STORAGE_KEY = "kanbanqube.iconStyle";
+const ICON_PATHS = {
+  "3d": "/icon_3d.png",
+  flat: "/icon_flat.png"
+};
 const SYNC_TIMESTAMP_FORMAT = {
   month: "short",
   day: "numeric",
@@ -21,6 +26,7 @@ const state = {
   currentUserEmail: localStorage.getItem(USER_EMAIL_STORAGE_KEY) || "",
   showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
   inlineCardTitleEdit: localStorage.getItem(INLINE_CARD_TITLE_EDIT_STORAGE_KEY) === "true",
+  iconStyle: localStorage.getItem(ICON_STYLE_STORAGE_KEY) === "flat" ? "flat" : "3d",
   searchTerm: "",
   labelSearchTerm: "",
   labelEditorOpen: false,
@@ -44,7 +50,9 @@ const state = {
 
 const boardScroller = document.getElementById("boardScroller");
 const aboutButton = document.getElementById("aboutButton");
+const brandIcon = aboutButton.querySelector("img");
 const aboutDialog = document.getElementById("aboutDialog");
+const faviconLink = document.getElementById("faviconLink");
 const boardTitle = document.getElementById("boardTitle");
 const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
 const boardFileBadge = document.getElementById("boardFileBadge");
@@ -89,6 +97,7 @@ const settingsDialog = document.getElementById("settingsDialog");
 const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsBoardName = document.getElementById("settingsBoardName");
+const settingsIconStyleInputs = [...document.querySelectorAll("input[name=\"settingsIconStyle\"]")];
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
 const settingsBoardFile = document.getElementById("settingsBoardFile");
@@ -157,6 +166,7 @@ async function bootstrap() {
   state.board = await boardResponse.json();
   state.config = configResponse.ok ? await configResponse.json() : { boardFile: "board.json", gitRemote: null, gitUserName: null, gitUserEmail: null };
   hydrateIdentityFromGitConfig();
+  applyIconStyle();
   boardFileBadge.textContent = state.config.boardFile || "board.json";
   settingsBoardFile.textContent = `Board file: ${state.config.boardFile || "board.json"}`;
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
@@ -282,6 +292,12 @@ function openAboutDialog() {
   if (!aboutDialog.open) {
     aboutDialog.showModal();
   }
+}
+
+function applyIconStyle() {
+  const path = ICON_PATHS[state.iconStyle] || ICON_PATHS["3d"];
+  brandIcon.src = path;
+  faviconLink.href = path;
 }
 
 function render() {
@@ -1487,9 +1503,17 @@ function unescapeMarkdownText(text) {
 
 function saveSettings() {
   const nextBoardName = settingsBoardName.value.trim() || "KanbanQube Board";
+  const nextIconStyle = settingsIconStyleInputs.find((input) => input.checked)?.value === "flat" ? "flat" : "3d";
   const nextShowCardDescriptions = settingsShowCardDescriptions.checked;
   const nextInlineCardTitleEdit = settingsInlineCardTitleEdit.checked;
   let didPersistLocalSetting = false;
+
+  if (state.iconStyle !== nextIconStyle) {
+    state.iconStyle = nextIconStyle;
+    localStorage.setItem(ICON_STYLE_STORAGE_KEY, nextIconStyle);
+    applyIconStyle();
+    didPersistLocalSetting = true;
+  }
 
   if (state.showCardDescriptions !== nextShowCardDescriptions) {
     state.showCardDescriptions = nextShowCardDescriptions;
@@ -1524,6 +1548,9 @@ function openSettingsDialog() {
   settingsUserName.value = state.currentUserName;
   settingsUserEmail.value = state.currentUserEmail;
   settingsBoardName.value = state.board?.name || "";
+  for (const input of settingsIconStyleInputs) {
+    input.checked = input.value === state.iconStyle;
+  }
   settingsShowCardDescriptions.checked = state.showCardDescriptions;
   settingsInlineCardTitleEdit.checked = state.inlineCardTitleEdit;
 

@@ -80,28 +80,25 @@ button {
   width: calc(40px * var(--ui-scale));
   height: calc(40px * var(--ui-scale));
   padding: 0;
-  border-radius: calc(12px * var(--ui-scale));
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  border-radius: calc(10px * var(--ui-scale));
+  background: transparent;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 0;
   cursor: pointer;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  transition: transform 140ms ease, filter 140ms ease;
 }
 
 .brand-mark:hover {
   transform: translateY(-1px);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07));
-  border-color: rgba(255, 255, 255, 0.2);
+  filter: brightness(1.08);
 }
 
-.brand-mark span {
+.brand-mark img {
   display: block;
-  color: rgba(255, 255, 255, 0.88);
-  font-family: ui-serif, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif;
-  font-size: calc(23px * var(--ui-scale));
-  font-weight: 800;
-  line-height: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand-copy {
@@ -708,6 +705,63 @@ button {
 
 #settingsDialog .field input {
   min-height: calc(46px * var(--ui-scale));
+}
+
+#settingsDialog .icon-choice-field {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+#settingsDialog .icon-choice-field legend {
+  grid-column: 1 / -1;
+  margin-bottom: 0.1rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+#settingsDialog .icon-choice-field label {
+  display: grid;
+  grid-template-columns: auto calc(42px * var(--ui-scale)) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: calc(14px * var(--ui-scale));
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+}
+
+#settingsDialog .icon-choice-field input[type="radio"] {
+  width: calc(18px * var(--ui-scale));
+  height: calc(18px * var(--ui-scale));
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: #b7f0da;
+}
+
+#settingsDialog .icon-choice-field img {
+  width: calc(42px * var(--ui-scale));
+  height: calc(42px * var(--ui-scale));
+  object-fit: contain;
+}
+
+#settingsDialog .icon-choice-field span {
+  color: var(--text);
+  font-weight: 600;
+}
+
+#settingsDialog .icon-choice-field label:has(input:checked) {
+  border-color: rgba(183, 240, 218, 0.42);
+  background: rgba(183, 240, 218, 0.08);
+}
+
+#settingsDialog .icon-choice-field label:has(input:checked) img {
+  filter: drop-shadow(0 0 10px rgba(183, 240, 218, 0.42));
 }
 
 #settingsDialog .checkbox-field {

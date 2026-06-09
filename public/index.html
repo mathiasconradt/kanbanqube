@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KanbanQube</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link id="faviconLink" rel="icon" type="image/png" href="/icon_3d.png" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -12,7 +12,7 @@
       <header class="topbar">
         <div class="brand">
           <button id="aboutButton" class="brand-mark" type="button" aria-label="About KanbanQube">
-            <span>看</span>
+            <img src="/icon_3d.png" alt="" />
           </button>
           <div class="brand-copy">
             <strong>KanbanQube</strong>
@@ -147,6 +147,20 @@
           <span>Board title</span>
           <input id="settingsBoardName" type="text" maxlength="200" placeholder="Board title" />
         </label>
+
+        <fieldset class="field icon-choice-field">
+          <legend>App icon</legend>
+          <label>
+            <input type="radio" name="settingsIconStyle" value="3d" />
+            <img src="/icon_3d.png" alt="" />
+            <span>3D</span>
+          </label>
+          <label>
+            <input type="radio" name="settingsIconStyle" value="flat" />
+            <img src="/icon_flat.png" alt="" />
+            <span>Flat</span>
+          </label>
+        </fieldset>
 
         <label class="checkbox-field">
           <input id="settingsShowCardDescriptions" type="checkbox" />
