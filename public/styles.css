@@ -14,6 +14,8 @@
   --muted: #bbc0ca;
   --accent: #a9b4d8;
   --accent-2: #747fae;
+  --accent-solid: #8f9ac3;
+  --accent-solid-hover: #9ca6cc;
   --success: #22c55e;
   --warning: #f4b400;
   --danger: #ff6b6b;
@@ -240,8 +242,9 @@ button {
 }
 
 .primary-button {
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+  background: var(--accent-solid);
   border-color: rgba(188, 197, 230, 0.5);
+  color: #111827;
 }
 
 .danger-button {
@@ -265,6 +268,10 @@ button {
 .icon-button:hover {
   background-color: rgba(255, 255, 255, 0.14);
   transform: translateY(-1px);
+}
+
+.primary-button:hover {
+  background: var(--accent-solid-hover);
 }
 
 .primary-button:disabled,
@@ -710,14 +717,15 @@ button {
 #settingsDialog .icon-choice-field {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  column-gap: 0.75rem;
+  row-gap: 0.55rem;
   padding: 0;
   border: 0;
 }
 
 #settingsDialog .icon-choice-field legend {
   grid-column: 1 / -1;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0;
   color: var(--muted);
   font-weight: 600;
 }
