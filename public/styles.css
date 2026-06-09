@@ -77,17 +77,19 @@ button {
   width: calc(40px * var(--ui-scale));
   height: calc(40px * var(--ui-scale));
   border-radius: calc(12px * var(--ui-scale));
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(4px * var(--ui-scale));
-  padding: calc(7px * var(--ui-scale));
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .brand-mark span {
   display: block;
-  border-radius: calc(5px * var(--ui-scale));
-  background: rgba(255, 255, 255, 0.76);
+  color: rgba(255, 255, 255, 0.88);
+  font-family: ui-serif, "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif;
+  font-size: calc(23px * var(--ui-scale));
+  font-weight: 800;
+  line-height: 1;
 }
 
 .brand-copy {
