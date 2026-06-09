@@ -659,6 +659,24 @@ button {
   width: min(720px, calc(100vw - 2rem));
 }
 
+.modal-app-dialog {
+  width: min(calc(460px * var(--ui-scale)), calc(100vw - 2rem));
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem;
+}
+
+.app-dialog-message {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.app-dialog-footer {
+  justify-content: end;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

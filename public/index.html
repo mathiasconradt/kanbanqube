@@ -203,6 +203,25 @@
       </form>
     </dialog>
 
+    <dialog id="appDialog" class="modal">
+      <form method="dialog" class="modal-card modal-app-dialog">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label" id="appDialogLabel">Confirm</p>
+            <h2 id="appDialogTitle">Are you sure?</h2>
+          </div>
+          <button id="appDialogCloseButton" type="button" class="icon-button" aria-label="Close dialog">✕</button>
+        </header>
+
+        <p id="appDialogMessage" class="app-dialog-message"></p>
+
+        <footer class="modal-footer app-dialog-footer">
+          <button id="appDialogCancelButton" type="button" class="ghost-button">Cancel</button>
+          <button id="appDialogConfirmButton" type="submit" class="primary-button" value="confirm">Confirm</button>
+        </footer>
+      </form>
+    </dialog>
+
     <template id="laneTemplate">
       <section class="lane" draggable="true">
         <header class="lane-header">

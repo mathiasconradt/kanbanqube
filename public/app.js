@@ -96,6 +96,14 @@ const promptInput = document.getElementById("promptInput");
 const promptConfirmButton = document.getElementById("promptConfirmButton");
 const promptCancelButton = document.getElementById("promptCancelButton");
 
+const appDialog = document.getElementById("appDialog");
+const appDialogLabel = document.getElementById("appDialogLabel");
+const appDialogTitle = document.getElementById("appDialogTitle");
+const appDialogMessage = document.getElementById("appDialogMessage");
+const appDialogCloseButton = document.getElementById("appDialogCloseButton");
+const appDialogCancelButton = document.getElementById("appDialogCancelButton");
+const appDialogConfirmButton = document.getElementById("appDialogConfirmButton");
+
 const laneTemplate = document.getElementById("laneTemplate");
 const cardTemplate = document.getElementById("cardTemplate");
 let syncStatusPollTimer = null;
@@ -211,6 +219,8 @@ function wireEvents() {
   });
 
   promptCancelButton.addEventListener("click", () => promptDialog.close("cancel"));
+  appDialogCloseButton.addEventListener("click", () => appDialog.close("cancel"));
+  appDialogCancelButton.addEventListener("click", () => appDialog.close("cancel"));
 
   promptDialog.querySelector("form").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -256,7 +266,9 @@ function renderHeader() {
   userBadge.textContent = state.currentUserName.trim() || "Guest";
   const archivedCount = archivedCards().length;
   archiveButton.textContent = archivedCount ? `Archive (${archivedCount})` : "Archive";
-  syncButton.disabled = state.isSyncing;
+  const canSync = Boolean(state.config?.gitRemote);
+  syncButton.disabled = state.isSyncing || !canSync;
+  syncButton.title = canSync ? "" : "Git remote not configured";
   saveStatus.textContent = state.syncStatusMessage || state.saveMessage;
   const canOpenLog = state.isSyncing || Boolean(state.lastSyncLog.trim());
   saveStatus.disabled = !canOpenLog;
@@ -996,21 +1008,33 @@ function restoreArchivedCard(cardId) {
   render();
 }
 
-function deleteArchivedCard(cardId) {
+async function deleteArchivedCard(cardId) {
   const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
   if (!card || !isCardArchived(card)) return;
-  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
+  const confirmed = await openConfirmDialog({
+    label: "Delete card",
+    title: "Delete archived card?",
+    message: `Delete "${card.name || "Task"}" permanently? This cannot be undone.`,
+    confirmLabel: "Delete",
+    danger: true
+  });
   if (!confirmed) return;
   removeCardCompletely(card.id);
   queueSave("Archived card deleted");
   render();
 }
 
-function deleteLane(listId) {
+async function deleteLane(listId) {
   const list = listById(listId);
   if (!list) return;
   const cardCount = allCardsForList(listId).length;
-  const confirmed = window.confirm(`Delete "${list.name}" and ${cardCount} card(s) in it?`);
+  const confirmed = await openConfirmDialog({
+    label: "Delete lane",
+    title: "Delete lane?",
+    message: `Delete "${list.name}" and archive ${cardCount} card(s) in it?`,
+    confirmLabel: "Delete",
+    danger: true
+  });
   if (!confirmed) return;
 
   list.closed = true;
@@ -1038,10 +1062,16 @@ function openCard(cardId) {
   }
 }
 
-function deleteSelectedCard() {
+async function deleteSelectedCard() {
   const card = getSelectedCard();
   if (!card) return;
-  const confirmed = window.confirm(`Delete "${card.name || "Task"}" permanently?`);
+  const confirmed = await openConfirmDialog({
+    label: "Delete card",
+    title: "Delete card?",
+    message: `Delete "${card.name || "Task"}" permanently? This cannot be undone.`,
+    confirmLabel: "Delete",
+    danger: true
+  });
   if (!confirmed) return;
   removeCardCompletely(card.id);
   queueSave("Card deleted");
@@ -1335,6 +1365,15 @@ function updateBoardName(name, saveMessage) {
 }
 
 async function syncBoard() {
+  if (!state.config?.gitRemote) {
+    await openMessageDialog({
+      label: "Git sync",
+      title: "Git remote not configured",
+      message: "Add a Git remote before syncing this board."
+    });
+    return;
+  }
+
   state.isSyncing = true;
   state.syncStatusMessage = "Syncing with git…";
   state.lastSyncLog = "Syncing with git…";
@@ -1359,7 +1398,11 @@ async function syncBoard() {
     state.syncStatusMessage = error.message || "Git sync failed.";
     state.lastSyncLog = error.message || "Git sync failed.";
     setSaveMessage(error.message || "Git sync failed.");
-    window.alert(error.message || "Git sync failed.");
+    await openMessageDialog({
+      label: "Git sync",
+      title: "Sync failed",
+      message: error.message || "Git sync failed."
+    });
   } finally {
     stopSyncStatusPolling();
     state.isSyncing = false;
@@ -1889,5 +1932,50 @@ function openPrompt({ label, title, inputLabel, confirmLabel, value }) {
       resolve(promptDialog.returnValue === "confirm" ? promptInput.value.trim() : "");
     };
     promptDialog.addEventListener("close", handleClose);
+  });
+}
+
+function openMessageDialog({ label = "Notice", title = "Notice", message = "", confirmLabel = "OK" }) {
+  return openAppDialog({
+    label,
+    title,
+    message,
+    confirmLabel,
+    cancelLabel: "",
+    danger: false
+  });
+}
+
+function openConfirmDialog({ label = "Confirm", title = "Are you sure?", message = "", confirmLabel = "Confirm", cancelLabel = "Cancel", danger = false }) {
+  return openAppDialog({
+    label,
+    title,
+    message,
+    confirmLabel,
+    cancelLabel,
+    danger
+  });
+}
+
+function openAppDialog({ label, title, message, confirmLabel, cancelLabel, danger }) {
+  appDialogLabel.textContent = label;
+  appDialogTitle.textContent = title;
+  appDialogMessage.textContent = message;
+  appDialogCancelButton.hidden = !cancelLabel;
+  appDialogCancelButton.textContent = cancelLabel || "Cancel";
+  appDialogConfirmButton.textContent = confirmLabel;
+  appDialogConfirmButton.className = danger ? "danger-button" : "primary-button";
+  appDialog.returnValue = "";
+
+  if (!appDialog.open) {
+    appDialog.showModal();
+  }
+
+  return new Promise((resolve) => {
+    const handleClose = () => {
+      appDialog.removeEventListener("close", handleClose);
+      resolve(appDialog.returnValue === "confirm");
+    };
+    appDialog.addEventListener("close", handleClose);
   });
 }
