@@ -52,6 +52,7 @@ const boardScroller = document.getElementById("boardScroller");
 const aboutButton = document.getElementById("aboutButton");
 const brandIcon = aboutButton.querySelector("img");
 const aboutDialog = document.getElementById("aboutDialog");
+const aboutImage = document.getElementById("aboutImage");
 const faviconLink = document.getElementById("faviconLink");
 const boardTitle = document.getElementById("boardTitle");
 const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
@@ -188,6 +189,7 @@ function wireEvents() {
       aboutDialog.close();
     }
   });
+  aboutImage.addEventListener("click", () => aboutDialog.close());
 
   searchInput.addEventListener("input", () => {
     state.searchTerm = searchInput.value.trim().toLowerCase();
