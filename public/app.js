@@ -816,14 +816,15 @@ function renderActivity(card) {
     title.textContent = humanizeAction(action);
 
     const detail = document.createElement("div");
-    detail.textContent = action.data?.text || action.data?.checkItem?.name || action.data?.listAfter?.name || action.data?.list?.name || "";
+    const detailText = action.data?.text || action.data?.checkItem?.name || action.data?.listAfter?.name || action.data?.list?.name || "";
+    appendFormattedText(detail, detailText);
 
     const time = document.createElement("time");
     time.dateTime = action.date;
     time.textContent = new Date(action.date).toLocaleString();
 
     entry.append(title);
-    if (detail.textContent) entry.append(detail);
+    if (detailText) entry.append(detail);
     entry.append(time);
     activityList.append(entry);
   }
@@ -1110,7 +1111,7 @@ function renderDescriptionDisplay(text) {
 }
 
 function appendFormattedText(container, text) {
-  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)|(https?:\/\/[^\s<]+)/g;
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)|\[([^\]|]+)\|(https?:\/\/[^\s\]]+)\]|\[(https?:\/\/[^\s\]]+)\]|(https?:\/\/[^\s<\]]+)/g;
   let lastIndex = 0;
   let match;
 
@@ -1120,9 +1121,10 @@ function appendFormattedText(container, text) {
     }
 
     const label = match[1];
-    const href = match[2] || match[4];
+    const trelloLabel = match[4];
+    const href = match[2] || match[5] || match[6] || match[7];
     const title = match[3] || "";
-    const link = createSafeLink(label || href, href, title);
+    const link = createSafeLink(label || trelloLabel || href, href, title);
 
     if (link) {
       container.append(link);
