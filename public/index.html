@@ -139,6 +139,11 @@
           <span>Show card descriptions in board lanes</span>
         </label>
 
+        <label class="checkbox-field">
+          <input id="settingsInlineCardTitleEdit" type="checkbox" />
+          <span>Edit card titles from board lanes</span>
+        </label>
+
         <div class="settings-meta">
           <span id="settingsBoardFile"></span>
           <span id="settingsRemote"></span>
@@ -223,6 +228,7 @@
           <div class="card-title-main">
             <button class="card-done-toggle" type="button" aria-label="Mark task done"></button>
             <h3 class="card-title"></h3>
+            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
           </div>
           <button class="card-archive-button" type="button" aria-label="Archive card" data-tooltip="Archive">
             <svg viewBox="0 0 24 24" aria-hidden="true">

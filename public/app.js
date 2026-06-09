@@ -3,6 +3,7 @@
 const USER_STORAGE_KEY = "kanbanqube.userName";
 const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
 const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
+const INLINE_CARD_TITLE_EDIT_STORAGE_KEY = "kanbanqube.inlineCardTitleEdit";
 const SYNC_TIMESTAMP_FORMAT = {
   month: "short",
   day: "numeric",
@@ -19,6 +20,7 @@ const state = {
   currentUserName: localStorage.getItem(USER_STORAGE_KEY) || "",
   currentUserEmail: localStorage.getItem(USER_EMAIL_STORAGE_KEY) || "",
   showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
+  inlineCardTitleEdit: localStorage.getItem(INLINE_CARD_TITLE_EDIT_STORAGE_KEY) === "true",
   searchTerm: "",
   labelSearchTerm: "",
   labelEditorOpen: false,
@@ -35,6 +37,8 @@ const state = {
   editingBoardTitleValue: "",
   editingLaneTitleId: null,
   editingLaneTitleValue: "",
+  editingCardTitleId: null,
+  editingCardTitleValue: "",
   drag: null
 };
 
@@ -78,6 +82,7 @@ const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsBoardName = document.getElementById("settingsBoardName");
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
+const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
 const settingsBoardFile = document.getElementById("settingsBoardFile");
 const settingsRemote = document.getElementById("settingsRemote");
 const saveSettingsButton = document.getElementById("saveSettingsButton");
@@ -389,10 +394,39 @@ function renderCard(card) {
   });
 
   const titleNode = node.querySelector(".card-title");
+  const titleInput = node.querySelector(".card-title-inline-input");
   const hasTitle = Boolean(card.name && card.name.trim());
+  const isEditingTitle = state.inlineCardTitleEdit && state.editingCardTitleId === card.id;
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
   titleNode.classList.toggle("is-done", done);
+  titleNode.classList.toggle("is-inline-editable", state.inlineCardTitleEdit);
+  titleNode.hidden = isEditingTitle;
+  titleInput.hidden = !isEditingTitle;
+  titleInput.value = state.editingCardTitleValue;
+  titleInput.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  if (state.inlineCardTitleEdit) {
+    titleNode.addEventListener("click", (event) => {
+      event.stopPropagation();
+      startCardTitleEdit(card.id);
+    });
+  }
+  titleInput.addEventListener("input", () => {
+    state.editingCardTitleValue = titleInput.value;
+  });
+  titleInput.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitCardTitleEdit(card.id);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelCardTitleEdit();
+    }
+  });
+  titleInput.addEventListener("blur", () => commitCardTitleEdit(card.id));
   const descriptionNode = node.querySelector(".card-description");
   descriptionNode.textContent = card.desc || "";
   descriptionNode.hidden = !state.showCardDescriptions || !card.desc;
@@ -1128,11 +1162,22 @@ function createSafeLink(label, href, title = "") {
 function saveSettings() {
   const nextBoardName = settingsBoardName.value.trim() || "KanbanQube Board";
   const nextShowCardDescriptions = settingsShowCardDescriptions.checked;
+  const nextInlineCardTitleEdit = settingsInlineCardTitleEdit.checked;
   let didPersistLocalSetting = false;
 
   if (state.showCardDescriptions !== nextShowCardDescriptions) {
     state.showCardDescriptions = nextShowCardDescriptions;
     localStorage.setItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY, String(nextShowCardDescriptions));
+    didPersistLocalSetting = true;
+  }
+
+  if (state.inlineCardTitleEdit !== nextInlineCardTitleEdit) {
+    state.inlineCardTitleEdit = nextInlineCardTitleEdit;
+    localStorage.setItem(INLINE_CARD_TITLE_EDIT_STORAGE_KEY, String(nextInlineCardTitleEdit));
+    if (!nextInlineCardTitleEdit) {
+      state.editingCardTitleId = null;
+      state.editingCardTitleValue = "";
+    }
     didPersistLocalSetting = true;
   }
 
@@ -1154,6 +1199,7 @@ function openSettingsDialog() {
   settingsUserEmail.value = state.currentUserEmail;
   settingsBoardName.value = state.board?.name || "";
   settingsShowCardDescriptions.checked = state.showCardDescriptions;
+  settingsInlineCardTitleEdit.checked = state.inlineCardTitleEdit;
 
   if (!settingsDialog.open) {
     settingsDialog.showModal();
@@ -1224,6 +1270,48 @@ function commitLaneTitleEdit(listId) {
 function cancelLaneTitleEdit() {
   state.editingLaneTitleId = null;
   state.editingLaneTitleValue = "";
+  renderBoard();
+}
+
+function startCardTitleEdit(cardId) {
+  if (!state.inlineCardTitleEdit) return;
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card) return;
+  state.editingCardTitleId = cardId;
+  state.editingCardTitleValue = card.name || "";
+  renderBoard();
+  focusInlineInput(document.querySelector(`.card[data-card-id="${cardId}"] .card-title-inline-input`));
+}
+
+function commitCardTitleEdit(cardId) {
+  if (state.editingCardTitleId !== cardId) return;
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
+  if (!card) {
+    cancelCardTitleEdit();
+    return;
+  }
+
+  const nextName = state.editingCardTitleValue.trim();
+  state.editingCardTitleId = null;
+  state.editingCardTitleValue = "";
+
+  if (card.name !== nextName) {
+    card.name = nextName;
+    touchCard(card);
+    queueSave("Card updated");
+    renderBoard();
+    if (archiveDialog.open) {
+      renderArchiveDialog();
+    }
+    return;
+  }
+
+  renderBoard();
+}
+
+function cancelCardTitleEdit() {
+  state.editingCardTitleId = null;
+  state.editingCardTitleValue = "";
   renderBoard();
 }
 
