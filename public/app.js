@@ -33,8 +33,8 @@ const state = {
   isSyncing: false,
   editingBoardTitle: false,
   editingBoardTitleValue: "",
-  editingCardTitleId: null,
-  editingCardTitleValue: "",
+  editingLaneTitleId: null,
+  editingLaneTitleValue: "",
   drag: null
 };
 
@@ -265,7 +265,32 @@ function renderBoard() {
   for (const list of lists) {
     const laneNode = laneTemplate.content.firstElementChild.cloneNode(true);
     laneNode.dataset.listId = list.id;
-    laneNode.querySelector(".lane-title").textContent = list.name;
+    const laneTitle = laneNode.querySelector(".lane-title");
+    const laneTitleInput = laneNode.querySelector(".lane-title-inline-input");
+    const isEditingLaneTitle = state.editingLaneTitleId === list.id;
+    laneTitle.textContent = list.name || "Lane";
+    laneTitle.classList.toggle("is-inline-editable", true);
+    laneTitle.hidden = isEditingLaneTitle;
+    laneTitleInput.hidden = !isEditingLaneTitle;
+    laneTitleInput.value = state.editingLaneTitleValue;
+    laneTitle.addEventListener("click", () => startLaneTitleEdit(list.id));
+    laneTitleInput.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+    laneTitleInput.addEventListener("input", () => {
+      state.editingLaneTitleValue = laneTitleInput.value;
+    });
+    laneTitleInput.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitLaneTitleEdit(list.id);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        cancelLaneTitleEdit();
+      }
+    });
+    laneTitleInput.addEventListener("blur", () => commitLaneTitleEdit(list.id));
 
     const cards = visibleCardsForList(list.id);
     laneNode.querySelector(".lane-count").textContent = String(cardsForList(list.id).length);
@@ -277,7 +302,6 @@ function renderBoard() {
     }
 
     laneNode.querySelector(".add-card-button").addEventListener("click", () => addCard(list.id));
-    laneNode.querySelector(".rename-lane-button").addEventListener("click", () => renameLane(list.id));
     laneNode.querySelector(".delete-lane-button").addEventListener("click", () => deleteLane(list.id));
 
     enableCardDnD(laneNode, list.id);
@@ -365,37 +389,10 @@ function renderCard(card) {
   });
 
   const titleNode = node.querySelector(".card-title");
-  const titleInput = node.querySelector(".card-title-inline-input");
   const hasTitle = Boolean(card.name && card.name.trim());
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
   titleNode.classList.toggle("is-done", done);
-  titleNode.classList.toggle("is-inline-editable", true);
-  const isEditingTitle = state.editingCardTitleId === card.id;
-  titleNode.hidden = isEditingTitle;
-  titleInput.hidden = !isEditingTitle;
-  titleInput.value = state.editingCardTitleValue;
-  titleInput.addEventListener("click", (event) => {
-    event.stopPropagation();
-  });
-  titleNode.addEventListener("click", (event) => {
-    event.stopPropagation();
-    startCardTitleEdit(card.id);
-  });
-  titleInput.addEventListener("input", () => {
-    state.editingCardTitleValue = titleInput.value;
-  });
-  titleInput.addEventListener("keydown", (event) => {
-    event.stopPropagation();
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commitCardTitleEdit(card.id);
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      cancelCardTitleEdit();
-    }
-  });
-  titleInput.addEventListener("blur", () => commitCardTitleEdit(card.id));
   const descriptionNode = node.querySelector(".card-description");
   descriptionNode.textContent = card.desc || "";
   descriptionNode.hidden = !state.showCardDescriptions || !card.desc;
@@ -974,27 +971,6 @@ function deleteArchivedCard(cardId) {
   render();
 }
 
-async function renameLane(listId) {
-  const list = listById(listId);
-  if (!list) return;
-  const title = await openPrompt({
-    label: "Lane",
-    title: "Rename lane",
-    inputLabel: "Lane name",
-    confirmLabel: "Rename",
-    value: list.name
-  });
-
-  if (!title) return;
-  list.name = title;
-  pushAction("updateList", {
-    list: { id: list.id, name: list.name },
-    board: { id: state.board.id, name: state.board.name }
-  });
-  queueSave("Lane renamed");
-  render();
-}
-
 function deleteLane(listId) {
   const list = listById(listId);
   if (!list) return;
@@ -1210,41 +1186,44 @@ function cancelBoardTitleEdit() {
   renderHeader();
 }
 
-function startCardTitleEdit(cardId) {
-  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
-  if (!card) return;
-  state.editingCardTitleId = cardId;
-  state.editingCardTitleValue = card.name || "";
+function startLaneTitleEdit(listId) {
+  const list = listById(listId);
+  if (!list) return;
+  state.editingLaneTitleId = listId;
+  state.editingLaneTitleValue = list.name || "";
   renderBoard();
-  focusInlineInput(document.querySelector(`.card[data-card-id="${cardId}"] .card-title-inline-input`));
+  focusInlineInput(document.querySelector(`.lane[data-list-id="${listId}"] .lane-title-inline-input`));
 }
 
-function commitCardTitleEdit(cardId) {
-  if (state.editingCardTitleId !== cardId) return;
-  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId && !candidate.closed);
-  if (!card) {
-    cancelCardTitleEdit();
+function commitLaneTitleEdit(listId) {
+  if (state.editingLaneTitleId !== listId) return;
+  const list = listById(listId);
+  if (!list) {
+    cancelLaneTitleEdit();
     return;
   }
-  const nextName = state.editingCardTitleValue.trim();
-  state.editingCardTitleId = null;
-  state.editingCardTitleValue = "";
-  if (card.name !== nextName) {
-    card.name = nextName;
-    touchCard(card);
-    queueSave("Card updated");
-    renderBoard();
-    if (archiveDialog.open) {
-      renderArchiveDialog();
-    }
+
+  const nextName = state.editingLaneTitleValue.trim() || "Lane";
+  state.editingLaneTitleId = null;
+  state.editingLaneTitleValue = "";
+
+  if (list.name !== nextName) {
+    list.name = nextName;
+    pushAction("updateList", {
+      list: { id: list.id, name: list.name },
+      board: { id: state.board.id, name: state.board.name }
+    });
+    queueSave("Lane renamed");
+    render();
     return;
   }
+
   renderBoard();
 }
 
-function cancelCardTitleEdit() {
-  state.editingCardTitleId = null;
-  state.editingCardTitleValue = "";
+function cancelLaneTitleEdit() {
+  state.editingLaneTitleId = null;
+  state.editingLaneTitleValue = "";
   renderBoard();
 }
 
@@ -1589,6 +1568,7 @@ function enableCardDnD(laneNode, listId) {
 function enableLaneDnD(laneNode) {
   laneNode.addEventListener("dragstart", (event) => {
     if (event.target.closest(".card")) return;
+    if (event.target.closest("button, input, textarea, select")) return;
     state.drag = { type: "lane", listId: laneNode.dataset.listId };
     laneNode.classList.add("dragging");
     event.dataTransfer.effectAllowed = "move";

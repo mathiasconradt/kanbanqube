@@ -203,10 +203,10 @@
         <header class="lane-header">
           <div class="lane-title-row">
             <h2 class="lane-title"></h2>
+            <input class="inline-title-input lane-title-inline-input" type="text" maxlength="200" hidden />
             <span class="lane-count"></span>
           </div>
           <div class="lane-actions">
-            <button class="icon-button rename-lane-button" type="button" aria-label="Rename lane">✎</button>
             <button class="icon-button delete-lane-button" type="button" aria-label="Delete lane">🗑</button>
           </div>
         </header>
@@ -223,7 +223,6 @@
           <div class="card-title-main">
             <button class="card-done-toggle" type="button" aria-label="Mark task done"></button>
             <h3 class="card-title"></h3>
-            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
           </div>
           <button class="card-archive-button" type="button" aria-label="Archive card" data-tooltip="Archive">
             <svg viewBox="0 0 24 24" aria-hidden="true">
