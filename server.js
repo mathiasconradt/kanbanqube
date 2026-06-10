@@ -7,6 +7,23 @@ const fsSync = require("node:fs");
 const path = require("node:path");
 const { spawn, execFile } = require("node:child_process");
 const crypto = require("node:crypto");
+const { version: PACKAGE_VERSION } = require("./package.json");
+
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log("KanbanQube");
+  console.log("");
+  console.log("Usage:");
+  console.log("  kanbanqube [vault-directory]");
+  console.log("");
+  console.log("Environment:");
+  console.log("  PORT=3000  HTTP port to listen on");
+  process.exit(0);
+}
+
+if (process.argv.includes("--version") || process.argv.includes("-v")) {
+  console.log(PACKAGE_VERSION);
+  process.exit(0);
+}
 
 const APP_DIR = __dirname;
 const WORKSPACE_DIR = resolveWorkspaceDirectory(process.argv[2]);

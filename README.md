@@ -18,6 +18,7 @@ The app provides lanes, cards, labels, checklists, comments, card covers, file a
 - [Requirements](#requirements)
 - [Run With npx](#run-with-npx)
 - [Install](#install)
+- [Homebrew](#homebrew)
 - [Build](#build)
 - [Vaults](#vaults)
 - [Board Workflow](#board-workflow)
@@ -28,6 +29,7 @@ The app provides lanes, cards, labels, checklists, comments, card covers, file a
 - [Attachments And Covers](#attachments-and-covers)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Development](#development)
+- [Release Automation](#release-automation)
 - [Star History](#star-history)
 
 ## Requirements
@@ -76,6 +78,22 @@ Local development install from this repository:
 ```sh
 npm install
 npm start -- /path/to/your/vault
+```
+
+## Homebrew
+
+Install from the project tap:
+
+```sh
+brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
+brew install kanbanqube
+kanbanqube /path/to/your/vault
+```
+
+KanbanQube currently installs as a Homebrew formula for the Node.js command-line server, not as a macOS app cask. If a future app cask or manual macOS app zip is added, the cask should remove the macOS quarantine attribute during install. If you download an app release zip manually and macOS says the app is damaged, run:
+
+```sh
+xattr -cr "/Applications/KanbanQube.app"
 ```
 
 ## Build
@@ -232,6 +250,31 @@ Main files:
 - `public/app.js` - board UI behavior
 - `public/styles.css` - app styling
 - `public/index.html` - static app shell
+
+## Release Automation
+
+KanbanQube is prepared for npm and Homebrew releases.
+
+For `npx`, the package is published to npm as `kanbanqube` under the npm account `mathiasconradt`. The package exposes the `kanbanqube` executable through `package.json`.
+
+Required GitHub secrets:
+
+- `NPM_TOKEN` - npm automation token for publishing `kanbanqube`
+
+Release flow:
+
+1. A non-bot push to `main` runs the version bump workflow.
+2. The workflow bumps the patch version in `package.json` and `package-lock.json`.
+3. It updates the Homebrew formula version and pushes a matching `vX.Y.Z` tag.
+4. The release workflow runs for that tag.
+5. It runs tests, publishes to npm, creates the npm tarball release asset, and updates the Homebrew formula SHA on `main`.
+
+After release, users can run:
+
+```sh
+npx kanbanqube /path/to/your/vault
+brew install mathiasconradt/kanbanqube/kanbanqube
+```
 
 ## Star History
 

@@ -1,12 +1,46 @@
 {
   "name": "kanbanqube",
   "version": "1.0.0",
-  "description": "Git-synced Kanban board with a single JSON data file",
+  "description": "Local-first Kanban board backed by normal files",
+  "license": "Apache-2.0",
+  "author": "Mathias Conradt",
+  "homepage": "https://github.com/mathiasconradt/kanbanqube#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathiasconradt/kanbanqube.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mathiasconradt/kanbanqube/issues"
+  },
+  "keywords": [
+    "kanban",
+    "board",
+    "tasks",
+    "local-first",
+    "git",
+    "vault"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "server.js",
+    "public/",
+    "demo_board.json",
+    "promo.jpg",
+    "screenshot.png",
+    "README.md",
+    "LICENSE"
+  ],
   "bin": {
     "kanbanqube": "./server.js"
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --check server.js && node --check --input-type=module < public/app.js"
+    "test": "node --check server.js && node --check --input-type=module < public/app.js",
+    "prepublishOnly": "npm test"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
