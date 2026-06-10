@@ -33,7 +33,7 @@
     "LICENSE"
   ],
   "bin": {
-    "kanbanqube": "./server.js"
+    "kanbanqube": "server.js"
   },
   "scripts": {
     "start": "node server.js",
