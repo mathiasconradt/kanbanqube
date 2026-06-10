@@ -13,6 +13,23 @@ The app provides lanes, cards, labels, checklists, comments, card covers, file a
 
 ![KanbanQube board screenshot](screenshot.png)
 
+## Table Of Contents
+
+- [Requirements](#requirements)
+- [Run With npx](#run-with-npx)
+- [Install](#install)
+- [Build](#build)
+- [Vaults](#vaults)
+- [Board Workflow](#board-workflow)
+- [Git Sync](#git-sync)
+- [Import](#import)
+- [Demo Board](#demo-board)
+- [Identity](#identity)
+- [Attachments And Covers](#attachments-and-covers)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Development](#development)
+- [Star History](#star-history)
+
 ## Requirements
 
 - Node.js 18 or newer
