@@ -217,11 +217,14 @@ function isBoardEmpty() {
 }
 
 async function loadDemoBoard() {
-  const response = await fetch(DEMO_BOARD_PATH);
+  const response = await fetch("/api/demo-board", {
+    method: "POST"
+  });
+  const payload = await response.json();
   if (!response.ok) {
-    throw new Error("Could not load demo board.");
+    throw new Error(payload.error || "Could not load demo board.");
   }
-  return response.json();
+  return payload;
 }
 
 function wireEvents() {

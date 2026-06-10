@@ -12,8 +12,20 @@ function createImportController(boardService, importService) {
     response.json(await boardService.saveBoard(importedBoard));
   }
 
+  async function importDemoBoard(_request, response) {
+    const currentBoard = await boardService.loadBoard();
+    if ((currentBoard.cards || []).length > 0) {
+      response.status(409).json({ error: "Demo board can only be loaded when the board has no cards." });
+      return;
+    }
+
+    const demoBoard = await importService.readDemoBoard();
+    response.json(await boardService.saveBoard(demoBoard));
+  }
+
   return {
-    importBoard
+    importBoard,
+    importDemoBoard
   };
 }
 

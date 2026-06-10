@@ -22,6 +22,7 @@ function createApiRoutes(services) {
   router.post("/uploads", asyncHandler(uploadController.uploadFiles));
   router.delete("/uploads/:fileName", asyncHandler(uploadController.deleteUpload));
   router.post("/import", asyncHandler(importController.importBoard));
+  router.post("/demo-board", asyncHandler(importController.importDemoBoard));
   router.post("/sync", asyncHandler(syncController.syncBoard));
   router.get("/sync-status", syncController.syncStatus);
 

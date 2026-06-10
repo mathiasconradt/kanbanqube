@@ -1,11 +1,13 @@
 "use strict";
 
+const fs = require("node:fs/promises");
 const { multipartBoundary, parseMultipartBody } = require("../utils/multipart");
 const { readBody } = require("../utils/requestBody");
 
-function createImportService() {
+function createImportService(config = {}) {
   return {
-    readImportedBoard
+    readImportedBoard,
+    readDemoBoard: () => readDemoBoard(config)
   };
 }
 
@@ -23,7 +25,15 @@ async function readImportedBoard(request) {
   return request.body && typeof request.body === "object" ? request.body : {};
 }
 
+async function readDemoBoard(config) {
+  if (!config.demoBoardFilePath) {
+    throw new Error("Demo board is not available.");
+  }
+  return JSON.parse(await fs.readFile(config.demoBoardFilePath, "utf8"));
+}
+
 module.exports = {
   createImportService,
-  readImportedBoard
+  readImportedBoard,
+  readDemoBoard
 };
