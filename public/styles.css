@@ -990,6 +990,32 @@ button {
   font-weight: 600;
 }
 
+.settings-import-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(14px * var(--ui-scale));
+  background: rgba(12, 15, 21, 0.42);
+}
+
+.settings-import-panel h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.settings-import-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.settings-import-panel button {
+  flex: 0 0 auto;
+}
+
 .field input,
 .field textarea,
 .field select {

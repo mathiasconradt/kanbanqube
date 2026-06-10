@@ -101,6 +101,9 @@ const settingsBoardName = document.getElementById("settingsBoardName");
 const settingsIconStyleInputs = [...document.querySelectorAll("input[name=\"settingsIconStyle\"]")];
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
+const importBoardInput = document.getElementById("importBoardInput");
+const importBoardButton = document.getElementById("importBoardButton");
+const settingsImportHelp = document.getElementById("settingsImportHelp");
 const settingsBoardFile = document.getElementById("settingsBoardFile");
 const settingsRemote = document.getElementById("settingsRemote");
 const saveSettingsButton = document.getElementById("saveSettingsButton");
@@ -168,8 +171,9 @@ async function bootstrap() {
   state.config = configResponse.ok ? await configResponse.json() : { boardFile: "board.json", gitRemote: null, gitUserName: null, gitUserEmail: null };
   hydrateIdentityFromGitConfig();
   applyIconStyle();
-  boardFileBadge.textContent = state.config.boardFile || "board.json";
-  settingsBoardFile.textContent = `Board file: ${state.config.boardFile || "board.json"}`;
+  const storageLabel = state.config.storagePath ? `${state.config.storagePath}/` : (state.config.boardFile || "board.json");
+  boardFileBadge.textContent = storageLabel;
+  settingsBoardFile.textContent = `Storage: ${storageLabel}`;
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
   wireEvents();
@@ -202,6 +206,12 @@ function wireEvents() {
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
   closeArchiveButton.addEventListener("click", () => archiveDialog.close());
   saveSettingsButton.addEventListener("click", saveSettings);
+  importBoardButton.addEventListener("click", () => importBoardInput.click());
+  importBoardInput.addEventListener("change", () => {
+    const file = importBoardInput.files?.[0];
+    importBoardInput.value = "";
+    if (file) importBoardFromFile(file);
+  });
 
   syncButton.addEventListener("click", syncBoard);
   saveStatus.addEventListener("click", openSyncLogDialog);
@@ -1170,6 +1180,54 @@ async function uploadFilesToCard(cardId, files) {
   }
 }
 
+async function importBoardFromFile(file) {
+  if ((state.board?.cards || []).length > 0) {
+    await openMessageDialog({
+      label: "Import",
+      title: "Import unavailable",
+      message: "Import is only available when the board has no cards."
+    });
+    return;
+  }
+
+  const confirmed = await openConfirmDialog({
+    label: "Import",
+    title: "Import board JSON?",
+    message: "This will replace the current empty board with the imported board.",
+    confirmLabel: "Import",
+    cancelLabel: "Cancel"
+  });
+  if (!confirmed) return;
+
+  setSaveMessage("Importing board…");
+  try {
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+    const response = await fetch("/api/import", {
+      method: "POST",
+      body: formData
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Import failed.");
+    }
+
+    state.board = payload;
+    state.selectedCardId = null;
+    state.descriptionEditing = false;
+    settingsDialog.close();
+    setSaveMessage("Board imported");
+    render();
+  } catch (error) {
+    setSaveMessage(error.message || "Import failed.");
+    await openMessageDialog({
+      label: "Import",
+      title: "Import failed",
+      message: error.message || "Import failed."
+    });
+  }
+}
+
 function removeCoverFromSelectedCard(event) {
   event?.stopPropagation();
   const card = getSelectedCard();
@@ -1555,6 +1613,11 @@ function openSettingsDialog() {
   }
   settingsShowCardDescriptions.checked = state.showCardDescriptions;
   settingsInlineCardTitleEdit.checked = state.inlineCardTitleEdit;
+  const canImport = (state.board?.cards || []).length === 0;
+  importBoardButton.disabled = !canImport;
+  settingsImportHelp.textContent = canImport
+    ? "Import is available because this board has no cards."
+    : "Import is disabled because this board already has cards.";
 
   if (!settingsDialog.open) {
     settingsDialog.showModal();
@@ -1807,7 +1870,6 @@ function queueSave(message) {
 async function saveBoardNow() {
   if (!state.board) return;
   state.isSaving = true;
-  state.board.dateLastActivity = new Date().toISOString();
   const response = await fetch("/api/board", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

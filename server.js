@@ -13,6 +13,9 @@ const WORKSPACE_DIR = resolveWorkspaceDirectory(process.argv[2]);
 const PUBLIC_DIR = path.join(APP_DIR, "public");
 const BOARD_FILE_NAME = "board.json";
 const BOARD_FILE_PATH = path.join(WORKSPACE_DIR, BOARD_FILE_NAME);
+const BOARD_DIR_NAME = "board";
+const BOARD_DIR = path.join(WORKSPACE_DIR, BOARD_DIR_NAME);
+const BOARD_META_FILE_PATH = path.join(BOARD_DIR, "meta.json");
 const UPLOADS_DIR_NAME = "uploads";
 const UPLOADS_DIR = path.join(WORKSPACE_DIR, UPLOADS_DIR_NAME);
 const SAMPLE_EXPORT_DIR = path.join(WORKSPACE_DIR, "trello_export");
@@ -57,6 +60,7 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && url.pathname === "/api/config") {
       return sendJson(response, 200, {
         boardFile: BOARD_FILE_NAME,
+        storagePath: BOARD_DIR_NAME,
         workspacePath: WORKSPACE_DIR,
         hasGitRepo: await hasGitRepository(WORKSPACE_DIR),
         gitRemote: await gitRemoteOrigin(WORKSPACE_DIR),
@@ -74,6 +78,16 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/uploads") {
       const files = await saveUploadedFiles(request);
       return sendJson(response, 200, { files });
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/import") {
+      const currentBoard = await loadBoard();
+      if ((currentBoard.cards || []).length > 0) {
+        return sendJson(response, 409, { error: "Import is only available when the board has no cards." });
+      }
+      const importedBoard = await readImportedBoard(request);
+      const board = await saveBoard(importedBoard);
+      return sendJson(response, 200, board);
     }
 
     if (request.method === "GET" && url.pathname === "/api/sync-status") {
@@ -108,7 +122,7 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(PORT, async () => {
-  await ensureBoardFile();
+  await ensureBoardStorage();
   console.log(`KanbanQube running on http://localhost:${PORT} (workspace: ${WORKSPACE_DIR})`);
 });
 
@@ -195,6 +209,21 @@ async function readBody(request, maxSize = 25 * 1024 * 1024) {
     chunks.push(chunk);
   }
   return Buffer.concat(chunks);
+}
+
+async function readImportedBoard(request) {
+  const contentType = request.headers["content-type"] || "";
+  if (contentType.includes("multipart/form-data")) {
+    const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+    if (!boundaryMatch) throw new Error("Import request must include a file.");
+    const boundary = boundaryMatch[1] || boundaryMatch[2];
+    const body = await readBody(request, 50 * 1024 * 1024);
+    const filePart = parseMultipartBody(body, boundary).find((part) => part.filename && part.data.length > 0);
+    if (!filePart) throw new Error("Import request must include a JSON file.");
+    return JSON.parse(filePart.data.toString("utf8"));
+  }
+
+  return readJsonBody(request);
 }
 
 async function saveUploadedFiles(request) {
@@ -304,13 +333,22 @@ function mimeTypeForFileName(fileName) {
   return mimeTypes[ext] || "application/octet-stream";
 }
 
-async function ensureBoardFile() {
-  if (await exists(BOARD_FILE_PATH)) return;
+async function ensureBoardStorage() {
+  if (await exists(BOARD_META_FILE_PATH)) return;
   const board = await seedBoard();
-  await writeJsonAtomically(BOARD_FILE_PATH, board);
+  await writeSplitBoard(board);
 }
 
 async function seedBoard() {
+  try {
+    if (await exists(BOARD_FILE_PATH)) {
+      const raw = await fs.readFile(BOARD_FILE_PATH, "utf8");
+      return normalizeBoard(JSON.parse(raw));
+    }
+  } catch {
+    // Fall back to bundled sample or a clean starter board.
+  }
+
   try {
     const entries = await fs.readdir(SAMPLE_EXPORT_DIR, { withFileTypes: true });
     const sample = entries
@@ -329,24 +367,124 @@ async function seedBoard() {
 }
 
 async function loadBoard() {
-  await ensureBoardFile();
-  const raw = await fs.readFile(BOARD_FILE_PATH, "utf8");
-  const board = normalizeBoard(JSON.parse(raw));
-  return board;
+  await ensureBoardStorage();
+  const board = await readSplitBoard();
+  return normalizeBoard(board);
 }
 
 async function saveBoard(candidateBoard) {
   const board = normalizeBoard(candidateBoard);
-  await writeJsonAtomically(BOARD_FILE_PATH, board);
+  await writeSplitBoard(board);
   return board;
 }
 
-async function writeJsonAtomically(filePath, value) {
+async function writeJsonIfChanged(filePath, value) {
+  const next = `${JSON.stringify(value, null, 2)}\n`;
+  try {
+    const current = await fs.readFile(filePath, "utf8");
+    if (current === next) return;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  await writeTextAtomically(filePath, next);
+}
+
+async function writeTextAtomically(filePath, text) {
   const directory = path.dirname(filePath);
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(tmpPath, JSON.stringify(value, null, 2), "utf8");
+  await fs.writeFile(tmpPath, text, "utf8");
   await fs.rename(tmpPath, filePath);
+}
+
+async function readSplitBoard() {
+  const meta = await readJsonFile(BOARD_META_FILE_PATH, {});
+  return {
+    ...meta,
+    lists: await readJsonCollection("lists"),
+    labels: await readJsonCollection("labels"),
+    members: await readJsonCollection("members"),
+    cards: await readJsonCollection("cards"),
+    checklists: await readJsonCollection("checklists"),
+    actions: await readJsonCollection("actions")
+  };
+}
+
+async function writeSplitBoard(board) {
+  await fs.mkdir(BOARD_DIR, { recursive: true });
+  const {
+    lists,
+    labels,
+    members,
+    cards,
+    checklists,
+    actions,
+    ...meta
+  } = board;
+
+  await writeJsonIfChanged(BOARD_META_FILE_PATH, meta);
+  await writeJsonCollection("lists", lists || []);
+  await writeJsonCollection("labels", labels || []);
+  await writeJsonCollection("members", members || []);
+  await writeJsonCollection("cards", cards || []);
+  await writeJsonCollection("checklists", checklists || []);
+  await writeJsonCollection("actions", actions || []);
+}
+
+async function readJsonCollection(name) {
+  const directory = path.join(BOARD_DIR, name);
+  let entries = [];
+  try {
+    entries = await fs.readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+
+  const items = [];
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    items.push(await readJsonFile(path.join(directory, entry.name), null));
+  }
+  return items.filter(Boolean);
+}
+
+async function writeJsonCollection(name, items) {
+  const directory = path.join(BOARD_DIR, name);
+  await fs.mkdir(directory, { recursive: true });
+  const desiredFiles = new Set();
+
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const id = nonEmptyString(item.id) || createHexId();
+    item.id = id;
+    const fileName = `${encodeURIComponent(id)}.json`;
+    desiredFiles.add(fileName);
+    await writeJsonIfChanged(path.join(directory, fileName), item);
+  }
+
+  let entries = [];
+  try {
+    entries = await fs.readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
+
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name.endsWith(".json") && !desiredFiles.has(entry.name)) {
+      await fs.unlink(path.join(directory, entry.name));
+    }
+  }
+}
+
+async function readJsonFile(filePath, fallback) {
+  try {
+    return JSON.parse(await fs.readFile(filePath, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") return fallback;
+    throw error;
+  }
 }
 
 function normalizeBoard(candidate) {
@@ -354,11 +492,8 @@ function normalizeBoard(candidate) {
   const source = candidate && typeof candidate === "object" ? candidate : {};
   const board = { ...seededDefaults, ...source };
   const boardId = nonEmptyString(board.id) || seededDefaults.id;
-  const baseShortLink = nonEmptyString(board.shortLink) || boardId.slice(-8);
-  const now = newestTimestamp([
-    source.dateLastActivity,
-    ...collectDates(source.actions)
-  ]);
+  const baseShortLink = nonEmptyString(source.shortLink) || boardId.slice(-8);
+  const now = newestTimestamp([source.dateLastActivity]);
 
   const lists = normalizeLists(source.lists, boardId);
   const labels = normalizeLabels(source.labels, boardId);
@@ -376,17 +511,10 @@ function normalizeBoard(candidate) {
     }))
     .sort((left, right) => left.pos - right.pos);
 
-  const labelUses = new Map();
-  for (const card of normalizedCards) {
-    for (const labelId of card.idLabels) {
-      labelUses.set(labelId, (labelUses.get(labelId) || 0) + 1);
-    }
-  }
-
   return {
     ...board,
     id: boardId,
-    nodeId: nonEmptyString(board.nodeId) || `kanbanqube:board:${boardId}`,
+    nodeId: nonEmptyString(source.nodeId) || `kanbanqube:board:${boardId}`,
     name: nonEmptyString(board.name) || "KanbanQube Board",
     desc: stringOrDefault(board.desc, ""),
     descData: board.descData ?? null,
@@ -396,7 +524,7 @@ function normalizeBoard(candidate) {
     creationMethodLoadingStartedAt: board.creationMethodLoadingStartedAt ?? null,
     creationMethodLoadingPhase: board.creationMethodLoadingPhase ?? null,
     dateClosed: board.dateClosed ?? null,
-    dateLastActivity: now,
+    dateLastActivity: source.dateLastActivity || now,
     dateLastView: source.dateLastView || now,
     datePluginDisable: source.datePluginDisable ?? null,
     enterpriseOwned: Boolean(source.enterpriseOwned),
@@ -405,12 +533,9 @@ function normalizeBoard(candidate) {
     idMemberCreator: source.idMemberCreator ?? (members[0]?.id || null),
     idOrganization: source.idOrganization ?? null,
     idTags: Array.isArray(source.idTags) ? source.idTags : [],
-    ixUpdate: Date.now(),
-    labelNames: buildLabelNames(labels),
-    labels: labels.map((label) => ({
-      ...label,
-      uses: labelUses.get(label.id) || 0
-    })),
+    ixUpdate: Number.isFinite(source.ixUpdate) ? source.ixUpdate : Date.now(),
+    labelNames: source.labelNames ?? buildLabelNames(labels),
+    labels,
     limits: source.limits ?? {},
     lists: lists.sort((left, right) => left.pos - right.pos),
     members,
@@ -432,8 +557,9 @@ function normalizeBoard(candidate) {
     type: source.type ?? "board",
     url: nonEmptyString(source.url) || `https://kanbanqube.local/b/${baseShortLink}`,
     kanbanQubeMeta: {
+      ...(source.kanbanQubeMeta && typeof source.kanbanQubeMeta === "object" ? source.kanbanQubeMeta : {}),
       version: 1,
-      savedAt: now,
+      savedAt: source.kanbanQubeMeta?.savedAt || source.dateLastActivity || now,
       boardFile: BOARD_FILE_NAME
     }
   };

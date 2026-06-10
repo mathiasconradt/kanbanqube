@@ -2,9 +2,9 @@
 
 ![KanbanQube preview](promo.jpg)
 
-KanbanQube is a local-first Kanban board app backed by a single `board.json` file. It is designed for personal or team workflows where the board should live in a normal folder, optionally inside a Git repository, so changes can be versioned and synced with the tools you already use.
+KanbanQube is a local-first Kanban board app backed by normal files in a vault folder. It is designed for personal or team workflows where the board should live in a regular directory, optionally inside a Git repository, so changes can be versioned and synced with the tools you already use.
 
-The app provides lanes, cards, labels, checklists, comments, card covers, file attachments, archived cards, search, and a card-detail view. Uploaded files are stored in an `uploads/` folder next to `board.json`, while the board keeps only the attachment metadata and relative links.
+The app provides lanes, cards, labels, checklists, comments, card covers, file attachments, archived cards, search, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
 
 ## Requirements
 
@@ -72,11 +72,18 @@ A vault is just a directory. KanbanQube stores:
 
 ```text
 vault/
-  board.json
+  board/
+    meta.json
+    cards/
+    lists/
+    checklists/
+    actions/
+    labels/
+    members/
   uploads/
 ```
 
-If `board.json` does not exist, KanbanQube creates it automatically. If `uploads/` does not exist, it is created when the first file is uploaded.
+If `board/` does not exist, KanbanQube creates it automatically. If an older `board.json` exists, KanbanQube imports it into the split `board/` layout the first time it starts. The original `board.json` is left in place but is no longer the active storage file. If `uploads/` does not exist, it is created when the first file is uploaded.
 
 Uploaded filenames are made unique while preserving the original name in the UI. For example:
 
@@ -95,7 +102,7 @@ When Sync runs, KanbanQube:
 
 1. Saves pending board changes.
 2. Checks whether anything in the vault repository changed.
-3. Stages and commits all repository changes when needed, including `board.json`, `uploads/`, and newly added files.
+3. Stages and commits all repository changes when needed, including `board/`, `uploads/`, and newly added files.
 4. Runs `git pull --rebase` to bring in remote changes after local work is committed.
 5. Pushes to the configured remote.
 
@@ -114,10 +121,16 @@ npx kanbanqube .
 Commit and push once if your remote requires an initial branch:
 
 ```sh
-git add board.json
+git add board
 git commit -m "Initialize KanbanQube board"
 git push -u origin main
 ```
+
+## Import
+
+KanbanQube can import a board export JSON from Settings. Import is only enabled when the current board has no cards. This keeps accidental replacement of an active board from happening inside the app.
+
+Imported data is normalized and written into the split `board/` vault layout.
 
 ## Identity
 
