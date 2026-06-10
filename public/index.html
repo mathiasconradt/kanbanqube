@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KanbanQube</title>
+    <link id="faviconLink" rel="icon" type="image/png" href="/icon_3d.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <button id="aboutButton" class="brand-mark" type="button" aria-label="About KanbanQube">
+            <img src="/icon_3d.png" alt="" />
+          </button>
+          <div class="brand-copy">
+            <strong>KanbanQube</strong>
+            <button id="saveStatus" class="save-status-button" type="button">Loading board…</button>
+          </div>
+        </div>
+
+        <label class="search-shell" for="searchInput">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0-2a8.5 8.5 0 1 0 5.31 15.13l4.03 4.04 1.41-1.41-4.04-4.03A8.5 8.5 0 0 0 10.5 2Z"/>
+          </svg>
+          <input id="searchInput" type="search" placeholder="Search cards" autocomplete="off" />
+        </label>
+
+        <div class="topbar-actions">
+          <button id="syncButton" class="primary-button" type="button">Sync</button>
+          <button id="archiveButton" class="ghost-button" type="button">Archive</button>
+          <button id="settingsButton" class="ghost-button" type="button">Settings</button>
+        </div>
+      </header>
+
+      <section class="board-header">
+        <div>
+          <p class="eyebrow">Git-synced board</p>
+          <div class="board-title-shell">
+            <h1 id="boardTitle">KanbanQube Board</h1>
+            <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" hidden />
+          </div>
+        </div>
+        <div class="board-meta">
+          <span id="userBadge" class="meta-badge">Guest</span>
+        </div>
+      </section>
+
+      <main id="boardScroller" class="board-scroller" aria-label="Kanban board"></main>
+    </div>
+
+    <dialog id="cardDialog" class="modal modal-large">
+      <form method="dialog" class="modal-card">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Card details</p>
+            <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" />
+          </div>
+          <button id="closeCardButton" type="button" class="icon-button" aria-label="Close card dialog">✕</button>
+        </header>
+
+        <div id="archivedCardBanner" class="archived-card-banner" hidden>This is an archived card.</div>
+        <div id="cardDetailsCover" class="card-details-cover" hidden>
+          <button id="removeCoverButton" class="cover-remove-button" type="button" aria-label="Remove cover image">×</button>
+        </div>
+
+        <div class="modal-grid">
+          <section class="modal-main">
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Description</h2>
+                <button id="editDescriptionButton" class="ghost-button" type="button">Edit</button>
+              </div>
+              <div id="cardDescriptionDisplay" class="description-display"></div>
+              <textarea id="cardDescriptionInput" class="description-editor" rows="8" placeholder="Add a description" hidden></textarea>
+            </section>
+
+            <section class="attachments-panel">
+              <div class="panel-header">
+                <h2>Attachments</h2>
+                <button id="addAttachmentButton" class="ghost-button" type="button">Add files</button>
+              </div>
+              <input id="attachmentInput" type="file" multiple hidden />
+              <div id="attachmentDropZone" class="attachment-drop-zone">Drop files here</div>
+              <div id="attachmentsContainer" class="attachments-list"></div>
+            </section>
+
+            <section class="checklists-panel">
+              <div class="panel-header">
+                <h2>Checklists</h2>
+                <button id="addChecklistButton" class="ghost-button" type="button">Add checklist</button>
+              </div>
+              <div id="checklistsContainer" class="checklists-container"></div>
+            </section>
+          </section>
+
+          <aside class="modal-sidebar">
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Labels</h2>
+                <button id="addLabelButton" class="icon-button" type="button" aria-label="Open labels panel">+</button>
+              </div>
+              <div id="cardLabels" class="label-cloud"></div>
+              <div id="labelEditorContainer"></div>
+            </section>
+
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Activity</h2>
+              </div>
+              <div class="comment-composer">
+                <textarea id="commentInput" rows="3" placeholder="Write a comment"></textarea>
+                <button id="addCommentButton" class="primary-button" type="button">Add comment</button>
+              </div>
+              <div id="activityList" class="activity-list"></div>
+            </section>
+
+            <button id="deleteCardButton" type="button" class="danger-button">Delete card</button>
+          </aside>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settingsDialog" class="modal">
+      <form method="dialog" class="modal-card modal-small">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Settings</p>
+            <h2>Board preferences</h2>
+          </div>
+          <button id="closeSettingsButton" type="button" class="icon-button" aria-label="Close settings">✕</button>
+        </header>
+
+        <label class="field">
+          <span>Your name</span>
+          <input id="settingsUserName" type="text" maxlength="120" readonly />
+        </label>
+
+        <label class="field">
+          <span>Your email</span>
+          <input id="settingsUserEmail" type="email" maxlength="200" readonly />
+        </label>
+
+        <fieldset class="field icon-choice-field">
+          <legend>App icon</legend>
+          <label>
+            <input type="radio" name="settingsIconStyle" value="3d" />
+            <img src="/icon_3d.png" alt="" />
+            <span>3D</span>
+          </label>
+          <label>
+            <input type="radio" name="settingsIconStyle" value="flat" />
+            <img src="/icon_flat.png" alt="" />
+            <span>Flat</span>
+          </label>
+        </fieldset>
+
+        <label class="checkbox-field">
+          <input id="settingsShowCardDescriptions" type="checkbox" />
+          <span>Show card descriptions in board lanes</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input id="settingsInlineCardTitleEdit" type="checkbox" />
+          <span>Edit card titles from board lanes</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input id="settingsGitSyncInBackground" type="checkbox" />
+          <span>Run Git sync in the background (no dialog)</span>
+        </label>
+
+        <section class="settings-import-panel">
+          <div>
+            <h3>Import board JSON</h3>
+            <p id="settingsImportHelp">Available only while the board has no cards.</p>
+          </div>
+          <input id="importBoardInput" type="file" accept="application/json,.json" hidden />
+          <button id="importBoardButton" type="button" class="ghost-button">Import JSON</button>
+        </section>
+
+        <div class="settings-meta">
+          <span id="settingsBoardFile"></span>
+          <span id="settingsRemote"></span>
+        </div>
+
+        <footer class="modal-footer">
+          <button id="saveSettingsButton" type="button" class="primary-button">Save settings</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="syncLogDialog" class="modal">
+      <form method="dialog" class="modal-card modal-sync-log">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Git sync</p>
+            <h2>Sync log</h2>
+            <p id="syncLogTimestamp" class="modal-subtitle"></p>
+          </div>
+          <button id="closeSyncLogButton" type="button" class="icon-button" aria-label="Close sync log">✕</button>
+        </header>
+        <pre id="syncLogContent" class="sync-log-content"></pre>
+        <footer class="modal-footer sync-log-footer">
+          <button id="syncLogCloseButton" type="button" class="primary-button">Close</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="archiveDialog" class="modal">
+      <form method="dialog" class="modal-card modal-archive">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label">Archive</p>
+            <h2>Archived cards</h2>
+          </div>
+          <button id="closeArchiveButton" type="button" class="icon-button" aria-label="Close archive">✕</button>
+        </header>
+        <div id="archiveList" class="archive-list"></div>
+      </form>
+    </dialog>
+
+    <dialog id="promptDialog" class="modal">
+      <form method="dialog" class="modal-card modal-small">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label" id="promptLabel">Update</p>
+            <h2 id="promptTitle">Enter a value</h2>
+          </div>
+        </header>
+
+        <label class="field">
+          <span id="promptInputLabel">Name</span>
+          <input id="promptInput" type="text" maxlength="200" />
+        </label>
+
+        <footer class="modal-footer">
+          <button id="promptCancelButton" type="button" class="ghost-button">Cancel</button>
+          <button id="promptConfirmButton" type="submit" class="primary-button">Save</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="appDialog" class="modal">
+      <form method="dialog" class="modal-card modal-app-dialog">
+        <header class="modal-header">
+          <div>
+            <p class="modal-label" id="appDialogLabel">Confirm</p>
+            <h2 id="appDialogTitle">Are you sure?</h2>
+          </div>
+          <button id="appDialogCloseButton" type="button" class="icon-button" aria-label="Close dialog">✕</button>
+        </header>
+
+        <p id="appDialogMessage" class="app-dialog-message"></p>
+
+        <footer class="modal-footer app-dialog-footer">
+          <button id="appDialogCancelButton" type="button" class="ghost-button">Cancel</button>
+          <button id="appDialogConfirmButton" type="submit" class="primary-button" value="confirm">Confirm</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="aboutDialog" class="about-dialog">
+      <figure class="about-figure">
+        <img id="aboutImage" src="/about.jpg" alt="KanbanQube" />
+        <figcaption>
+          <span>KanbanQube • &copy; Mathias Conradt • Apache 2.0 License</span>
+          <a href="https://github.com/mathiasconradt/kanbanqube" target="_blank" rel="noopener noreferrer">https://github.com/mathiasconradt/kanbanqube</a>
+        </figcaption>
+      </figure>
+    </dialog>
+
+    <template id="laneTemplate">
+      <section class="lane" draggable="true">
+        <header class="lane-header">
+          <div class="lane-title-row">
+            <h2 class="lane-title">Lane</h2>
+            <input class="inline-title-input lane-title-inline-input" type="text" maxlength="200" hidden />
+            <span class="lane-count"></span>
+          </div>
+          <div class="lane-actions">
+            <button class="icon-button delete-lane-button" type="button" aria-label="Delete lane">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18m-2 0-.9 13.15A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.85L5 6m3 0V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6m-6 4v7m4-7v7" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div class="card-list"></div>
+        <button class="add-card-button" type="button">+ Add a card</button>
+      </section>
+    </template>
+
+    <template id="cardTemplate">
+      <article class="card" draggable="true">
+        <div class="card-label-strip"></div>
+        <div class="card-cover"></div>
+        <div class="card-title-row">
+          <div class="card-title-main">
+            <button class="card-done-toggle" type="button" aria-label="Mark task done"></button>
+            <h3 class="card-title">Task</h3>
+            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
+          </div>
+          <button class="card-archive-button" type="button" aria-label="Archive card" data-tooltip="Archive">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20.25 7.5v10.125c0 1.036-.84 1.875-1.875 1.875H5.625A1.875 1.875 0 0 1 3.75 17.625V7.5m16.5 0V5.625c0-1.036-.84-1.875-1.875-1.875H5.625A1.875 1.875 0 0 0 3.75 5.625V7.5m16.5 0h-16.5m8.25 4.5v3m0 0 1.5-1.5M12 15l-1.5-1.5" />
+            </svg>
+          </button>
+        </div>
+        <p class="card-description"></p>
+        <footer class="card-footer"></footer>
+      </article>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+  </html>

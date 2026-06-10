@@ -1,0 +1,57 @@
+{
+  "name": "kanbanqube",
+  "version": "1.0.3",
+  "description": "Local-first Kanban board backed by normal files",
+  "license": "Apache-2.0",
+  "author": "Mathias Conradt",
+  "homepage": "https://github.com/mathiasconradt/kanbanqube#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathiasconradt/kanbanqube.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mathiasconradt/kanbanqube/issues"
+  },
+  "keywords": [
+    "kanban",
+    "board",
+    "tasks",
+    "local-first",
+    "git",
+    "vault"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "server.js",
+    "app.js",
+    "config/",
+    "controllers/",
+    "middleware/",
+    "models/",
+    "routes/",
+    "services/",
+    "utils/",
+    "public/",
+    "demo_board.json",
+    "promo.jpg",
+    "screenshot.png",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "kanbanqube": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --check server.js && node --check app.js && find config controllers middleware models routes services utils -name '*.js' -exec node --check {} \\; && node --check --input-type=module < public/app.js",
+    "prepublishOnly": "npm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
