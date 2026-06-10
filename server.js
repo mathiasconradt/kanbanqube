@@ -942,7 +942,7 @@ function buildLabelNames(labels) {
 
 function defaultBoardSkeleton() {
   const boardId = createHexId();
-  const names = ["Inbox", "Doing", "Done"];
+  const names = ["Backlog", "To Do", "In Progress", "In Review", "Done"];
   const lists = names.map((name, index) => ({
     id: createHexId(),
     idBoard: boardId,
