@@ -45,7 +45,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --check server.js && node --check app.js && find config controllers middleware models routes services utils -name '*.js' -exec node --check {} \\; && node --check --input-type=module < public/app.js",
+    "test": "npm run check:registry && node --check server.js && node --check app.js && find config controllers middleware models routes services utils -name '*.js' -exec node --check {} \\; && node --check --input-type=module < public/app.js",
+    "check:registry": "node -e \"const fs=require('fs'); const lock=fs.readFileSync('package-lock.json','utf8'); if(/repox|jfrog/i.test(lock)){ console.error('package-lock.json must use public npm registry URLs, not local Repox/JFrog URLs.'); process.exit(1); }\"",
     "prepublishOnly": "npm test"
   },
   "publishConfig": {
