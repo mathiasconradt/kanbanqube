@@ -34,6 +34,7 @@ const state = {
   labelEditorOpen: false,
   descriptionEditing: false,
   selectedCardId: null,
+  keyboardCardId: null,
   saveTimer: null,
   isSaving: false,
   saveMessage: "Loading board…",
@@ -196,6 +197,7 @@ function wireEvents() {
     }
   });
   aboutImage.addEventListener("click", () => aboutDialog.close());
+  document.addEventListener("keydown", handleBoardKeyboardNavigation);
 
   searchInput.addEventListener("input", () => {
     state.searchTerm = searchInput.value.trim().toLowerCase();
@@ -435,6 +437,8 @@ function renderCard(card) {
   const node = cardTemplate.content.firstElementChild.cloneNode(true);
   node.dataset.cardId = card.id;
   node.classList.toggle("is-done", isCardDone(card));
+  node.classList.toggle("is-keyboard-selected", state.keyboardCardId === card.id);
+  node.setAttribute("aria-selected", String(state.keyboardCardId === card.id));
 
   const cardLabelsStrip = node.querySelector(".card-label-strip");
   const labels = labelsForCard(card).slice(0, 4);
@@ -528,7 +532,10 @@ function renderCard(card) {
     footer.append(badgeNode);
   }
 
-  node.addEventListener("click", () => openCard(card.id));
+  node.addEventListener("click", () => {
+    setKeyboardCard(card.id, true);
+    openCard(card.id);
+  });
   node.addEventListener("dragover", (event) => {
     if (!eventHasFiles(event)) return;
     event.preventDefault();
@@ -1484,6 +1491,7 @@ async function deleteLane(listId) {
 }
 
 function openCard(cardId) {
+  state.keyboardCardId = cardId;
   state.selectedCardId = cardId;
   state.labelEditorOpen = false;
   state.labelSearchTerm = "";
@@ -1492,6 +1500,82 @@ function openCard(cardId) {
   if (!cardDialog.open) {
     cardDialog.showModal();
   }
+}
+
+function handleBoardKeyboardNavigation(event) {
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"].includes(event.key)) return;
+  if (isTypingTarget(event.target) || document.querySelector("dialog[open]")) return;
+
+  if (event.key === "Enter") {
+    if (!state.keyboardCardId || !visibleCardById(state.keyboardCardId)) return;
+    event.preventDefault();
+    openCard(state.keyboardCardId);
+    return;
+  }
+
+  event.preventDefault();
+  moveKeyboardCardSelection(event.key);
+}
+
+function isTypingTarget(target) {
+  const element = target instanceof Element ? target : null;
+  if (!element) return false;
+  return Boolean(element.closest("input, textarea, select, [contenteditable='true']"));
+}
+
+function moveKeyboardCardSelection(key) {
+  const lanes = openLists().map((list) => ({
+    id: list.id,
+    cards: visibleCardsForList(list.id)
+  }));
+  const nonEmptyLane = lanes.find((lane) => lane.cards.length > 0);
+  if (!nonEmptyLane) return;
+
+  let laneIndex = lanes.findIndex((lane) => lane.cards.some((card) => card.id === state.keyboardCardId));
+  let cardIndex = laneIndex >= 0
+    ? lanes[laneIndex].cards.findIndex((card) => card.id === state.keyboardCardId)
+    : -1;
+
+  if (laneIndex < 0 || cardIndex < 0) {
+    setKeyboardCard(nonEmptyLane.cards[0].id, true);
+    return;
+  }
+
+  if (key === "ArrowUp") {
+    cardIndex = Math.max(0, cardIndex - 1);
+  } else if (key === "ArrowDown") {
+    cardIndex = Math.min(lanes[laneIndex].cards.length - 1, cardIndex + 1);
+  } else if (key === "ArrowLeft" || key === "ArrowRight") {
+    const direction = key === "ArrowRight" ? 1 : -1;
+    const nextLaneIndex = nextLaneWithCards(lanes, laneIndex, direction);
+    if (nextLaneIndex === -1) return;
+    laneIndex = nextLaneIndex;
+    cardIndex = Math.min(cardIndex, lanes[laneIndex].cards.length - 1);
+  }
+
+  setKeyboardCard(lanes[laneIndex].cards[cardIndex].id, true);
+}
+
+function nextLaneWithCards(lanes, startIndex, direction) {
+  for (let index = startIndex + direction; index >= 0 && index < lanes.length; index += direction) {
+    if (lanes[index].cards.length > 0) return index;
+  }
+  return -1;
+}
+
+function visibleCardById(cardId) {
+  return openLists().some((list) => visibleCardsForList(list.id).some((card) => card.id === cardId));
+}
+
+function setKeyboardCard(cardId, shouldRender = true) {
+  state.keyboardCardId = cardId;
+  if (shouldRender) renderBoard();
+  requestAnimationFrame(() => {
+    document.querySelector(`.card[data-card-id="${cardId}"]`)?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest"
+    });
+  });
 }
 
 async function deleteSelectedCard() {
