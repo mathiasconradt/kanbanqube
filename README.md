@@ -94,6 +94,15 @@ MyExample.kbq_20260609T092141981Zb7a252.png
 
 The stored filename prevents conflicts. The app still displays `MyExample.png`.
 
+## Board Workflow
+
+Use the board view for quick work:
+
+- Click `+ Add a card` to create a card directly in the lane and type its title inline.
+- Click the board title or lane title to rename it inline.
+- Click a card to open its details.
+- Settings can enable inline editing for existing card titles in board lanes.
+
 ## Git Sync
 
 Git sync is optional. If the vault is a Git repository with a configured `origin` remote, the Sync button is enabled.
@@ -105,8 +114,11 @@ When Sync runs, KanbanQube:
 3. Stages and commits all repository changes when needed, including `board/`, `uploads/`, and newly added files.
 4. Runs `git pull --rebase` to bring in remote changes after local work is committed.
 5. Pushes to the configured remote.
+6. Reloads the board from disk so changes pulled from another machine are visible without refreshing the browser.
 
 If the vault is not a Git repository, or no remote is configured, Sync stays disabled. You can still use the board locally.
+
+Settings includes `Run Git sync in the background (no dialog)`. When enabled, the Sync button runs without opening the sync log automatically. The status text under the app title can still be clicked to open the sync log during or after sync.
 
 Recommended setup:
 
@@ -155,6 +167,20 @@ That name is used for comments and activity entries. The settings dialog shows t
 Drop files onto a card or into the card details view to attach them. Files are uploaded into the vault `uploads/` folder.
 
 Images can be used as card covers. The cover is stored as a pointer to the attachment in `card.cover.idAttachment`, so removing a cover does not delete the attachment. You can also select another image attachment as the cover.
+
+Deleting an uploaded attachment from a card also deletes the physical file from `uploads/` when no other card still references that file.
+
+## Keyboard Shortcuts
+
+Board view shortcuts are ignored while typing in inputs or while a dialog is open.
+
+| Key | Action |
+| --- | --- |
+| Arrow keys | Select cards across lanes and rows |
+| Enter | Open selected card details |
+| Space | Toggle selected card done status |
+| c | Archive selected card |
+| 1-9 | Toggle the matching label by label-list order |
 
 ## Development
 

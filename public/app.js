@@ -672,11 +672,7 @@ function renderLabelsEditor(card) {
   addLabelButton.setAttribute("aria-label", state.labelEditorOpen ? "Close labels panel" : "Open labels panel");
   if (!state.labelEditorOpen) return;
 
-  const labels = [...(state.board.labels || [])].sort((left, right) => {
-    const leftName = (left.name || left.color || "").toLowerCase();
-    const rightName = (right.name || right.color || "").toLowerCase();
-    return leftName.localeCompare(rightName);
-  });
+  const labels = sortedBoardLabels();
   const searchTerm = state.labelSearchTerm.trim().toLowerCase();
   const filteredLabels = searchTerm
     ? labels.filter((label) => `${label.name || ""} ${label.color || ""}`.toLowerCase().includes(searchTerm))
@@ -1416,8 +1412,8 @@ function toggleCardDone(card) {
   render();
 }
 
-function archiveCard(card) {
-  if (!isCardDone(card) || isCardArchived(card)) return;
+function archiveCard(card, options = {}) {
+  if ((!options.force && !isCardDone(card)) || isCardArchived(card)) return;
   card.closed = true;
   touchCard(card);
   pushAction("updateCard", {
@@ -1503,13 +1499,38 @@ function openCard(cardId) {
 }
 
 function handleBoardKeyboardNavigation(event) {
-  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"].includes(event.key)) return;
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "c", "C"].includes(event.key) && !/^[1-9]$/.test(event.key)) return;
   if (isTypingTarget(event.target) || document.querySelector("dialog[open]")) return;
 
   if (event.key === "Enter") {
     if (!state.keyboardCardId || !visibleCardById(state.keyboardCardId)) return;
     event.preventDefault();
     openCard(state.keyboardCardId);
+    return;
+  }
+
+  if (event.key === " ") {
+    const card = keyboardSelectedVisibleCard();
+    if (!card) return;
+    event.preventDefault();
+    toggleCardDone(card);
+    return;
+  }
+
+  if (event.key === "c" || event.key === "C") {
+    const card = keyboardSelectedVisibleCard();
+    if (!card) return;
+    event.preventDefault();
+    state.keyboardCardId = null;
+    archiveCard(card, { force: true });
+    return;
+  }
+
+  if (/^[1-9]$/.test(event.key)) {
+    const card = keyboardSelectedVisibleCard();
+    if (!card) return;
+    event.preventDefault();
+    toggleKeyboardLabel(card, Number(event.key) - 1);
     return;
   }
 
@@ -1565,6 +1586,46 @@ function nextLaneWithCards(lanes, startIndex, direction) {
 
 function visibleCardById(cardId) {
   return openLists().some((list) => visibleCardsForList(list.id).some((card) => card.id === cardId));
+}
+
+function keyboardSelectedVisibleCard() {
+  if (!state.keyboardCardId) return null;
+  for (const list of openLists()) {
+    const card = visibleCardsForList(list.id).find((candidate) => candidate.id === state.keyboardCardId);
+    if (card) return card;
+  }
+  return null;
+}
+
+function toggleKeyboardLabel(card, labelIndex) {
+  const label = sortedBoardLabels()[labelIndex];
+  if (!label) return;
+
+  card.idLabels = Array.isArray(card.idLabels) ? card.idLabels : [];
+  const previousLabels = [...card.idLabels];
+  const hadLabel = previousLabels.includes(label.id);
+  card.idLabels = hadLabel
+    ? previousLabels.filter((labelId) => labelId !== label.id)
+    : [...previousLabels, label.id];
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    label: { id: label.id, name: label.name || label.color, color: label.color },
+    old: { idLabels: previousLabels },
+    idLabels: card.idLabels
+  });
+  queueSave(hadLabel ? "Label removed" : "Label added");
+  renderBoard();
+}
+
+function sortedBoardLabels() {
+  return [...(state.board?.labels || [])].sort((left, right) => {
+    const leftName = (left.name || left.color || "").toLowerCase();
+    const rightName = (right.name || right.color || "").toLowerCase();
+    return leftName.localeCompare(rightName);
+  });
 }
 
 function setKeyboardCard(cardId, shouldRender = true) {
