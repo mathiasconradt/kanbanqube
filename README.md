@@ -1,5 +1,10 @@
 # KanbanQube
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mathiasconradt_kanbanqube&metric=alert_status&token=27834731d82afc73030bc1e8559b67ac51f516d1)](https://sonarcloud.io/summary/new_code?id=mathiasconradt_kanbanqube)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me-a%20coffee-ff5f5f?logo=ko-fi&logoColor=white)](https://ko-fi.com/mathiasconradt)
+![GitHub stars](https://img.shields.io/github/stars/mathiasconradt/kanbanqube)
+
 ![KanbanQube preview](promo.jpg)
 
 KanbanQube is a local-first Kanban board app backed by normal files in a vault folder. It is designed for personal or team workflows where the board should live in a regular directory, optionally inside a Git repository, so changes can be versioned and synced with the tools you already use.
