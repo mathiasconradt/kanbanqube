@@ -4,10 +4,10 @@
   "name": "CommerceFlow Website Launch",
   "desc": "Demo product board for a software team building an e-commerce website.",
   "closed": false,
-  "dateLastActivity": "2026-06-10T10:00:00.000Z",
-  "dateLastView": "2026-06-10T10:00:00.000Z",
+  "dateLastActivity": "2026-06-10T17:00:00.000Z",
+  "dateLastView": "2026-06-10T17:00:00.000Z",
   "idTags": [],
-  "ixUpdate": 1781095200000,
+  "ixUpdate": 1781110800000,
   "labelNames": {
     "purple": "Design",
     "sky": "UX",
@@ -39,6 +39,7 @@
     { "id": "demo-member-jonas", "fullName": "Jonas Weber", "username": "jonas-weber", "initials": "JW" },
     { "id": "demo-member-nora", "fullName": "Nora Silva", "username": "nora-silva", "initials": "NS" }
   ],
+  "memberships": [],
   "cards": [
     {
       "id": "demo-card-loyalty-scope",
@@ -53,7 +54,9 @@
       "idChecklists": [],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-02T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-02T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     },
     {
       "id": "demo-card-recommendations",
@@ -68,7 +71,26 @@
       "idChecklists": [],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-03T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-03T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
+    },
+    {
+      "id": "demo-card-seo-checklist",
+      "idBoard": "demo-board-commerceflow",
+      "idList": "demo-list-backlog",
+      "name": "Draft post-launch SEO checklist",
+      "desc": "Prepare metadata, structured data, sitemap, redirect, and image-alt tasks for release week.",
+      "closed": false,
+      "pos": 49152,
+      "idLabels": ["demo-label-content", "demo-label-qa"],
+      "idMembers": ["demo-member-nora"],
+      "idChecklists": [],
+      "attachments": [],
+      "cover": { "idAttachment": null },
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-04T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     },
     {
       "id": "demo-card-pdp-mockups",
@@ -83,7 +105,9 @@
       "idChecklists": ["demo-checklist-pdp"],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-05T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-05T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 3, "checkItemsChecked": 1, "attachments": 0 }
     },
     {
       "id": "demo-card-catalog-import",
@@ -98,7 +122,9 @@
       "idChecklists": [],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-05T12:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-05T12:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     },
     {
       "id": "demo-card-checkout",
@@ -113,7 +139,26 @@
       "idChecklists": ["demo-checklist-checkout"],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-07T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-07T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 4, "checkItemsChecked": 2, "attachments": 0 }
+    },
+    {
+      "id": "demo-card-image-pipeline",
+      "idBoard": "demo-board-commerceflow",
+      "idList": "demo-list-progress",
+      "name": "Implement product image optimization pipeline",
+      "desc": "Generate responsive sizes, WebP derivatives, and safe fallbacks during upload processing.",
+      "closed": false,
+      "pos": 32768,
+      "idLabels": ["demo-label-backend", "demo-label-frontend"],
+      "idMembers": ["demo-member-jonas"],
+      "idChecklists": ["demo-checklist-image-pipeline"],
+      "attachments": [],
+      "cover": { "idAttachment": null },
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-08T09:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 3, "checkItemsChecked": 1, "attachments": 0 }
     },
     {
       "id": "demo-card-empty-copy",
@@ -122,13 +167,15 @@
       "name": "Write storefront empty-state copy",
       "desc": "Add friendly copy for empty cart, no search results, sold-out product, and unavailable category states.",
       "closed": false,
-      "pos": 32768,
+      "pos": 49152,
       "idLabels": ["demo-label-content", "demo-label-ux"],
       "idMembers": ["demo-member-nora"],
       "idChecklists": [],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-08T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-08T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     },
     {
       "id": "demo-card-cart-review",
@@ -140,10 +187,29 @@
       "pos": 16384,
       "idLabels": ["demo-label-frontend", "demo-label-qa"],
       "idMembers": ["demo-member-maya", "demo-member-nora"],
+      "idChecklists": ["demo-checklist-cart-review"],
+      "attachments": [],
+      "cover": { "idAttachment": null },
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-09T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 3, "checkItemsChecked": 2, "attachments": 0 }
+    },
+    {
+      "id": "demo-card-campaign-graphics",
+      "idBoard": "demo-board-commerceflow",
+      "idList": "demo-list-review",
+      "name": "Approve homepage campaign graphics",
+      "desc": "Final review for hero imagery, category tiles, promotion badge, and seasonal color variants.",
+      "closed": false,
+      "pos": 32768,
+      "idLabels": ["demo-label-design", "demo-label-content"],
+      "idMembers": ["demo-member-ari", "demo-member-nora"],
       "idChecklists": [],
       "attachments": [],
       "cover": { "idAttachment": null },
-      "dateLastActivity": "2026-06-09T10:00:00.000Z"
+      "kanbanQubeDone": false,
+      "dateLastActivity": "2026-06-09T14:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     },
     {
       "id": "demo-card-search-api",
@@ -159,7 +225,25 @@
       "attachments": [],
       "cover": { "idAttachment": null },
       "kanbanQubeDone": true,
-      "dateLastActivity": "2026-06-06T10:00:00.000Z"
+      "dateLastActivity": "2026-06-06T10:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
+    },
+    {
+      "id": "demo-card-design-tokens",
+      "idBoard": "demo-board-commerceflow",
+      "idList": "demo-list-done",
+      "name": "Finalize design tokens for storefront",
+      "desc": "Typography, spacing, button, color, elevation, and form token sets are ready for implementation.",
+      "closed": false,
+      "pos": 32768,
+      "idLabels": ["demo-label-design", "demo-label-frontend"],
+      "idMembers": ["demo-member-ari"],
+      "idChecklists": [],
+      "attachments": [],
+      "cover": { "idAttachment": null },
+      "kanbanQubeDone": true,
+      "dateLastActivity": "2026-06-06T12:00:00.000Z",
+      "badges": { "description": true, "comments": 1, "checkItems": 0, "checkItemsChecked": 0, "attachments": 0 }
     }
   ],
   "checklists": [
@@ -180,38 +264,58 @@
       "idCard": "demo-card-checkout",
       "name": "Next steps",
       "checkItems": [
-        { "id": "demo-checkitem-checkout-1", "idChecklist": "demo-checklist-checkout", "name": "Delivery option API integration", "pos": 16384, "state": "complete" },
-        { "id": "demo-checkitem-checkout-2", "idChecklist": "demo-checklist-checkout", "name": "Error handling for unavailable ZIP codes", "pos": 32768, "state": "incomplete" },
-        { "id": "demo-checkitem-checkout-3", "idChecklist": "demo-checklist-checkout", "name": "Keyboard and screen reader pass", "pos": 49152, "state": "incomplete" }
+        { "id": "demo-checkitem-checkout-1", "idChecklist": "demo-checklist-checkout", "name": "Address autocomplete behind feature flag", "pos": 16384, "state": "complete" },
+        { "id": "demo-checkitem-checkout-2", "idChecklist": "demo-checklist-checkout", "name": "Delivery option API integration", "pos": 32768, "state": "complete" },
+        { "id": "demo-checkitem-checkout-3", "idChecklist": "demo-checklist-checkout", "name": "Error handling for unavailable ZIP codes", "pos": 49152, "state": "incomplete" },
+        { "id": "demo-checkitem-checkout-4", "idChecklist": "demo-checklist-checkout", "name": "Keyboard and screen reader pass", "pos": 65536, "state": "incomplete" }
+      ]
+    },
+    {
+      "id": "demo-checklist-image-pipeline",
+      "idBoard": "demo-board-commerceflow",
+      "idCard": "demo-card-image-pipeline",
+      "name": "Next steps",
+      "checkItems": [
+        { "id": "demo-checkitem-image-1", "idChecklist": "demo-checklist-image-pipeline", "name": "Worker job for thumbnails", "pos": 16384, "state": "complete" },
+        { "id": "demo-checkitem-image-2", "idChecklist": "demo-checklist-image-pipeline", "name": "CDN cache headers", "pos": 32768, "state": "incomplete" },
+        { "id": "demo-checkitem-image-3", "idChecklist": "demo-checklist-image-pipeline", "name": "Admin upload progress", "pos": 49152, "state": "incomplete" }
+      ]
+    },
+    {
+      "id": "demo-checklist-cart-review",
+      "idBoard": "demo-board-commerceflow",
+      "idCard": "demo-card-cart-review",
+      "name": "Next steps",
+      "checkItems": [
+        { "id": "demo-checkitem-cart-1", "idChecklist": "demo-checklist-cart-review", "name": "Guest refresh", "pos": 16384, "state": "complete" },
+        { "id": "demo-checkitem-cart-2", "idChecklist": "demo-checklist-cart-review", "name": "Guest to account merge", "pos": 32768, "state": "complete" },
+        { "id": "demo-checkitem-cart-3", "idChecklist": "demo-checklist-cart-review", "name": "Inventory quantity reduction", "pos": 49152, "state": "incomplete" }
       ]
     }
   ],
   "actions": [
-    {
-      "id": "demo-action-checkout",
-      "idMemberCreator": "demo-member-maya",
-      "type": "commentCard",
-      "date": "2026-06-09T12:00:00.000Z",
-      "data": {
-        "idCard": "demo-card-checkout",
-        "text": "Frontend and API contract are aligned; validation copy still moving.",
-        "card": { "id": "demo-card-checkout", "name": "Build checkout address and delivery step" },
-        "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" },
-        "list": { "id": "demo-list-progress", "name": "In Progress" }
-      }
-    },
-    {
-      "id": "demo-action-review",
-      "idMemberCreator": "demo-member-nora",
-      "type": "commentCard",
-      "date": "2026-06-09T14:00:00.000Z",
-      "data": {
-        "idCard": "demo-card-cart-review",
-        "text": "One inventory edge case failed review.",
-        "card": { "id": "demo-card-cart-review", "name": "Review cart persistence edge cases" },
-        "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" },
-        "list": { "id": "demo-list-review", "name": "In Review" }
-      }
-    }
-  ]
+    { "id": "demo-action-loyalty", "idMemberCreator": "demo-member-maya", "type": "commentCard", "date": "2026-06-02T12:00:00.000Z", "data": { "idCard": "demo-card-loyalty-scope", "text": "Waiting on product decision for tier names and expiry policy.", "card": { "id": "demo-card-loyalty-scope", "name": "Define loyalty rewards MVP scope" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-backlog", "name": "Backlog" } } },
+    { "id": "demo-action-recommendations", "idMemberCreator": "demo-member-jonas", "type": "commentCard", "date": "2026-06-03T12:00:00.000Z", "data": { "idCard": "demo-card-recommendations", "text": "Initial data events are mapped; scoring approach still open.", "card": { "id": "demo-card-recommendations", "name": "Plan product recommendation strategy" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-backlog", "name": "Backlog" } } },
+    { "id": "demo-action-seo", "idMemberCreator": "demo-member-nora", "type": "commentCard", "date": "2026-06-04T12:00:00.000Z", "data": { "idCard": "demo-card-seo-checklist", "text": "Keep this ready for release hardening.", "card": { "id": "demo-card-seo-checklist", "name": "Draft post-launch SEO checklist" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-backlog", "name": "Backlog" } } },
+    { "id": "demo-action-pdp", "idMemberCreator": "demo-member-ari", "type": "commentCard", "date": "2026-06-05T12:00:00.000Z", "data": { "idCard": "demo-card-pdp-mockups", "text": "Wireframes approved; visual pass still needed.", "card": { "id": "demo-card-pdp-mockups", "name": "Create responsive product detail mockups" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-todo", "name": "To Do" } } },
+    { "id": "demo-action-catalog", "idMemberCreator": "demo-member-jonas", "type": "commentCard", "date": "2026-06-05T14:00:00.000Z", "data": { "idCard": "demo-card-catalog-import", "text": "Importer should return row-level errors for ops.", "card": { "id": "demo-card-catalog-import", "name": "Model catalog import validation" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-todo", "name": "To Do" } } },
+    { "id": "demo-action-checkout", "idMemberCreator": "demo-member-maya", "type": "commentCard", "date": "2026-06-07T12:00:00.000Z", "data": { "idCard": "demo-card-checkout", "text": "Frontend and API contract are aligned; validation copy still moving.", "card": { "id": "demo-card-checkout", "name": "Build checkout address and delivery step" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-progress", "name": "In Progress" } } },
+    { "id": "demo-action-image", "idMemberCreator": "demo-member-jonas", "type": "commentCard", "date": "2026-06-08T09:30:00.000Z", "data": { "idCard": "demo-card-image-pipeline", "text": "Prototype runs locally; CDN config pending.", "card": { "id": "demo-card-image-pipeline", "name": "Implement product image optimization pipeline" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-progress", "name": "In Progress" } } },
+    { "id": "demo-action-copy", "idMemberCreator": "demo-member-nora", "type": "commentCard", "date": "2026-06-08T12:00:00.000Z", "data": { "idCard": "demo-card-empty-copy", "text": "Search and cart states done; category copy next.", "card": { "id": "demo-card-empty-copy", "name": "Write storefront empty-state copy" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-progress", "name": "In Progress" } } },
+    { "id": "demo-action-cart", "idMemberCreator": "demo-member-nora", "type": "commentCard", "date": "2026-06-09T12:00:00.000Z", "data": { "idCard": "demo-card-cart-review", "text": "One inventory edge case failed review.", "card": { "id": "demo-card-cart-review", "name": "Review cart persistence edge cases" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-review", "name": "In Review" } } },
+    { "id": "demo-action-campaign", "idMemberCreator": "demo-member-ari", "type": "commentCard", "date": "2026-06-09T14:30:00.000Z", "data": { "idCard": "demo-card-campaign-graphics", "text": "Graphics exported; waiting for marketing approval.", "card": { "id": "demo-card-campaign-graphics", "name": "Approve homepage campaign graphics" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-review", "name": "In Review" } } },
+    { "id": "demo-action-search", "idMemberCreator": "demo-member-jonas", "type": "commentCard", "date": "2026-06-06T12:00:00.000Z", "data": { "idCard": "demo-card-search-api", "text": "Contract documented and mocked for frontend.", "card": { "id": "demo-card-search-api", "name": "Set up API contract for product search" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-done", "name": "Done" } } },
+    { "id": "demo-action-tokens", "idMemberCreator": "demo-member-ari", "type": "commentCard", "date": "2026-06-06T14:00:00.000Z", "data": { "idCard": "demo-card-design-tokens", "text": "Tokens landed and matched in component previews.", "card": { "id": "demo-card-design-tokens", "name": "Finalize design tokens for storefront" }, "board": { "id": "demo-board-commerceflow", "name": "CommerceFlow Website Launch" }, "list": { "id": "demo-list-done", "name": "Done" } } }
+  ],
+  "attachments": [],
+  "customFields": [],
+  "pinned": false,
+  "pluginData": [],
+  "powerUps": [],
+  "prefs": {},
+  "shortLink": "commerceflow",
+  "shortUrl": "",
+  "starred": false,
+  "subscribed": false,
+  "url": ""
 }
