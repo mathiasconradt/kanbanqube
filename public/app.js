@@ -4,6 +4,7 @@ const USER_STORAGE_KEY = "kanbanqube.userName";
 const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
 const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
 const INLINE_CARD_TITLE_EDIT_STORAGE_KEY = "kanbanqube.inlineCardTitleEdit";
+const GIT_SYNC_IN_BACKGROUND_STORAGE_KEY = "kanbanqube.gitSyncInBackground";
 const ICON_STYLE_STORAGE_KEY = "kanbanqube.iconStyle";
 const ICON_PATHS = {
   "3d": "/icon_3d.png",
@@ -26,6 +27,7 @@ const state = {
   currentUserEmail: localStorage.getItem(USER_EMAIL_STORAGE_KEY) || "",
   showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
   inlineCardTitleEdit: localStorage.getItem(INLINE_CARD_TITLE_EDIT_STORAGE_KEY) === "true",
+  gitSyncInBackground: localStorage.getItem(GIT_SYNC_IN_BACKGROUND_STORAGE_KEY) === "true",
   iconStyle: localStorage.getItem(ICON_STYLE_STORAGE_KEY) === "flat" ? "flat" : "3d",
   searchTerm: "",
   labelSearchTerm: "",
@@ -57,7 +59,6 @@ const aboutImage = document.getElementById("aboutImage");
 const faviconLink = document.getElementById("faviconLink");
 const boardTitle = document.getElementById("boardTitle");
 const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
-const boardFileBadge = document.getElementById("boardFileBadge");
 const userBadge = document.getElementById("userBadge");
 const searchInput = document.getElementById("searchInput");
 const saveStatus = document.getElementById("saveStatus");
@@ -99,10 +100,10 @@ const closeCardButton = document.getElementById("closeCardButton");
 const settingsDialog = document.getElementById("settingsDialog");
 const settingsUserName = document.getElementById("settingsUserName");
 const settingsUserEmail = document.getElementById("settingsUserEmail");
-const settingsBoardName = document.getElementById("settingsBoardName");
 const settingsIconStyleInputs = [...document.querySelectorAll("input[name=\"settingsIconStyle\"]")];
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
+const settingsGitSyncInBackground = document.getElementById("settingsGitSyncInBackground");
 const importBoardInput = document.getElementById("importBoardInput");
 const importBoardButton = document.getElementById("importBoardButton");
 const settingsImportHelp = document.getElementById("settingsImportHelp");
@@ -174,7 +175,6 @@ async function bootstrap() {
   hydrateIdentityFromGitConfig();
   applyIconStyle();
   const storageLabel = state.config.storagePath ? `${state.config.storagePath}/` : (state.config.boardFile || "board.json");
-  boardFileBadge.textContent = storageLabel;
   settingsBoardFile.textContent = `Storage: ${storageLabel}`;
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
@@ -219,9 +219,6 @@ function wireEvents() {
   saveStatus.addEventListener("click", openSyncLogDialog);
   closeSyncLogButton.addEventListener("click", () => syncLogDialog.close());
   syncLogCloseButton.addEventListener("click", () => syncLogDialog.close());
-  syncLogDialog.addEventListener("cancel", (event) => {
-    if (state.isSyncing) event.preventDefault();
-  });
   boardScroller.addEventListener("dragover", handleLaneDragOver);
   boardScroller.addEventListener("drop", handleLaneDrop);
 
@@ -1678,10 +1675,10 @@ function unescapeMarkdownText(text) {
 }
 
 function saveSettings() {
-  const nextBoardName = settingsBoardName.value.trim() || "KanbanQube Board";
   const nextIconStyle = settingsIconStyleInputs.find((input) => input.checked)?.value === "flat" ? "flat" : "3d";
   const nextShowCardDescriptions = settingsShowCardDescriptions.checked;
   const nextInlineCardTitleEdit = settingsInlineCardTitleEdit.checked;
+  const nextGitSyncInBackground = settingsGitSyncInBackground.checked;
   let didPersistLocalSetting = false;
 
   if (state.iconStyle !== nextIconStyle) {
@@ -1707,9 +1704,13 @@ function saveSettings() {
     didPersistLocalSetting = true;
   }
 
-  if (state.board.name !== nextBoardName) {
-    updateBoardName(nextBoardName, "Settings saved");
-  } else if (didPersistLocalSetting) {
+  if (state.gitSyncInBackground !== nextGitSyncInBackground) {
+    state.gitSyncInBackground = nextGitSyncInBackground;
+    localStorage.setItem(GIT_SYNC_IN_BACKGROUND_STORAGE_KEY, String(nextGitSyncInBackground));
+    didPersistLocalSetting = true;
+  }
+
+  if (didPersistLocalSetting) {
     setSaveMessage("Settings saved locally");
     renderBoard();
   } else {
@@ -1723,12 +1724,12 @@ function saveSettings() {
 function openSettingsDialog() {
   settingsUserName.value = state.currentUserName;
   settingsUserEmail.value = state.currentUserEmail;
-  settingsBoardName.value = state.board?.name || "";
   for (const input of settingsIconStyleInputs) {
     input.checked = input.value === state.iconStyle;
   }
   settingsShowCardDescriptions.checked = state.showCardDescriptions;
   settingsInlineCardTitleEdit.checked = state.inlineCardTitleEdit;
+  settingsGitSyncInBackground.checked = state.gitSyncInBackground;
   const canImport = (state.board?.cards || []).length === 0;
   importBoardButton.disabled = !canImport;
   settingsImportHelp.textContent = canImport
@@ -1738,7 +1739,6 @@ function openSettingsDialog() {
   if (!settingsDialog.open) {
     settingsDialog.showModal();
   }
-  settingsBoardName.focus();
 }
 
 function startBoardTitleEdit() {
@@ -1886,7 +1886,9 @@ async function syncBoard() {
   state.lastSyncAt = new Date().toISOString();
   setSaveMessage("Syncing with git…");
   startSyncStatusPolling();
-  openSyncLogDialog();
+  if (!state.gitSyncInBackground) {
+    openSyncLogDialog();
+  }
   try {
     await flushPendingBoardSave();
 
@@ -1932,7 +1934,6 @@ function renderSyncLogDialogContent() {
     : "No git sync has run yet.";
   syncLogCloseButton.disabled = state.isSyncing;
   syncLogCloseButton.textContent = state.isSyncing ? "Sync in progress..." : "Close";
-  closeSyncLogButton.disabled = state.isSyncing;
 }
 
 function formatSyncTimestamp(value) {

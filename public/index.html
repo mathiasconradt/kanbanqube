@@ -43,7 +43,6 @@
           </div>
         </div>
         <div class="board-meta">
-          <span id="boardFileBadge" class="meta-badge">board.json</span>
           <span id="userBadge" class="meta-badge">Guest</span>
         </div>
       </section>
@@ -143,11 +142,6 @@
           <input id="settingsUserEmail" type="email" maxlength="200" readonly />
         </label>
 
-        <label class="field">
-          <span>Board title</span>
-          <input id="settingsBoardName" type="text" maxlength="200" placeholder="Board title" />
-        </label>
-
         <fieldset class="field icon-choice-field">
           <legend>App icon</legend>
           <label>
@@ -170,6 +164,11 @@
         <label class="checkbox-field">
           <input id="settingsInlineCardTitleEdit" type="checkbox" />
           <span>Edit card titles from board lanes</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input id="settingsGitSyncInBackground" type="checkbox" />
+          <span>Run Git sync in the background (no dialog)</span>
         </label>
 
         <section class="settings-import-panel">
