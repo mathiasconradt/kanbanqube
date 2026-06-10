@@ -1331,15 +1331,13 @@ button {
 }
 
 .label-editor-panel {
-  position: absolute;
-  top: calc(100% - 0.35rem);
-  right: 0;
-  z-index: 40;
+  position: fixed;
+  z-index: 1000;
   box-sizing: border-box;
-  width: 100%;
   display: grid;
   gap: 0.75rem;
   padding: 0.95rem;
+  overflow: auto;
   border-radius: calc(18px * var(--ui-scale));
   background: rgba(28, 31, 37, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1349,7 +1347,7 @@ button {
 
 .label-editor-row {
   display: grid;
-  grid-template-columns: auto minmax(180px, 1fr) minmax(140px, 0.55fr) auto;
+  grid-template-columns: auto minmax(150px, 1fr) minmax(120px, 0.55fr) auto;
   gap: 0.5rem;
   align-items: center;
 }

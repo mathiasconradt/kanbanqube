@@ -703,7 +703,7 @@ function renderLabelsEditor(card) {
     createButton.textContent = "Create a new label";
     createButton.addEventListener("click", addLabelToSelectedCard);
     panel.append(createButton);
-    labelEditorContainer.append(panel);
+    appendLabelEditorPanel(panel);
     return;
   }
 
@@ -788,6 +788,22 @@ function renderLabelsEditor(card) {
   createButton.addEventListener("click", addLabelToSelectedCard);
   panel.append(createButton);
 
+  appendLabelEditorPanel(panel);
+}
+
+function appendLabelEditorPanel(panel) {
+  const anchor = labelEditorContainer.closest(".sidebar-panel") || labelEditorContainer;
+  const rect = anchor.getBoundingClientRect();
+  const margin = 16;
+  const width = Math.min(rect.width, window.innerWidth - margin * 2);
+  const left = Math.min(Math.max(rect.right - width, margin), window.innerWidth - width - margin);
+  const top = Math.min(rect.bottom - 4, window.innerHeight - margin - 220);
+  const maxHeight = Math.max(220, window.innerHeight - top - margin);
+
+  panel.style.left = `${Math.round(left)}px`;
+  panel.style.top = `${Math.round(top)}px`;
+  panel.style.width = `${Math.round(width)}px`;
+  panel.style.maxHeight = `${Math.round(maxHeight)}px`;
   labelEditorContainer.append(panel);
 }
 
