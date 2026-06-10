@@ -29,8 +29,22 @@ jobs:
       - name: Bump patch version
         id: version
         run: |
-          npm version patch --no-git-tag-version
-          version="$(node -p "require('./package.json').version")"
+          package_name="$(node -p "require('./package.json').name")"
+          version="$(node - <<'NODE'
+          const pkg = require("./package.json");
+          const parts = pkg.version.split(".").map(Number);
+          parts[2] += 1;
+          console.log(parts.join("."));
+          NODE
+          )"
+
+          while git rev-parse -q --verify "refs/tags/v${version}" >/dev/null || \
+            git ls-remote --exit-code origin "refs/tags/v${version}" >/dev/null 2>&1 || \
+            npm view "${package_name}@${version}" version --silent >/dev/null 2>&1; do
+            version="$(node -e "const p='${version}'.split('.').map(Number); p[2] += 1; console.log(p.join('.'))")"
+          done
+
+          npm version "${version}" --no-git-tag-version
           ruby -0pi -e "gsub(/version \"[^\"]+\"/, 'version \"' + '${version}' + '\"')" Formula/kanbanqube.rb
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
@@ -42,8 +56,7 @@ jobs:
           git add package.json package-lock.json Formula/kanbanqube.rb
           git commit -m "chore: bump version to ${version}"
           git tag "v${version}"
-          git push origin HEAD:main
-          git push origin "v${version}"
+          git push --atomic origin HEAD:main "v${version}"
 
       - name: Start release workflow
         env:

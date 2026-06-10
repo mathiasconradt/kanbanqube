@@ -136,18 +136,6 @@ function createGitService(config) {
     throw new Error("SSH executable was not found in a trusted system location.");
   }
 
-  async function isSafeExecutable(candidate) {
-    try {
-      const stat = await fs.stat(candidate);
-      if (!stat.isFile()) return false;
-      await fs.access(candidate, fsSync.constants.X_OK);
-      const parent = await fs.stat(path.dirname(candidate));
-      return (parent.mode & 0o002) === 0;
-    } catch {
-      return false;
-    }
-  }
-
   return {
     hasGitRepository,
     gitRemoteOrigin,
@@ -156,6 +144,18 @@ function createGitService(config) {
     checkSshAuth,
     runGit
   };
+}
+
+async function isSafeExecutable(candidate) {
+  try {
+    const stat = await fs.stat(candidate);
+    if (!stat.isFile()) return false;
+    await fs.access(candidate, fsSync.constants.X_OK);
+    const parent = await fs.stat(path.dirname(candidate));
+    return (parent.mode & 0o002) === 0;
+  } catch {
+    return false;
+  }
 }
 
 function formatGitCommandOutput(command, result, emptyOutput = "") {

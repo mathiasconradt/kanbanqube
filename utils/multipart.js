@@ -1,7 +1,7 @@
 "use strict";
 
 function multipartBoundary(contentType) {
-  const boundaryMatch = String(contentType || "").match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(String(contentType || ""));
   return boundaryMatch ? boundaryMatch[1] || boundaryMatch[2] : "";
 }
 
