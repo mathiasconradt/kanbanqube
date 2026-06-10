@@ -12,7 +12,9 @@ const APP_DIR = __dirname;
 const WORKSPACE_DIR = resolveWorkspaceDirectory(process.argv[2]);
 const PUBLIC_DIR = path.join(APP_DIR, "public");
 const BOARD_FILE_NAME = "board.json";
+const DEMO_BOARD_FILE_NAME = "demo_board.json";
 const BOARD_FILE_PATH = path.join(WORKSPACE_DIR, BOARD_FILE_NAME);
+const DEMO_BOARD_FILE_PATH = path.join(APP_DIR, DEMO_BOARD_FILE_NAME);
 const BOARD_DIR_NAME = "board";
 const BOARD_DIR = path.join(WORKSPACE_DIR, BOARD_DIR_NAME);
 const BOARD_META_FILE_PATH = path.join(BOARD_DIR, "meta.json");
@@ -64,7 +66,7 @@ async function handleRequest(request, response) {
     const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
 
     if (await handleApiRequest(request, response, url)) return;
-    if (handleAssetRequest(request, response, url)) return;
+    if (await handleAssetRequest(request, response, url)) return;
     sendJson(response, 405, { error: "Method not allowed." });
   } catch (error) {
     sendJson(response, error.statusCode || 500, { error: error.message || "Unexpected server error." });
@@ -116,16 +118,34 @@ async function handlePostApiRequest(request, response, url) {
   return false;
 }
 
-function handleAssetRequest(request, response, url) {
+async function handleAssetRequest(request, response, url) {
+  if (request.method === "GET" && url.pathname === `/${DEMO_BOARD_FILE_NAME}`) {
+    await serveDemoBoard(response);
+    return true;
+  }
   if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
-    serveUpload(url.pathname, response);
+    await serveUpload(url.pathname, response);
     return true;
   }
   if (request.method === "GET") {
-    serveStatic(url.pathname, response);
+    await serveStatic(url.pathname, response);
     return true;
   }
   return false;
+}
+
+async function serveDemoBoard(response) {
+  try {
+    const body = await fs.readFile(DEMO_BOARD_FILE_PATH);
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
+    });
+    response.end(body);
+  } catch (error) {
+    if (error.code === "ENOENT") return sendText(response, 404, "Not found.");
+    throw error;
+  }
 }
 
 async function loadConfig() {

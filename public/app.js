@@ -10,6 +10,7 @@ const ICON_PATHS = {
   "3d": "/icon_3d.png",
   flat: "/icon_flat.png"
 };
+const DEMO_BOARD_PATH = "/demo_board.json";
 const SYNC_TIMESTAMP_FORMAT = {
   month: "short",
   day: "numeric",
@@ -189,6 +190,38 @@ async function bootstrap() {
     setSaveMessage("Ready");
   }
   render();
+  await maybeOfferDemoBoard();
+}
+
+async function maybeOfferDemoBoard() {
+  if (!isBoardEmpty()) return;
+  const confirmed = await openConfirmDialog({
+    label: "Demo board",
+    title: "Load demo board?",
+    message: "This board is empty. Load a sample e-commerce product board with realistic cards?",
+    confirmLabel: "Load demo",
+    cancelLabel: "Keep empty"
+  });
+  if (!confirmed || !isBoardEmpty()) return;
+
+  setSaveMessage("Loading demo board...");
+  state.board = await loadDemoBoard();
+  render();
+  await saveBoardNow();
+  setSaveMessage("Demo board loaded");
+  render();
+}
+
+function isBoardEmpty() {
+  return (state.board?.cards || []).length === 0;
+}
+
+async function loadDemoBoard() {
+  const response = await fetch(DEMO_BOARD_PATH);
+  if (!response.ok) {
+    throw new Error("Could not load demo board.");
+  }
+  return response.json();
 }
 
 function wireEvents() {

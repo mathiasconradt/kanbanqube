@@ -11,6 +11,8 @@ KanbanQube is a local-first Kanban board app backed by normal files in a vault f
 
 The app provides lanes, cards, labels, checklists, comments, card covers, file attachments, archived cards, search, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
 
+![KanbanQube board screenshot](screenshot.png)
+
 ## Requirements
 
 - Node.js 18 or newer
@@ -148,6 +150,12 @@ git push -u origin main
 KanbanQube can import a board export JSON from Settings. Import is only enabled when the current board has no cards. This keeps accidental replacement of an active board from happening inside the app.
 
 Imported data is normalized and written into the split `board/` vault layout.
+
+## Demo Board
+
+The repository includes `demo_board.json`, a sample e-commerce product board with design, UX, frontend, backend, QA, content, and analytics work spread across the default lanes.
+
+When a vault has no cards, KanbanQube asks whether to load the demo board. If accepted, the app loads `demo_board.json` and saves it into the current vault using the same path as a normal import.
 
 ## Identity
 
