@@ -840,6 +840,17 @@ function renderAttachments(card) {
       });
       row.append(coverButton);
     }
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "icon-button attachment-delete-button";
+    deleteButton.setAttribute("aria-label", `Delete ${attachment.name || "attachment"}`);
+    deleteButton.append(createIcon("trash"));
+    deleteButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      removeAttachmentFromCard(card.id, attachment.id);
+    });
+    row.append(deleteButton);
     attachmentsContainer.append(row);
   }
 }
@@ -1241,6 +1252,75 @@ async function importBoardFromFile(file) {
       label: "Import",
       title: "Import failed",
       message: error.message || "Import failed."
+    });
+  }
+}
+
+async function removeAttachmentFromCard(cardId, attachmentId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
+  const attachment = card?.attachments?.find((candidate) => candidate.id === attachmentId);
+  if (!card || !attachment) return;
+
+  const confirmed = await openConfirmDialog({
+    label: "Attachment",
+    title: "Delete attachment?",
+    message: `Remove "${attachment.name || "Attachment"}" from this card? Uploaded files are deleted from the vault when no other card uses them.`,
+    confirmLabel: "Delete",
+    cancelLabel: "Cancel",
+    danger: true
+  });
+  if (!confirmed) return;
+
+  const storedName = storedUploadFileName(attachment);
+  card.attachments = (card.attachments || []).filter((candidate) => candidate.id !== attachmentId);
+  if (card.cover?.idAttachment === attachmentId) {
+    card.cover = {
+      ...(card.cover || {}),
+      idAttachment: null,
+      color: null,
+      idUploadedBackground: null,
+      size: "normal",
+      brightness: "dark",
+      yPosition: 0.5,
+      idPlugin: null
+    };
+  }
+  if (card.badges) {
+    card.badges.attachments = card.attachments.length;
+    card.badges.attachmentsByType = {
+      trello: { board: 0, card: card.attachments.length }
+    };
+  }
+
+  touchCard(card);
+  pushAction("deleteAttachmentFromCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    attachment: {
+      id: attachment.id,
+      name: attachment.name || "Attachment"
+    },
+    list: { id: card.idList, name: listById(card.idList)?.name || "" }
+  });
+
+  try {
+    setSaveMessage("Deleting attachment…");
+    await saveBoardNow();
+    if (storedName && isLocalUploadAttachment(attachment)) {
+      const response = await fetch(`/api/uploads/${encodeURIComponent(storedName)}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || "Attachment metadata was removed, but the upload file could not be deleted.");
+      }
+    }
+    setSaveMessage("Attachment deleted");
+    render();
+  } catch (error) {
+    setSaveMessage(error.message || "Attachment delete failed.");
+    await openMessageDialog({
+      label: "Attachment",
+      title: "Delete failed",
+      message: error.message || "Attachment delete failed."
     });
   }
 }
@@ -1785,9 +1865,7 @@ async function syncBoard() {
   startSyncStatusPolling();
   openSyncLogDialog();
   try {
-    if (state.isSaving) {
-      await saveBoardNow();
-    }
+    await flushPendingBoardSave();
 
     const response = await fetch("/api/sync", { method: "POST" });
     const payload = await response.json();
@@ -1796,6 +1874,7 @@ async function syncBoard() {
     if (!response.ok || !payload.ok) {
       throw new Error(payload.output || "Git sync failed.");
     }
+    await reloadBoardAfterSync();
     state.syncStatusMessage = "Board synced";
     setSaveMessage("Board synced");
   } catch (error) {
@@ -1882,10 +1961,48 @@ function queueSave(message) {
   setSaveMessage(`${message} — saving…`);
   clearTimeout(state.saveTimer);
   state.saveTimer = setTimeout(() => {
+    state.saveTimer = null;
     saveBoardNow().catch((error) => {
       setSaveMessage(error.message || "Save failed.");
     });
   }, 220);
+}
+
+async function flushPendingBoardSave() {
+  if (state.saveTimer !== null) {
+    clearTimeout(state.saveTimer);
+    state.saveTimer = null;
+    await saveBoardNow();
+    return;
+  }
+
+  if (state.isSaving) {
+    await saveBoardNow();
+  }
+}
+
+async function reloadBoardAfterSync() {
+  const selectedCardId = state.selectedCardId;
+  const response = await fetch("/api/board");
+  if (!response.ok) {
+    throw new Error("Board synced, but the updated board could not be loaded.");
+  }
+
+  state.board = await response.json();
+  state.editingBoardTitle = false;
+  state.editingBoardTitleValue = "";
+  state.editingLaneTitleId = null;
+  state.editingLaneTitleValue = "";
+  state.editingCardTitleId = null;
+  state.editingCardTitleValue = "";
+
+  if (selectedCardId && !(state.board.cards || []).some((card) => card.id === selectedCardId)) {
+    state.selectedCardId = null;
+    state.descriptionEditing = false;
+    if (cardDialog.open) cardDialog.close();
+  }
+
+  render();
 }
 
 async function saveBoardNow() {
@@ -2273,6 +2390,30 @@ function formatAttachmentMeta(attachment) {
     parts.push(attachment.mimeType);
   }
   return parts.join(" · ") || "Uploaded file";
+}
+
+function storedUploadFileName(attachment) {
+  if (!attachment) return "";
+  if (attachment.fileName) return String(attachment.fileName).split(/[\\/]/).pop();
+  if (attachment.url) {
+    try {
+      return decodeURIComponent(new URL(attachment.url, window.location.origin).pathname.split("/").pop() || "");
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
+function isLocalUploadAttachment(attachment) {
+  if (!attachment) return false;
+  if (attachment.isUpload) return true;
+  if (typeof attachment.url !== "string") return false;
+  try {
+    return new URL(attachment.url, window.location.origin).pathname.startsWith("/uploads/");
+  } catch {
+    return attachment.url.startsWith("/uploads/");
+  }
 }
 
 function formatBytes(bytes) {

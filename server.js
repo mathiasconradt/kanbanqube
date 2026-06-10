@@ -111,13 +111,18 @@ const server = http.createServer(async (request, response) => {
       return serveUpload(url.pathname, response);
     }
 
+    if (request.method === "DELETE" && url.pathname.startsWith(`/api/${UPLOADS_DIR_NAME}/`)) {
+      const result = await deleteUploadedFile(url.pathname);
+      return sendJson(response, 200, result);
+    }
+
     if (request.method === "GET") {
       return serveStatic(url.pathname, response);
     }
 
     sendJson(response, 405, { error: "Method not allowed." });
   } catch (error) {
-    sendJson(response, 500, { error: error.message || "Unexpected server error." });
+    sendJson(response, error.statusCode || 500, { error: error.message || "Unexpected server error." });
   }
 });
 
@@ -181,6 +186,51 @@ async function serveUpload(requestPath, response) {
     if (error.code === "ENOENT") return sendText(response, 404, "Not found.");
     throw error;
   }
+}
+
+async function deleteUploadedFile(requestPath) {
+  let relativePath = decodeURIComponent(requestPath.slice(`/api/${UPLOADS_DIR_NAME}/`.length));
+  if (!relativePath || relativePath.includes("\0") || relativePath.includes("/") || relativePath.includes("\\")) {
+    throw new Error("Invalid upload path.");
+  }
+
+  relativePath = path.basename(relativePath);
+  const board = await loadBoard();
+  if (isUploadReferenced(board, relativePath)) {
+    return { deleted: false, referenced: true };
+  }
+
+  const filePath = path.join(UPLOADS_DIR, relativePath);
+  if (!filePath.startsWith(UPLOADS_DIR)) {
+    throw new Error("Invalid upload path.");
+  }
+
+  try {
+    await fs.unlink(filePath);
+    return { deleted: true };
+  } catch (error) {
+    if (error.code === "ENOENT") return { deleted: false };
+    throw error;
+  }
+}
+
+function isUploadReferenced(board, storedName) {
+  return (board.cards || []).some((card) => {
+    return (card.attachments || []).some((attachment) => uploadStoredName(attachment) === storedName);
+  });
+}
+
+function uploadStoredName(attachment) {
+  if (!attachment || typeof attachment !== "object") return "";
+  if (nonEmptyString(attachment.fileName)) return path.basename(attachment.fileName);
+  if (nonEmptyString(attachment.url)) {
+    try {
+      return path.basename(decodeURIComponent(new URL(attachment.url, "http://localhost").pathname));
+    } catch {
+      return "";
+    }
+  }
+  return "";
 }
 
 async function readJsonBody(request) {
