@@ -9,6 +9,7 @@ trello_export
 screenshots
 board.json
 .mcp.json
+.codex/config.toml
 .DS_Store
 
 # Logs
