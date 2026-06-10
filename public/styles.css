@@ -794,6 +794,11 @@ button {
   width: min(calc(1040px * var(--ui-scale)), calc(100vw - 2rem));
 }
 
+.sync-log-footer {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
 .modal-archive {
   width: min(720px, calc(100vw - 2rem));
 }

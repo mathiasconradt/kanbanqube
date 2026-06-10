@@ -67,6 +67,7 @@ const syncLogDialog = document.getElementById("syncLogDialog");
 const syncLogContent = document.getElementById("syncLogContent");
 const syncLogTimestamp = document.getElementById("syncLogTimestamp");
 const closeSyncLogButton = document.getElementById("closeSyncLogButton");
+const syncLogCloseButton = document.getElementById("syncLogCloseButton");
 const archiveDialog = document.getElementById("archiveDialog");
 const archiveList = document.getElementById("archiveList");
 const closeArchiveButton = document.getElementById("closeArchiveButton");
@@ -216,6 +217,10 @@ function wireEvents() {
   syncButton.addEventListener("click", syncBoard);
   saveStatus.addEventListener("click", openSyncLogDialog);
   closeSyncLogButton.addEventListener("click", () => syncLogDialog.close());
+  syncLogCloseButton.addEventListener("click", () => syncLogDialog.close());
+  syncLogDialog.addEventListener("cancel", (event) => {
+    if (state.isSyncing) event.preventDefault();
+  });
   boardScroller.addEventListener("dragover", handleLaneDragOver);
   boardScroller.addEventListener("drop", handleLaneDrop);
 
@@ -1766,6 +1771,7 @@ async function syncBoard() {
   state.lastSyncAt = new Date().toISOString();
   setSaveMessage("Syncing with git…");
   startSyncStatusPolling();
+  openSyncLogDialog();
   try {
     if (state.isSaving) {
       await saveBoardNow();
@@ -1810,6 +1816,9 @@ function renderSyncLogDialogContent() {
   syncLogTimestamp.textContent = state.lastSyncAt
     ? `Ran ${formatSyncTimestamp(state.lastSyncAt)}`
     : "No git sync has run yet.";
+  syncLogCloseButton.disabled = state.isSyncing;
+  syncLogCloseButton.textContent = state.isSyncing ? "Sync in progress..." : "Close";
+  closeSyncLogButton.disabled = state.isSyncing;
 }
 
 function formatSyncTimestamp(value) {
