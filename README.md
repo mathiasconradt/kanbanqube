@@ -7,7 +7,7 @@
 
 ![KanbanQube preview](promo.jpg)
 
-KanbanQube is a local-first Kanban board app backed by normal files in a vault folder. It is designed for personal or team workflows where the board should live in a regular directory, optionally inside a Git repository, so changes can be versioned and synced with the tools you already use.
+KanbanQube is a local-first Kanban board app for solo users and very small teams. A board lives as normal files in a regular vault folder on your machine and can optionally be placed inside a Git repository, so changes can be versioned and synced with tools you already use.
 
 The app provides lanes, cards, labels, checklists, comments, card covers, file attachments, archived cards, search, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
 
