@@ -772,7 +772,7 @@ button {
   min-height: 0;
   margin: 0;
   padding: 0;
-  accent-color: #b7f0da;
+  accent-color: #d8deef;
 }
 
 #settingsDialog .icon-choice-field img {
@@ -787,12 +787,12 @@ button {
 }
 
 #settingsDialog .icon-choice-field label:has(input:checked) {
-  border-color: rgba(183, 240, 218, 0.42);
-  background: rgba(183, 240, 218, 0.08);
+  border-color: rgba(216, 222, 239, 0.34);
+  background: rgba(255, 255, 255, 0.075);
 }
 
 #settingsDialog .icon-choice-field label:has(input:checked) img {
-  filter: drop-shadow(0 0 10px rgba(183, 240, 218, 0.42));
+  filter: none;
 }
 
 #settingsDialog .checkbox-field {

@@ -45,6 +45,7 @@ const state = {
   editingLaneTitleValue: "",
   editingCardTitleId: null,
   editingCardTitleValue: "",
+  pendingNewCardIds: new Set(),
   drag: null
 };
 
@@ -475,11 +476,11 @@ function renderCard(card) {
   const titleNode = node.querySelector(".card-title");
   const titleInput = node.querySelector(".card-title-inline-input");
   const hasTitle = Boolean(card.name && card.name.trim());
-  const isEditingTitle = state.inlineCardTitleEdit && state.editingCardTitleId === card.id;
+  const isEditingTitle = state.editingCardTitleId === card.id;
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
   titleNode.classList.toggle("is-done", done);
-  titleNode.classList.toggle("is-inline-editable", state.inlineCardTitleEdit);
+  titleNode.classList.toggle("is-inline-editable", state.inlineCardTitleEdit || isEditingTitle);
   titleNode.hidden = isEditingTitle;
   titleInput.hidden = !isEditingTitle;
   titleInput.value = state.editingCardTitleValue;
@@ -1118,14 +1119,16 @@ async function addCard(listId) {
   };
 
   state.board.cards.push(card);
+  state.editingCardTitleId = card.id;
+  state.editingCardTitleValue = "";
+  state.pendingNewCardIds.add(card.id);
   pushAction("createCard", {
     card: cardActionSnapshot(card),
     list: { id: listId, name: lane?.name || "Lane" },
     board: { id: state.board.id, name: state.board.name }
   });
-  queueSave("Card added");
-  openCard(card.id);
   render();
+  focusInlineInput(document.querySelector(`.card[data-card-id="${card.id}"] .card-title-inline-input`));
 }
 
 async function uploadFilesToSelectedCard(files) {
@@ -1807,13 +1810,15 @@ function commitCardTitleEdit(cardId) {
   }
 
   const nextName = state.editingCardTitleValue.trim();
+  const isPendingNewCard = state.pendingNewCardIds.has(cardId);
   state.editingCardTitleId = null;
   state.editingCardTitleValue = "";
+  state.pendingNewCardIds.delete(cardId);
 
-  if (card.name !== nextName) {
+  if (card.name !== nextName || isPendingNewCard) {
     card.name = nextName;
     touchCard(card);
-    queueSave("Card updated");
+    queueSave(isPendingNewCard ? "Card added" : "Card updated");
     renderBoard();
     if (archiveDialog.open) {
       renderArchiveDialog();
@@ -1825,8 +1830,10 @@ function commitCardTitleEdit(cardId) {
 }
 
 function cancelCardTitleEdit() {
+  const cardId = state.editingCardTitleId;
   state.editingCardTitleId = null;
   state.editingCardTitleValue = "";
+  state.pendingNewCardIds.delete(cardId);
   renderBoard();
 }
 
