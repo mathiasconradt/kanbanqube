@@ -26,6 +26,12 @@ const gitExecutableCandidates = [
   "/usr/local/bin/git",
   "/opt/homebrew/bin/git"
 ];
+const sshExecutableCandidates = [
+  "/usr/bin/ssh",
+  "/bin/ssh",
+  "/usr/local/bin/ssh",
+  "/opt/homebrew/bin/ssh"
+];
 const gitSafePath = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin";
 const syncStatus = {
   running: false,
@@ -49,82 +55,122 @@ const mimeTypes = {
   ".txt": "text/plain; charset=utf-8"
 };
 
-const server = http.createServer(async (request, response) => {
+const server = http.createServer((request, response) => {
+  void handleRequest(request, response);
+});
+
+async function handleRequest(request, response) {
   try {
     const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
 
-    if (request.method === "GET" && url.pathname === "/api/board") {
-      return sendJson(response, 200, await loadBoard());
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/config") {
-      return sendJson(response, 200, {
-        boardFile: BOARD_FILE_NAME,
-        storagePath: BOARD_DIR_NAME,
-        workspacePath: WORKSPACE_DIR,
-        hasGitRepo: await hasGitRepository(WORKSPACE_DIR),
-        gitRemote: await gitRemoteOrigin(WORKSPACE_DIR),
-        gitUserName: await gitUserName(WORKSPACE_DIR),
-        gitUserEmail: await gitUserEmail(WORKSPACE_DIR)
-      });
-    }
-
-    if (request.method === "PUT" && url.pathname === "/api/board") {
-      const payload = await readJsonBody(request);
-      const board = await saveBoard(payload);
-      return sendJson(response, 200, board);
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/uploads") {
-      const files = await saveUploadedFiles(request);
-      return sendJson(response, 200, { files });
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/import") {
-      const currentBoard = await loadBoard();
-      if ((currentBoard.cards || []).length > 0) {
-        return sendJson(response, 409, { error: "Import is only available when the board has no cards." });
-      }
-      const importedBoard = await readImportedBoard(request);
-      const board = await saveBoard(importedBoard);
-      return sendJson(response, 200, board);
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/sync-status") {
-      return sendJson(response, 200, syncStatus);
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/sync") {
-      if (syncStatus.running) {
-        return sendJson(response, 409, {
-          ok: false,
-          output: syncStatus.output || "A git sync is already in progress.",
-          startedAt: syncStatus.startedAt,
-          finishedAt: syncStatus.finishedAt
-        });
-      }
-      const result = await syncBoardRepository();
-      return sendJson(response, result.ok ? 200 : 500, result);
-    }
-
-    if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
-      return serveUpload(url.pathname, response);
-    }
-
-    if (request.method === "DELETE" && url.pathname.startsWith(`/api/${UPLOADS_DIR_NAME}/`)) {
-      const result = await deleteUploadedFile(url.pathname);
-      return sendJson(response, 200, result);
-    }
-
-    if (request.method === "GET") {
-      return serveStatic(url.pathname, response);
-    }
-
+    if (await handleApiRequest(request, response, url)) return;
+    if (handleAssetRequest(request, response, url)) return;
     sendJson(response, 405, { error: "Method not allowed." });
   } catch (error) {
     sendJson(response, error.statusCode || 500, { error: error.message || "Unexpected server error." });
   }
-});
+}
+
+async function handleApiRequest(request, response, url) {
+  if (request.method === "GET") return handleGetApiRequest(response, url);
+  if (request.method === "POST") return handlePostApiRequest(request, response, url);
+  if (request.method === "PUT" && url.pathname === "/api/board") return saveBoardApiRequest(request, response);
+  if (request.method === "DELETE" && url.pathname.startsWith(`/api/${UPLOADS_DIR_NAME}/`)) {
+    const result = await deleteUploadedFile(url.pathname);
+    sendJson(response, 200, result);
+    return true;
+  }
+  return false;
+}
+
+async function handleGetApiRequest(response, url) {
+  if (url.pathname === "/api/board") {
+    sendJson(response, 200, await loadBoard());
+    return true;
+  }
+  if (url.pathname === "/api/config") {
+    sendJson(response, 200, await loadConfig());
+    return true;
+  }
+  if (url.pathname === "/api/sync-status") {
+    sendJson(response, 200, syncStatus);
+    return true;
+  }
+  return false;
+}
+
+async function handlePostApiRequest(request, response, url) {
+  if (url.pathname === "/api/uploads") {
+    const files = await saveUploadedFiles(request);
+    sendJson(response, 200, { files });
+    return true;
+  }
+  if (url.pathname === "/api/import") {
+    await importBoardApiRequest(request, response);
+    return true;
+  }
+  if (url.pathname === "/api/sync") {
+    await syncBoardApiRequest(response);
+    return true;
+  }
+  return false;
+}
+
+function handleAssetRequest(request, response, url) {
+  if (request.method === "GET" && url.pathname.startsWith(`/${UPLOADS_DIR_NAME}/`)) {
+    serveUpload(url.pathname, response);
+    return true;
+  }
+  if (request.method === "GET") {
+    serveStatic(url.pathname, response);
+    return true;
+  }
+  return false;
+}
+
+async function loadConfig() {
+  return {
+    boardFile: BOARD_FILE_NAME,
+    storagePath: BOARD_DIR_NAME,
+    workspacePath: WORKSPACE_DIR,
+    hasGitRepo: await hasGitRepository(WORKSPACE_DIR),
+    gitRemote: await gitRemoteOrigin(WORKSPACE_DIR),
+    gitUserName: await gitUserName(WORKSPACE_DIR),
+    gitUserEmail: await gitUserEmail(WORKSPACE_DIR)
+  };
+}
+
+async function saveBoardApiRequest(request, response) {
+  const payload = await readJsonBody(request);
+  const board = await saveBoard(payload);
+  sendJson(response, 200, board);
+  return true;
+}
+
+async function importBoardApiRequest(request, response) {
+  const currentBoard = await loadBoard();
+  if ((currentBoard.cards || []).length > 0) {
+    sendJson(response, 409, { error: "Import is only available when the board has no cards." });
+    return;
+  }
+  const importedBoard = await readImportedBoard(request);
+  const board = await saveBoard(importedBoard);
+  sendJson(response, 200, board);
+}
+
+async function syncBoardApiRequest(response) {
+  if (syncStatus.running) {
+    sendJson(response, 409, {
+      ok: false,
+      output: syncStatus.output || "A git sync is already in progress.",
+      startedAt: syncStatus.startedAt,
+      finishedAt: syncStatus.finishedAt
+    });
+    return;
+  }
+  const result = await syncBoardRepository();
+  sendJson(response, result.ok ? 200 : 500, result);
+}
 
 server.listen(PORT, async () => {
   await ensureBoardStorage();
@@ -325,7 +371,7 @@ function parseMultipartBody(body, boundary) {
 
     let part = body.subarray(start, next);
     if (part.length >= 2 && part[part.length - 2] === 13 && part[part.length - 1] === 10) {
-      part = part.subarray(0, part.length - 2);
+      part = part.subarray(0, -2);
     }
 
     const headerEnd = part.indexOf(Buffer.from("\r\n\r\n"));
@@ -375,7 +421,23 @@ function createStoredFileName(originalName) {
 }
 
 function sanitizeStoredFileName(value) {
-  return String(value).replace(/[^\w()[\]-]+/g, "_").replace(/^_+|_+$/g, "") || "attachment";
+  let result = "";
+  let previousWasUnderscore = true;
+  for (const character of String(value)) {
+    const isAlphaNumeric = (character >= "a" && character <= "z")
+      || (character >= "A" && character <= "Z")
+      || (character >= "0" && character <= "9");
+    const isAllowedSymbol = character === "(" || character === ")" || character === "[" || character === "]" || character === "-";
+    if (isAlphaNumeric || character === "_" || isAllowedSymbol) {
+      result += character;
+      previousWasUnderscore = false;
+    } else if (!previousWasUnderscore) {
+      result += "_";
+      previousWasUnderscore = true;
+    }
+  }
+  const trimmed = previousWasUnderscore ? result.slice(0, -1) : result;
+  return trimmed || "attachment";
 }
 
 function mimeTypeForFileName(fileName) {
@@ -560,6 +622,7 @@ function normalizeBoard(candidate) {
       badges: badgeMap.get(card.id)
     }))
     .sort((left, right) => left.pos - right.pos);
+  lists.sort((left, right) => left.pos - right.pos);
 
   return {
     ...board,
@@ -587,7 +650,7 @@ function normalizeBoard(candidate) {
     labelNames: source.labelNames ?? buildLabelNames(labels),
     labels,
     limits: source.limits ?? {},
-    lists: lists.sort((left, right) => left.pos - right.pos),
+    lists,
     members,
     memberships: Array.isArray(source.memberships) ? source.memberships : [],
     cards: normalizedCards,
@@ -827,7 +890,7 @@ function buildBadgeMap(cards, checklists, actions) {
       checkItemsChecked: checkedItems.length,
       checkItemsEarliestDue: null,
       comments: commentsByCard.get(card.id) || 0,
-      description: Boolean(card.desc && card.desc.trim()),
+      description: Boolean(card.desc?.trim()),
       due: card.due ?? null,
       dueComplete: Boolean(card.dueComplete),
       externalSource: null,
@@ -1072,11 +1135,12 @@ async function checkSshAuth(rootPath, remoteUrl, output) {
   if (!hostMatch) return;
 
   const host = hostMatch[1];
+  const sshExecutable = await resolveSshExecutable();
   await new Promise((resolve) => {
     execFile(
-      "ssh",
+      sshExecutable,
       ["-T", `git@${host}`, "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new"],
-      { env: { PATH: gitSafePath, SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK || "" } },
+      { env: { SSH_AUTH_SOCK: process.env.SSH_AUTH_SOCK || "" } },
       (error, _stdout, stderr) => {
         const text = (stderr || "").toLowerCase();
         const authenticated = !error || text.includes("successfully authenticated") || text.includes("welcome to");
@@ -1148,6 +1212,13 @@ async function resolveGitExecutable() {
   throw new Error("Git executable was not found in a trusted system location.");
 }
 
+async function resolveSshExecutable() {
+  for (const candidate of sshExecutableCandidates) {
+    if (await isSafeExecutable(candidate)) return candidate;
+  }
+  throw new Error("SSH executable was not found in a trusted system location.");
+}
+
 async function isSafeExecutable(candidate) {
   try {
     const stat = await fs.stat(candidate);
@@ -1209,10 +1280,20 @@ function initialsFor(name) {
 }
 
 function slugify(value) {
-  return String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "user";
+  let result = "";
+  let previousWasDash = true;
+  for (const character of String(value).toLowerCase()) {
+    const isAlphaNumeric = (character >= "a" && character <= "z") || (character >= "0" && character <= "9");
+    if (isAlphaNumeric) {
+      result += character;
+      previousWasDash = false;
+    } else if (!previousWasDash) {
+      result += "-";
+      previousWasDash = true;
+    }
+  }
+  const trimmed = previousWasDash ? result.slice(0, -1) : result;
+  return trimmed || "user";
 }
 
 function createHexId() {

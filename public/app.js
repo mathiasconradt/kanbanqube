@@ -157,9 +157,11 @@ const labelColorMap = {
   black_dark: "#111827"
 };
 
-bootstrap().catch((error) => {
+try {
+  await bootstrap();
+} catch (error) {
   setSaveMessage(error.message || "Could not load the board.");
-});
+}
 
 async function bootstrap() {
   const [boardResponse, configResponse] = await Promise.all([
@@ -476,7 +478,7 @@ function renderCard(card) {
 
   const titleNode = node.querySelector(".card-title");
   const titleInput = node.querySelector(".card-title-inline-input");
-  const hasTitle = Boolean(card.name && card.name.trim());
+  const hasTitle = Boolean(card.name?.trim());
   const isEditingTitle = state.editingCardTitleId === card.id;
   titleNode.textContent = hasTitle ? card.name : "Task";
   titleNode.classList.toggle("is-placeholder", !hasTitle);
@@ -601,7 +603,7 @@ function renderArchiveDialog() {
 
     const title = document.createElement("h3");
     title.className = "archive-item-title";
-    title.textContent = (card.name && card.name.trim()) || "Task";
+    title.textContent = card.name?.trim() || "Task";
     main.append(title);
 
     const meta = document.createElement("p");
@@ -1190,16 +1192,7 @@ async function uploadFilesToCard(cardId, files) {
 
     const firstImage = attachments.find(isImageAttachment);
     if (firstImage && !card.cover?.idAttachment) {
-      card.cover = {
-        ...(card.cover || {}),
-        idAttachment: firstImage.id,
-        color: null,
-        size: "normal",
-        brightness: "dark",
-        yPosition: 0.5,
-        idUploadedBackground: null,
-        idPlugin: null
-      };
+      card.cover = coverState(firstImage.id);
     }
 
     touchCard(card);
@@ -1293,16 +1286,7 @@ async function removeAttachmentFromCard(cardId, attachmentId) {
   const storedName = storedUploadFileName(attachment);
   card.attachments = (card.attachments || []).filter((candidate) => candidate.id !== attachmentId);
   if (card.cover?.idAttachment === attachmentId) {
-    card.cover = {
-      ...(card.cover || {}),
-      idAttachment: null,
-      color: null,
-      idUploadedBackground: null,
-      size: "normal",
-      brightness: "dark",
-      yPosition: 0.5,
-      idPlugin: null
-    };
+    card.cover = coverState(null);
   }
   if (card.badges) {
     card.badges.attachments = card.attachments.length;
@@ -1349,16 +1333,7 @@ function removeCoverFromSelectedCard(event) {
   const card = getSelectedCard();
   if (!card?.cover?.idAttachment) return;
 
-  card.cover = {
-    ...(card.cover || {}),
-    idAttachment: null,
-    color: null,
-    idUploadedBackground: null,
-    size: "normal",
-    brightness: "dark",
-    yPosition: 0.5,
-    idPlugin: null
-  };
+  card.cover = coverState(null);
   touchCard(card);
   pushAction("updateCard", {
     idCard: card.id,
@@ -1376,16 +1351,7 @@ function setAttachmentAsCover(cardId, attachmentId) {
   const attachment = card?.attachments?.find((candidate) => candidate.id === attachmentId);
   if (!card || !attachment || !isImageAttachment(attachment)) return;
 
-  card.cover = {
-    ...(card.cover || {}),
-    idAttachment: attachment.id,
-    color: null,
-    idUploadedBackground: null,
-    size: "normal",
-    brightness: "dark",
-    yPosition: 0.5,
-    idPlugin: null
-  };
+  card.cover = coverState(attachment.id);
   touchCard(card);
   pushAction("updateCard", {
     idCard: card.id,
@@ -1697,11 +1663,11 @@ function renderDescriptionDisplay(text) {
   const blocks = content.split(/\n{2,}/);
 
   for (const block of blocks) {
-    const headingMatch = block.trim().match(/^(#{1,6})\s+(.+)$/);
-    const node = headingMatch
-      ? document.createElement(`h${headingMatch[1].length}`)
+    const heading = parseMarkdownHeading(block);
+    const node = heading
+      ? document.createElement(`h${heading.level}`)
       : document.createElement("p");
-    const blockContent = headingMatch ? headingMatch[2] : block;
+    const blockContent = heading ? heading.text : block;
     const lines = blockContent.split("\n");
 
     lines.forEach((line, index) => {
@@ -1718,15 +1684,15 @@ function renderDescriptionDisplay(text) {
 }
 
 function appendFormattedLine(container, text) {
-  const imageMatch = text.trim().match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)$/);
-  if (!imageMatch) {
+  const image = parseMarkdownImage(text);
+  if (!image) {
     appendFormattedText(container, text);
     return;
   }
 
-  const image = createSafeImage(imageMatch[2], unescapeMarkdownText(imageMatch[1]), imageMatch[3] || "");
-  if (image) {
-    container.append(image);
+  const imageNode = createSafeImage(image.href, unescapeMarkdownText(image.alt), image.title);
+  if (imageNode) {
+    container.append(imageNode);
     return;
   }
 
@@ -1734,33 +1700,135 @@ function appendFormattedLine(container, text) {
 }
 
 function appendFormattedText(container, text) {
-  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)|\[([^\]|]+)\|(https?:\/\/[^\s\]]+)\]|\[(https?:\/\/[^\s\]]+)\]|(https?:\/\/[^\s<\]]+)/g;
-  let lastIndex = 0;
-  let match;
+  let index = 0;
 
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      container.append(document.createTextNode(text.slice(lastIndex, match.index)));
+  while (index < text.length) {
+    const match = findNextFormattedLink(text, index);
+    if (!match) {
+      container.append(document.createTextNode(text.slice(index)));
+      return;
     }
 
-    const label = match[1];
-    const trelloLabel = match[4];
-    const href = match[2] || match[5] || match[6] || match[7];
-    const title = match[3] || "";
-    const link = createSafeLink(label || trelloLabel || href, href, title);
+    if (match.start > index) {
+      container.append(document.createTextNode(text.slice(index, match.start)));
+    }
+
+    const link = createSafeLink(match.label || match.href, match.href, match.title || "");
 
     if (link) {
       container.append(link);
     } else {
-      container.append(document.createTextNode(match[0]));
+      container.append(document.createTextNode(text.slice(match.start, match.end)));
     }
 
-    lastIndex = match.index + match[0].length;
+    index = match.end;
+  }
+}
+
+function parseMarkdownHeading(block) {
+  const trimmed = block.trim();
+  let level = 0;
+  while (level < trimmed.length && trimmed[level] === "#" && level < 6) {
+    level += 1;
+  }
+  if (level === 0 || trimmed[level] !== " ") return null;
+  return { level, text: trimmed.slice(level + 1) };
+}
+
+function parseMarkdownImage(text) {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("![") || !trimmed.endsWith(")")) return null;
+  const altEnd = trimmed.indexOf("](");
+  if (altEnd === -1) return null;
+  const destination = parseMarkdownDestination(trimmed.slice(altEnd + 2, -1));
+  if (!destination?.href) return null;
+  return {
+    alt: trimmed.slice(2, altEnd),
+    href: destination.href,
+    title: destination.title
+  };
+}
+
+function findNextFormattedLink(text, startIndex) {
+  for (let index = startIndex; index < text.length; index += 1) {
+    const match = parseFormattedLinkAt(text, index);
+    if (match) return match;
+  }
+  return null;
+}
+
+function parseFormattedLinkAt(text, index) {
+  if (text[index] === "[") {
+    return parseBracketLinkAt(text, index);
+  }
+  if (text.startsWith("http://", index) || text.startsWith("https://", index)) {
+    return parsePlainUrlAt(text, index);
+  }
+  return null;
+}
+
+function parseBracketLinkAt(text, index) {
+  const labelEnd = text.indexOf("]", index + 1);
+  if (labelEnd === -1) return null;
+  const labelText = text.slice(index + 1, labelEnd);
+
+  if (text[labelEnd + 1] === "(") {
+    const destinationEnd = text.indexOf(")", labelEnd + 2);
+    if (destinationEnd === -1) return null;
+    const destination = parseMarkdownDestination(text.slice(labelEnd + 2, destinationEnd));
+    if (!destination) return null;
+    return {
+      start: index,
+      end: destinationEnd + 1,
+      label: unescapeMarkdownText(labelText),
+      href: destination.href,
+      title: destination.title
+    };
   }
 
-  if (lastIndex < text.length) {
-    container.append(document.createTextNode(text.slice(lastIndex)));
+  const separator = labelText.indexOf("|");
+  if (separator !== -1) {
+    const label = labelText.slice(0, separator);
+    const href = labelText.slice(separator + 1);
+    if (isHttpUrlText(href)) {
+      return { start: index, end: labelEnd + 1, label, href, title: "" };
+    }
   }
+
+  if (isHttpUrlText(labelText)) {
+    return { start: index, end: labelEnd + 1, label: labelText, href: labelText, title: "" };
+  }
+
+  return null;
+}
+
+function parseMarkdownDestination(value) {
+  const trimmed = value.trim();
+  const titleMarker = trimmed.indexOf(" \"");
+  const hasTitle = titleMarker !== -1 && trimmed.endsWith("\"");
+  const href = hasTitle ? trimmed.slice(0, titleMarker) : trimmed;
+  if (!isHttpUrlText(href)) return null;
+  return {
+    href,
+    title: hasTitle ? trimmed.slice(titleMarker + 2, -1) : ""
+  };
+}
+
+function parsePlainUrlAt(text, index) {
+  let end = index;
+  while (end < text.length && !isUrlStopCharacter(text[end])) {
+    end += 1;
+  }
+  const href = text.slice(index, end);
+  return { start: index, end, label: href, href, title: "" };
+}
+
+function isUrlStopCharacter(character) {
+  return character === " " || character === "\t" || character === "\n" || character === "<" || character === "]";
+}
+
+function isHttpUrlText(value) {
+  return value.startsWith("http://") || value.startsWith("https://");
 }
 
 function createSafeImage(href, alt = "", title = "") {
@@ -1898,10 +1966,10 @@ function commitBoardTitleEdit() {
   const nextBoardName = state.editingBoardTitleValue.trim() || "KanbanQube Board";
   state.editingBoardTitle = false;
   state.editingBoardTitleValue = "";
-  if (state.board.name !== nextBoardName) {
-    updateBoardName(nextBoardName, "Board updated");
-  } else {
+  if (state.board.name === nextBoardName) {
     renderHeader();
+  } else {
+    updateBoardName(nextBoardName, "Board updated");
   }
 }
 
@@ -2097,14 +2165,14 @@ function formatSyncTimestamp(value) {
 
 function startSyncStatusPolling() {
   stopSyncStatusPolling();
-  syncStatusPollTimer = window.setInterval(() => {
+  syncStatusPollTimer = globalThis.setInterval(() => {
     void refreshSyncStatus();
   }, 500);
 }
 
 function stopSyncStatusPolling() {
   if (syncStatusPollTimer !== null) {
-    window.clearInterval(syncStatusPollTimer);
+    globalThis.clearInterval(syncStatusPollTimer);
     syncStatusPollTimer = null;
   }
 }
@@ -2367,17 +2435,17 @@ function enableCardDnD(laneNode, listId) {
   }
 
   cardList.addEventListener("dragover", (event) => {
-    if (!state.drag || state.drag.type !== "card") return;
+    if (state.drag?.type !== "card") return;
     event.preventDefault();
     const after = cardElementAfter(cardList, event.clientY);
     const dragging = document.querySelector(`.card[data-card-id="${state.drag.cardId}"]`);
     if (!dragging) return;
     if (!after) cardList.append(dragging);
-    else if (after !== dragging) cardList.insertBefore(dragging, after);
+    else if (after !== dragging) after.before(dragging);
   });
 
   cardList.addEventListener("drop", (event) => {
-    if (!state.drag || state.drag.type !== "card") return;
+    if (state.drag?.type !== "card") return;
     event.preventDefault();
     const cardId = state.drag.cardId;
     const card = (state.board.cards || []).find((candidate) => candidate.id === cardId);
@@ -2385,7 +2453,8 @@ function enableCardDnD(laneNode, listId) {
 
     const order = [...cardList.querySelectorAll(".card")].map((node) => node.dataset.cardId);
     const previousListId = card.idList;
-    reorderCardsFromDom(listId, order, previousListId !== listId ? previousListId : null, cardId);
+    const sourceListId = previousListId === listId ? null : previousListId;
+    reorderCardsFromDom(listId, order, sourceListId, cardId);
     state.drag = null;
   });
 }
@@ -2431,21 +2500,22 @@ function handleAttachmentDrop(event) {
 }
 
 function handleLaneDragOver(event) {
-  if (!state.drag || state.drag.type !== "lane") return;
+  if (state.drag?.type !== "lane") return;
   event.preventDefault();
   const after = laneElementAfter(boardScroller, event.clientX);
   const dragging = document.querySelector(`.lane[data-list-id="${state.drag.listId}"]`);
   if (!dragging) return;
   if (!after) {
     const anchor = boardScroller.querySelector(".add-lane-card");
-    boardScroller.insertBefore(dragging, anchor);
+    if (anchor) anchor.before(dragging);
+    else boardScroller.append(dragging);
   } else if (after !== dragging) {
-    boardScroller.insertBefore(dragging, after);
+    after.before(dragging);
   }
 }
 
 function handleLaneDrop(event) {
-  if (!state.drag || state.drag.type !== "lane") return;
+  if (state.drag?.type !== "lane") return;
   event.preventDefault();
   const order = [...boardScroller.querySelectorAll(".lane")].map((laneNode) => laneNode.dataset.listId);
   order.forEach((listId, index) => {
@@ -2544,6 +2614,18 @@ function coverUrlForCard(card) {
   return match?.url || match?.previewUrl || "";
 }
 
+function coverState(idAttachment) {
+  return {
+    idAttachment,
+    color: null,
+    idUploadedBackground: null,
+    size: "normal",
+    brightness: "dark",
+    yPosition: 0.5,
+    idPlugin: null
+  };
+}
+
 function isImageAttachment(attachment) {
   const mimeType = String(attachment?.mimeType || "").toLowerCase();
   const name = String(attachment?.name || attachment?.url || "").toLowerCase();
@@ -2566,7 +2648,7 @@ function storedUploadFileName(attachment) {
   if (attachment.fileName) return String(attachment.fileName).split(/[\\/]/).pop();
   if (attachment.url) {
     try {
-      return decodeURIComponent(new URL(attachment.url, window.location.origin).pathname.split("/").pop() || "");
+      return decodeURIComponent(new URL(attachment.url, globalThis.location.origin).pathname.split("/").pop() || "");
     } catch {
       return "";
     }
@@ -2579,7 +2661,7 @@ function isLocalUploadAttachment(attachment) {
   if (attachment.isUpload) return true;
   if (typeof attachment.url !== "string") return false;
   try {
-    return new URL(attachment.url, window.location.origin).pathname.startsWith("/uploads/");
+    return new URL(attachment.url, globalThis.location.origin).pathname.startsWith("/uploads/");
   } catch {
     return attachment.url.startsWith("/uploads/");
   }
@@ -2660,8 +2742,8 @@ function openArchivedCard(cardId) {
 }
 
 function hydrateIdentityFromGitConfig() {
-  const gitUserName = typeof state.config?.gitUserName === "string" ? state.config.gitUserName.trim() : "";
-  const gitUserEmail = typeof state.config?.gitUserEmail === "string" ? state.config.gitUserEmail.trim() : "";
+  const gitUserName = storageSafeText(state.config?.gitUserName);
+  const gitUserEmail = storageSafeText(state.config?.gitUserEmail);
 
   if (!state.currentUserName.trim() && gitUserName) {
     state.currentUserName = gitUserName;
@@ -2682,6 +2764,10 @@ function labelColorOptions() {
   return Object.keys(labelColorMap);
 }
 
+function storageSafeText(value) {
+  return typeof value === "string" ? value.replace(/[\0\r\n]/g, "").trim().slice(0, 200) : "";
+}
+
 function createHexId() {
   const values = new Uint8Array(12);
   crypto.getRandomValues(values);
@@ -2698,10 +2784,20 @@ function initialsFor(name) {
 }
 
 function slugify(value) {
-  return String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "user";
+  let result = "";
+  let previousWasDash = true;
+  for (const character of String(value).toLowerCase()) {
+    const isAlphaNumeric = (character >= "a" && character <= "z") || (character >= "0" && character <= "9");
+    if (isAlphaNumeric) {
+      result += character;
+      previousWasDash = false;
+    } else if (!previousWasDash) {
+      result += "-";
+      previousWasDash = true;
+    }
+  }
+  const trimmed = previousWasDash ? result.slice(0, -1) : result;
+  return trimmed || "user";
 }
 
 function openPrompt({ label, title, inputLabel, confirmLabel, value }) {
