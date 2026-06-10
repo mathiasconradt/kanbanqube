@@ -8,6 +8,7 @@ BRIEFING.md
 trello_export
 screenshots
 board.json
+.mcp.json
 .DS_Store
 
 # Logs
