@@ -207,3 +207,7 @@ Main files:
 - `public/app.js` - board UI behavior
 - `public/styles.css` - app styling
 - `public/index.html` - static app shell
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/chart?repos=mathiasconradt/kanbanqube&type=timeline&logscale&legend=top-left)](https://www.star-history.com/?repos=mathiasconradt%2Fkanbanqube&type=timeline&logscale=&legend=top-left)
