@@ -1,0 +1,274 @@
+{
+  "id": "6a1d996f031816bdf557c834",
+  "nodeId": "ari:cloud:trello::board/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c834",
+  "name": "Solutions Engineering onboarding - 2026 Bashar Al-Fallouji",
+  "desc": "",
+  "descData": null,
+  "closed": false,
+  "creationMethod": null,
+  "creationMethodError": null,
+  "creationMethodLoadingStartedAt": null,
+  "creationMethodLoadingPhase": null,
+  "dateClosed": null,
+  "dateLastActivity": "2026-06-08T17:52:51.997Z",
+  "enterpriseOwned": true,
+  "idBoardSource": "695bb31147ae30780987ea43",
+  "idEnterprise": "5e7b85d60e998e399d7050e0",
+  "idMemberCreator": "6889d48cd74e87a6e79c7465",
+  "idOrganization": "5a05a079c86138afd9ebeb18",
+  "idTags": [],
+  "ixUpdate": 1781008716880,
+  "labelNames": {
+    "green": "Technical",
+    "yellow": "Internal",
+    "orange": "TO BE UPDATED",
+    "red": "Process",
+    "purple": "Product",
+    "blue": "Team Topic",
+    "sky": "",
+    "lime": "",
+    "pink": "",
+    "black": "",
+    "green_dark": "",
+    "yellow_dark": "",
+    "orange_dark": "",
+    "red_dark": "Product",
+    "purple_dark": "To Do Next",
+    "blue_dark": "",
+    "sky_dark": "",
+    "lime_dark": "",
+    "pink_dark": "",
+    "black_dark": ""
+  },
+  "limits": {
+    "attachments": {
+      "perBoard": {
+        "status": "ok",
+        "disableAt": 36000,
+        "warnAt": 28800
+      },
+      "perCard": {
+        "status": "ok",
+        "disableAt": 1000,
+        "warnAt": 800
+      }
+    },
+    "boards": {
+      "totalMembersPerBoard": {
+        "status": "ok",
+        "disableAt": 1600,
+        "warnAt": 1280
+      },
+      "totalAccessRequestsPerBoard": {
+        "status": "ok",
+        "disableAt": 4000,
+        "warnAt": 3200
+      }
+    },
+    "cards": {
+      "openPerBoard": {
+        "status": "ok",
+        "disableAt": 5000,
+        "warnAt": 4000
+      },
+      "openPerList": {
+        "status": "ok",
+        "disableAt": 5000,
+        "warnAt": 4000
+      },
+      "totalPerBoard": {
+        "status": "ok",
+        "disableAt": 2000000,
+        "warnAt": 1600000
+      },
+      "totalPerList": {
+        "status": "ok",
+        "disableAt": 1000000,
+        "warnAt": 800000
+      }
+    },
+    "checklists": {
+      "perBoard": {
+        "status": "ok",
+        "disableAt": 1800000,
+        "warnAt": 1440000
+      },
+      "perCard": {
+        "status": "ok",
+        "disableAt": 500,
+        "warnAt": 400
+      }
+    },
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    },
+    "customFields": {
+      "perBoard": {
+        "status": "ok",
+        "disableAt": 50,
+        "warnAt": 40
+      }
+    },
+    "customFieldOptions": {
+      "perField": {
+        "status": "ok",
+        "disableAt": 50,
+        "warnAt": 40
+      }
+    },
+    "labels": {
+      "perBoard": {
+        "status": "ok",
+        "disableAt": 1000,
+        "warnAt": 800
+      }
+    },
+    "lists": {
+      "openPerBoard": {
+        "status": "ok",
+        "disableAt": 500,
+        "warnAt": 400
+      },
+      "totalPerBoard": {
+        "status": "ok",
+        "disableAt": 3000,
+        "warnAt": 2400
+      }
+    },
+    "stickers": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 70,
+        "warnAt": 56
+      }
+    },
+    "reactions": {
+      "perAction": {
+        "status": "ok",
+        "disableAt": 900,
+        "warnAt": 720
+      },
+      "uniquePerAction": {
+        "status": "ok",
+        "disableAt": 17,
+        "warnAt": 14
+      }
+    }
+  },
+  "memberships": [
+    {
+      "id": "6a1d99af2425b768c3ed4463",
+      "idMember": "66fe7392bb01b9fb21e6831e",
+      "memberType": "normal",
+      "unconfirmed": false,
+      "deactivated": false
+    },
+    {
+      "id": "6a1d996f031816bdf557c977",
+      "idMember": "6889d48cd74e87a6e79c7465",
+      "memberType": "admin",
+      "unconfirmed": false,
+      "deactivated": false
+    },
+    {
+      "id": "6a1ecb15f970cf283a4168dc",
+      "idMember": "672e3a57047e69f8eaec8dc1",
+      "memberType": "normal",
+      "unconfirmed": false,
+      "deactivated": false
+    },
+    {
+      "id": "6a2080d7f4a2b281588c5b84",
+      "idMember": "6a159f54d91af83e53142930",
+      "memberType": "normal",
+      "unconfirmed": false,
+      "deactivated": false
+    }
+  ],
+  "customFields": [],
+  "pinned": false,
+  "pluginData": [],
+  "powerUps": [],
+  "prefs": {
+    "background": "gradient-ocean",
+    "backgroundColor": "#0B50AF",
+    "backgroundDarkColor": "#0a214a",
+    "backgroundTopColor": "#0C66E4",
+    "backgroundBottomColor": "#09326C",
+    "canBePublic": false,
+    "canBeEnterprise": true,
+    "canBeOrg": true,
+    "canInvite": false,
+    "cardAging": "regular",
+    "comments": "members",
+    "hideVotes": false,
+    "invitations": "members",
+    "permissionLevel": "org",
+    "selfJoin": true,
+    "voting": "disabled"
+  },
+  "premiumFeatures": [
+    "activity",
+    "additionalBoardBackgrounds",
+    "additionalStickers",
+    "advancedChecklists",
+    "aiBoardBuilder",
+    "aiQuickCapture",
+    "atlassianIntelligence",
+    "boardExport",
+    "butlerBC",
+    "butlerEnterprise",
+    "butlerPremium",
+    "collapsibleLists",
+    "csvExport",
+    "customBoardBackgrounds",
+    "customEmoji",
+    "customStickers",
+    "deactivated",
+    "enterpriseUI",
+    "export",
+    "externallyBilled",
+    "goldMembers",
+    "inviteBoard",
+    "inviteOrg",
+    "isBc",
+    "isPremium",
+    "largeAttachments",
+    "listColors",
+    "observers",
+    "paidCorePlugins",
+    "plugins",
+    "premiumMirrorCards",
+    "privateTemplates",
+    "readSecrets",
+    "removal",
+    "restrictVis",
+    "savedSearches",
+    "selfServeExpansion",
+    "shortExportHistory",
+    "starCounts",
+    "stats",
+    "superAdmins",
+    "tags",
+    "views",
+    "workspaceViews"
+  ],
+  "shortLink": "NzzPI83k",
+  "shortUrl": "https://trello.com/b/NzzPI83k",
+  "starred": false,
+  "subscribed": false,
+  "templateGallery": null,
+  "type": "board",
+  "url": "https://trello.com/b/NzzPI83k/solutions-engineering-onboarding-2026-bashar-al-fallouji",
+  "dateLastView": "2026-06-08T18:13:14.652Z",
+  "datePluginDisable": null,
+  "kanbanQubeMeta": {
+    "version": 1,
+    "savedAt": "2026-06-08T17:52:51.997Z",
+    "boardFile": "board.json"
+  }
+}

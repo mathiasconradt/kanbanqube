@@ -1,0 +1,62 @@
+{
+  "id": "6a22866ec81f72c2b01e5470",
+  "idMemberCreator": "6a159f54d91af83e53142930",
+  "data": {
+    "board": {
+      "id": "6a1d996f031816bdf557c834",
+      "name": "Solutions Engineering onboarding - 2026 Bashar Al-Fallouji",
+      "shortLink": "NzzPI83k"
+    },
+    "card": {
+      "id": "6a1d996f031816bdf557c848",
+      "name": "JumpCloud accounts to access",
+      "idShort": 1,
+      "shortLink": "M3R6e3ZP"
+    },
+    "checklist": {
+      "id": "6a1d996f031816bdf557c911",
+      "name": "ServiceNow tickets to raise"
+    },
+    "checkItem": {
+      "id": "6a1d996f031816bdf557cd5c",
+      "name": "GitHub Enterprise Cloud",
+      "state": "complete",
+      "textData": {
+        "emoji": {}
+      }
+    }
+  },
+  "agenticIdentity": null,
+  "appCreator": null,
+  "type": "updateCheckItemStateOnCard",
+  "date": "2026-06-05T08:18:54.984Z",
+  "limits": null,
+  "memberCreator": {
+    "id": "6a159f54d91af83e53142930",
+    "aaId": "712020:66e0f1a4-abbc-47a0-bbb6-3415df6a6ff7",
+    "activityBlocked": false,
+    "avatarHash": "99cbd64aa93a8555971071cd95213218",
+    "avatarUrl": "https://trello-members.s3.amazonaws.com/6a159f54d91af83e53142930/99cbd64aa93a8555971071cd95213218",
+    "bio": "",
+    "bioData": null,
+    "confirmed": true,
+    "fullName": "Bashar Al-Fallouji",
+    "idEnterprise": "5e7b85d60e998e399d7050e0",
+    "idEnterprisesDeactivated": null,
+    "idMemberReferrer": null,
+    "idPremOrgsAdmin": [],
+    "initials": "BA",
+    "memberType": "normal",
+    "nonPublic": {
+      "fullName": "Bashar Al-Fallouji",
+      "initials": "BA",
+      "avatarHash": null
+    },
+    "nonPublicAvailable": true,
+    "products": [],
+    "url": "https://trello.com/u/bashara4",
+    "username": "bashara4",
+    "dateLastImpression": "2026-06-08T17:53:13.064Z",
+    "status": "disconnected"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "6a1d996f031816bdf557c919",
+  "name": "Checklist",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c8de",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [],
+  "creationMethod": null
+}

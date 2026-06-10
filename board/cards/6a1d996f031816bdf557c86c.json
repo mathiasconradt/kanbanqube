@@ -1,0 +1,142 @@
+{
+  "id": "6a1d996f031816bdf557c86c",
+  "address": null,
+  "agent": null,
+  "badges": {
+    "attachments": 0,
+    "attachmentsByType": {
+      "trello": {
+        "board": 0,
+        "card": 0
+      }
+    },
+    "checkItems": 0,
+    "checkItemsChecked": 0,
+    "checkItemsEarliestDue": null,
+    "comments": 0,
+    "description": true,
+    "due": null,
+    "dueComplete": false,
+    "externalSource": null,
+    "fogbugz": "",
+    "lastUpdatedByAi": false,
+    "location": false,
+    "maliciousAttachments": 0,
+    "start": null,
+    "subscribed": false,
+    "viewingMemberVoted": false,
+    "votes": 0
+  },
+  "checkItemStates": [],
+  "closed": false,
+  "coordinates": null,
+  "creationMethod": null,
+  "creationMethodError": null,
+  "creationMethodLoadingStartedAt": null,
+  "dueComplete": false,
+  "dateClosed": null,
+  "dateLastActivity": "2026-06-01T14:38:39.373Z",
+  "dateCompleted": null,
+  "dateViewedByCreator": null,
+  "desc": "Here’s the [google document template for SE meeting notes](https://docs.google.com/document/d/15tj0UauK29_a4bOUvQwbdMR7zzVUm89aiPYDtbESVJc/edit?tab=t.0#heading=h.yjx4b0jhj8ig \"‌\"). Clone it for new customer meetings.\n\nMeeting notes documents need to be saved under:\n\n[GDrive >> Shared drives >> All_SonarSource >> Sales >> Customers](https://drive.google.com/drive/folders/1wRZXoFHM1gqstTMFoUfvFZVjXnRnu82m \"‌\")",
+  "descData": {
+    "emoji": {}
+  },
+  "due": null,
+  "dueReminder": null,
+  "email": "mathiasconrad+34x50s8krrlshgvaqn9+36mh02pt06xmdrhkcbw+1adxdukwqm@boards.trello.com",
+  "externalSource": null,
+  "faviconUrl": null,
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idChecklists": [],
+  "idLabels": [
+    "6a1d996f031816bdf557c996",
+    "6a1d996f031816bdf557c995"
+  ],
+  "idList": "6a1d996f031816bdf557c82f",
+  "idMemberCreator": "6a1d996f031816bdf557c83c",
+  "idMembers": [],
+  "idMembersVoted": [],
+  "idOrganization": "5a05a079c86138afd9ebeb18",
+  "idShort": 13,
+  "idAttachmentCover": null,
+  "labels": [
+    {
+      "id": "6a1d996f031816bdf557c996",
+      "idBoard": "6a1d996f031816bdf557c834",
+      "idOrganization": "5a05a079c86138afd9ebeb18",
+      "name": "Team Topic",
+      "nodeId": "ari:cloud:trello::label/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c996",
+      "color": "blue",
+      "uses": 17
+    },
+    {
+      "id": "6a1d996f031816bdf557c995",
+      "idBoard": "6a1d996f031816bdf557c834",
+      "idOrganization": "5a05a079c86138afd9ebeb18",
+      "name": "Internal",
+      "nodeId": "ari:cloud:trello::label/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c995",
+      "color": "yellow",
+      "uses": 23
+    }
+  ],
+  "limits": {
+    "attachments": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 1000,
+        "warnAt": 800
+      }
+    },
+    "checklists": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 500,
+        "warnAt": 400
+      }
+    },
+    "stickers": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 70,
+        "warnAt": 56
+      }
+    }
+  },
+  "locationName": null,
+  "manifest": null,
+  "manualCoverAttachment": false,
+  "name": "SE notes document process",
+  "nodeId": "ari:cloud:trello::card/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c86c",
+  "originalDesc": "",
+  "originalName": "",
+  "pinned": false,
+  "pos": 140737488420864,
+  "recurrenceRule": null,
+  "shortLink": "xgRbUa1d",
+  "shortUrl": "https://trello.com/c/xgRbUa1d",
+  "singleInstrumentationId": null,
+  "sourceEmail": null,
+  "staticMapUrl": null,
+  "start": null,
+  "subscribed": false,
+  "url": "https://trello.com/c/xgRbUa1d/13-se-notes-document-process",
+  "urlSource": null,
+  "urlSourceText": null,
+  "cover": {
+    "idAttachment": null,
+    "color": null,
+    "idUploadedBackground": null,
+    "size": "normal",
+    "brightness": "dark",
+    "yPosition": 0.5,
+    "idPlugin": null
+  },
+  "isTemplate": false,
+  "cardRole": null,
+  "mirrorSourceId": null,
+  "mirrorSourceNodeId": null,
+  "attachments": [],
+  "pluginData": [],
+  "customFieldItems": []
+}

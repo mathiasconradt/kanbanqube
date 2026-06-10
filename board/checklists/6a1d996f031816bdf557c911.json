@@ -1,0 +1,201 @@
+{
+  "id": "6a1d996f031816bdf557c911",
+  "name": "ServiceNow tickets to raise",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c848",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cd59",
+      "name": "SalesForce",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5a",
+      "name": "Nautilus and Nautilus2 demo environments",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488371712,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5b",
+      "name": "Docker",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488388096,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5c",
+      "name": "GitHub Enterprise Cloud",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488420864,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5d",
+      "name": "Bamboo HR",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488453632,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5e",
+      "name": "Calamari",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488470016,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd5f",
+      "name": "SalesLoft",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488486400,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd60",
+      "name": "Glean",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488502784,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd61",
+      "name": "Loom",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488519168,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd62",
+      "name": "ShowPad",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488535552,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd63",
+      "name": "Cursor",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488551936,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd64",
+      "name": "Next",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488379904,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd65",
+      "name": "SonarQube Cloud group membership",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488568320,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd66",
+      "name": "Vanta",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488584704,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c911"
+    }
+  ],
+  "creationMethod": null
+}

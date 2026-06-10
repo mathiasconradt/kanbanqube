@@ -1,0 +1,84 @@
+{
+  "id": "6a1d996f031816bdf557c909",
+  "name": "Tools to install",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c857",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cdfc",
+      "name": "Docker Desktop",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c909"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdfd",
+      "name": "Magnet (raise a ServiceNow ticket and IT will install it)",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488371712,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c909"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdfe",
+      "name": "iTerm (or any other terminal tool you prefer)",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488388096,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c909"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdff",
+      "name": "Homebrew",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488338944,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c909"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce00",
+      "name": "IDE of your choice",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488404480,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c909"
+    }
+  ],
+  "creationMethod": null
+}

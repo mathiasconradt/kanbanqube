@@ -1,0 +1,97 @@
+{
+  "id": "6a1d996f031816bdf557c90a",
+  "name": "Features",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c87b",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557ce07",
+      "name": "IDE plugin Auto Analysis",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce08",
+      "name": "Issues",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488371712,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce09",
+      "name": "Hotspots",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488388096,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce0a",
+      "name": "Taint Analysis",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488404480,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce0b",
+      "name": "Dependancies",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488420864,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    },
+    {
+      "id": "6a1d996f031816bdf557ce0c",
+      "name": "Install SQ for IDE in your prefered IDE",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488338944,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c90a"
+    }
+  ],
+  "creationMethod": null
+}

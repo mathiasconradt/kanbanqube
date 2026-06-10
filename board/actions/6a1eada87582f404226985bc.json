@@ -1,0 +1,65 @@
+{
+  "id": "6a1eada87582f404226985bc",
+  "idMemberCreator": "6889d48cd74e87a6e79c7465",
+  "data": {
+    "board": {
+      "id": "6a1d996f031816bdf557c834",
+      "name": "Solutions Engineering onboarding - 2026 Bashar Al-Fallouji",
+      "shortLink": "NzzPI83k"
+    },
+    "card": {
+      "id": "6a1d996f031816bdf557c848",
+      "name": "JumpCloud accounts to access",
+      "idShort": 1,
+      "shortLink": "M3R6e3ZP"
+    },
+    "checklist": {
+      "id": "6a1d996f031816bdf557c911",
+      "name": "ServiceNow tickets to raise"
+    },
+    "checkItem": {
+      "id": "6a1d996f031816bdf557cd62",
+      "name": "ShowPad",
+      "state": "complete",
+      "textData": {
+        "emoji": {}
+      }
+    }
+  },
+  "agenticIdentity": null,
+  "appCreator": null,
+  "type": "updateCheckItemStateOnCard",
+  "date": "2026-06-02T10:17:12.360Z",
+  "limits": null,
+  "memberCreator": {
+    "id": "6889d48cd74e87a6e79c7465",
+    "aaId": "712020:453c6a54-25f2-4a66-8f67-d69bb70bb7af",
+    "activityBlocked": false,
+    "avatarHash": "546a4f5cb6c27ad9f2acde1a882d7b6d",
+    "avatarUrl": "https://trello-members.s3.amazonaws.com/6889d48cd74e87a6e79c7465/546a4f5cb6c27ad9f2acde1a882d7b6d",
+    "bio": "",
+    "bioData": {
+      "emoji": {}
+    },
+    "confirmed": true,
+    "fullName": "Mathias Conradt",
+    "idEnterprise": "5e7b85d60e998e399d7050e0",
+    "idEnterprisesDeactivated": [],
+    "idMemberReferrer": null,
+    "idPremOrgsAdmin": [],
+    "initials": "MC",
+    "memberType": "normal",
+    "nonPublic": {
+      "fullName": "Mathias Conradt",
+      "initials": "MC",
+      "avatarUrl": "https://trello-members.s3.amazonaws.com/6889d48cd74e87a6e79c7465/58a66772a7667e2d43e80ee6dbf4913f",
+      "avatarHash": "58a66772a7667e2d43e80ee6dbf4913f"
+    },
+    "nonPublicAvailable": true,
+    "products": [],
+    "url": "https://trello.com/u/mathiasconradt_sonar",
+    "username": "mathiasconradt_sonar",
+    "dateLastImpression": "2026-06-08T17:50:40.250Z",
+    "status": "disconnected"
+  }
+}

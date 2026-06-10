@@ -1,0 +1,71 @@
+{
+  "id": "6a1d996f031816bdf557c918",
+  "name": "Mailing lists",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c8d5",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cdf2",
+      "name": "se.emea@sonarsource.com",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c918"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdf3",
+      "name": "london@sonarsource.com",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488371712,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c918"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdf4",
+      "name": "gtm-organization@sonarsource.com",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488388096,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c918"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdf5",
+      "name": "bbl@sonarsource.com",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488404480,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c918"
+    }
+  ],
+  "creationMethod": null
+}

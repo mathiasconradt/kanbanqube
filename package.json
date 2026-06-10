@@ -25,6 +25,14 @@
   },
   "files": [
     "server.js",
+    "app.js",
+    "config/",
+    "controllers/",
+    "middleware/",
+    "models/",
+    "routes/",
+    "services/",
+    "utils/",
     "public/",
     "demo_board.json",
     "promo.jpg",
@@ -37,10 +45,13 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --check server.js && node --check --input-type=module < public/app.js",
+    "test": "node --check server.js && node --check app.js && find config controllers middleware models routes services utils -name '*.js' -exec node --check {} \\; && node --check --input-type=module < public/app.js",
     "prepublishOnly": "npm test"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

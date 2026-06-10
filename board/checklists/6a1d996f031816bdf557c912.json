@@ -1,0 +1,279 @@
+{
+  "id": "6a1d996f031816bdf557c912",
+  "name": "Slack Channels",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c84b",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cd76",
+      "name": "#ask-product-managers",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd77",
+      "name": "#ask-se",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488371712,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd78",
+      "name": "#ask-security-domain",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488388096,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd79",
+      "name": "#ask-services",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488404480,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7a",
+      "name": "#ask-sonarcloud",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488420864,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7b",
+      "name": "#ask-support",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488437248,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7c",
+      "name": "#se-emea-apj",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488453632,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7d",
+      "name": "#se-global",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488470016,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7e",
+      "name": "#team-sales",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488486400,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd7f",
+      "name": "Relevant sales team region: #team-sales-emea-north",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488502784,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd80",
+      "name": "North or East: #se-emea-north-east",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488519168,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd81",
+      "name": "#all-sonarsourcers",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488535552,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd82",
+      "name": "#guild-cftt",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488551936,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd83",
+      "name": "#news-sq-ide-update",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488568320,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd84",
+      "name": "#news-sqc-updates",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488584704,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd85",
+      "name": "#news-sqs-updates",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488601088,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd86",
+      "name": "#product-launch-announcements",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488617472,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd87",
+      "name": "APJ: #team-sales-apj",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488527360,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd88",
+      "name": "APJ: #se-apj",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488478208,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    },
+    {
+      "id": "6a1d996f031816bdf557cd89",
+      "name": "APJ: #guild-cftt-apj",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488560128,
+      "state": "complete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c912"
+    }
+  ],
+  "creationMethod": null
+}

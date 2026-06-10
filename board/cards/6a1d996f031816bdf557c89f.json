@@ -1,0 +1,132 @@
+{
+  "id": "6a1d996f031816bdf557c89f",
+  "address": null,
+  "agent": null,
+  "badges": {
+    "attachments": 0,
+    "attachmentsByType": {
+      "trello": {
+        "board": 0,
+        "card": 0
+      }
+    },
+    "checkItems": 0,
+    "checkItemsChecked": 0,
+    "checkItemsEarliestDue": null,
+    "comments": 0,
+    "description": true,
+    "due": null,
+    "dueComplete": false,
+    "externalSource": null,
+    "fogbugz": "",
+    "lastUpdatedByAi": false,
+    "location": false,
+    "maliciousAttachments": 0,
+    "start": null,
+    "subscribed": false,
+    "viewingMemberVoted": false,
+    "votes": 0
+  },
+  "checkItemStates": [],
+  "closed": false,
+  "coordinates": null,
+  "creationMethod": null,
+  "creationMethodError": null,
+  "creationMethodLoadingStartedAt": null,
+  "dueComplete": false,
+  "dateClosed": null,
+  "dateLastActivity": "2026-06-01T14:38:39.387Z",
+  "dateCompleted": null,
+  "dateViewedByCreator": null,
+  "desc": "Often there is the need to collaboratively work on documents with prospects, the main example being a High Touch PoC where an Evaluation Plan is jointly created with the prospect.\n\nThe slides below describe how to create a google document with external Editor permissions:\n\n[Evaluation Plan collaboration with Google Drive](https://docs.google.com/presentation/d/1LZZjND9AXydi_6eWYrAWEMzcvDUn9j-IKSbg9vmV3g4/edit?slide=id.g32b67479733_0_0#slide=id.g32b67479733_0_0 \"‌\")",
+  "descData": {
+    "emoji": {}
+  },
+  "due": null,
+  "dueReminder": null,
+  "email": "mathiasconrad+34x50s8krrlshgvaqn9+36mh02pt06xmdrhkcdb+0up78r3rwm@boards.trello.com",
+  "externalSource": null,
+  "faviconUrl": null,
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idChecklists": [],
+  "idLabels": [
+    "6a1d996f031816bdf557c995"
+  ],
+  "idList": "6a1d996f031816bdf557c832",
+  "idMemberCreator": "6a1d996f031816bdf557c83c",
+  "idMembers": [],
+  "idMembersVoted": [],
+  "idOrganization": "5a05a079c86138afd9ebeb18",
+  "idShort": 30,
+  "idAttachmentCover": null,
+  "labels": [
+    {
+      "id": "6a1d996f031816bdf557c995",
+      "idBoard": "6a1d996f031816bdf557c834",
+      "idOrganization": "5a05a079c86138afd9ebeb18",
+      "name": "Internal",
+      "nodeId": "ari:cloud:trello::label/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c995",
+      "color": "yellow",
+      "uses": 23
+    }
+  ],
+  "limits": {
+    "attachments": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 1000,
+        "warnAt": 800
+      }
+    },
+    "checklists": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 500,
+        "warnAt": 400
+      }
+    },
+    "stickers": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 70,
+        "warnAt": 56
+      }
+    }
+  },
+  "locationName": null,
+  "manifest": null,
+  "manualCoverAttachment": false,
+  "name": "Collaborative documents with customers",
+  "nodeId": "ari:cloud:trello::card/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c89f",
+  "originalDesc": "",
+  "originalName": "",
+  "pinned": false,
+  "pos": 140737488355328,
+  "recurrenceRule": null,
+  "shortLink": "OeancZJG",
+  "shortUrl": "https://trello.com/c/OeancZJG",
+  "singleInstrumentationId": null,
+  "sourceEmail": null,
+  "staticMapUrl": null,
+  "start": null,
+  "subscribed": false,
+  "url": "https://trello.com/c/OeancZJG/30-collaborative-documents-with-customers",
+  "urlSource": null,
+  "urlSourceText": null,
+  "cover": {
+    "idAttachment": null,
+    "color": null,
+    "idUploadedBackground": null,
+    "size": "normal",
+    "brightness": "dark",
+    "yPosition": 0.5,
+    "idPlugin": null
+  },
+  "isTemplate": false,
+  "cardRole": null,
+  "mirrorSourceId": null,
+  "mirrorSourceNodeId": null,
+  "attachments": [],
+  "pluginData": [],
+  "customFieldItems": []
+}

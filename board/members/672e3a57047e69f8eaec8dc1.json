@@ -1,0 +1,30 @@
+{
+  "id": "672e3a57047e69f8eaec8dc1",
+  "aaId": "712020:8c3f3579-082b-4fdb-8bb2-f99930f4652a",
+  "activityBlocked": false,
+  "avatarHash": "26390a2431596f2f7fa1f0a33ce0aadd",
+  "avatarUrl": "https://trello-members.s3.amazonaws.com/672e3a57047e69f8eaec8dc1/26390a2431596f2f7fa1f0a33ce0aadd",
+  "bio": "",
+  "bioData": {
+    "emoji": {}
+  },
+  "confirmed": true,
+  "fullName": "Sid Vaidyanathan",
+  "idEnterprise": "5e7b85d60e998e399d7050e0",
+  "idEnterprisesDeactivated": null,
+  "idMemberReferrer": null,
+  "idPremOrgsAdmin": [],
+  "initials": "SV",
+  "memberType": "normal",
+  "nonPublic": {
+    "fullName": "Sid Vaidyanathan",
+    "initials": "SV",
+    "avatarHash": null
+  },
+  "nonPublicAvailable": true,
+  "products": [],
+  "url": "https://trello.com/u/sidv17",
+  "username": "sidv17",
+  "dateLastImpression": "2026-06-03T14:21:31.865Z",
+  "status": "disconnected"
+}

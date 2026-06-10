@@ -1,0 +1,132 @@
+{
+  "id": "6a1d996f031816bdf557c85d",
+  "address": null,
+  "agent": null,
+  "badges": {
+    "attachments": 0,
+    "attachmentsByType": {
+      "trello": {
+        "board": 0,
+        "card": 0
+      }
+    },
+    "checkItems": 0,
+    "checkItemsChecked": 0,
+    "checkItemsEarliestDue": null,
+    "comments": 0,
+    "description": false,
+    "due": null,
+    "dueComplete": true,
+    "externalSource": null,
+    "fogbugz": "",
+    "lastUpdatedByAi": false,
+    "location": false,
+    "maliciousAttachments": 0,
+    "start": null,
+    "subscribed": false,
+    "viewingMemberVoted": false,
+    "votes": 0
+  },
+  "checkItemStates": [],
+  "closed": true,
+  "coordinates": null,
+  "creationMethod": null,
+  "creationMethodError": null,
+  "creationMethodLoadingStartedAt": null,
+  "dueComplete": true,
+  "dateClosed": "2026-06-02T12:22:55.182Z",
+  "dateLastActivity": "2026-06-02T12:22:55.184Z",
+  "dateCompleted": "2026-06-02T12:22:50.205Z",
+  "dateViewedByCreator": null,
+  "desc": "",
+  "descData": {
+    "emoji": {}
+  },
+  "due": null,
+  "dueReminder": null,
+  "email": "mathiasconrad+34x50s8krrlshgvaqn9+36mh02pt06xmdrhkcbh+1sdfc6mhwe@boards.trello.com",
+  "externalSource": null,
+  "faviconUrl": null,
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idChecklists": [],
+  "idLabels": [
+    "6a1d996f031816bdf557c996"
+  ],
+  "idList": "6a1d996f031816bdf557c82c",
+  "idMemberCreator": "6a1d996f031816bdf557c83c",
+  "idMembers": [],
+  "idMembersVoted": [],
+  "idOrganization": "5a05a079c86138afd9ebeb18",
+  "idShort": 8,
+  "idAttachmentCover": null,
+  "labels": [
+    {
+      "id": "6a1d996f031816bdf557c996",
+      "idBoard": "6a1d996f031816bdf557c834",
+      "idOrganization": "5a05a079c86138afd9ebeb18",
+      "name": "Team Topic",
+      "nodeId": "ari:cloud:trello::label/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c996",
+      "color": "blue",
+      "uses": 17
+    }
+  ],
+  "limits": {
+    "attachments": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 1000,
+        "warnAt": 800
+      }
+    },
+    "checklists": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 500,
+        "warnAt": 400
+      }
+    },
+    "stickers": {
+      "perCard": {
+        "status": "ok",
+        "disableAt": 70,
+        "warnAt": 56
+      }
+    }
+  },
+  "locationName": null,
+  "manifest": null,
+  "manualCoverAttachment": false,
+  "name": "Add your Mentor to this board",
+  "nodeId": "ari:cloud:trello::card/workspace/5a05a079c86138afd9ebeb18/6a1d996f031816bdf557c85d",
+  "originalDesc": "",
+  "originalName": "",
+  "pinned": false,
+  "pos": 140737488420864,
+  "recurrenceRule": null,
+  "shortLink": "z9HHiWGc",
+  "shortUrl": "https://trello.com/c/z9HHiWGc",
+  "singleInstrumentationId": null,
+  "sourceEmail": null,
+  "staticMapUrl": null,
+  "start": null,
+  "subscribed": false,
+  "url": "https://trello.com/c/z9HHiWGc/8-add-your-mentor-to-this-board",
+  "urlSource": null,
+  "urlSourceText": null,
+  "cover": {
+    "idAttachment": null,
+    "color": null,
+    "idUploadedBackground": null,
+    "size": "normal",
+    "brightness": "dark",
+    "yPosition": 0.5,
+    "idPlugin": null
+  },
+  "isTemplate": false,
+  "cardRole": null,
+  "mirrorSourceId": null,
+  "mirrorSourceNodeId": null,
+  "attachments": [],
+  "pluginData": [],
+  "customFieldItems": []
+}

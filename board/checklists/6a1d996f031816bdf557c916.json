@@ -1,0 +1,97 @@
+{
+  "id": "6a1d996f031816bdf557c916",
+  "name": "SCA",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c88d",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cde2",
+      "name": "SCA Dependency Risks - Project",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    },
+    {
+      "id": "6a1d996f031816bdf557cde3",
+      "name": "SCA Dependencies sections - Projects",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488363520,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    },
+    {
+      "id": "6a1d996f031816bdf557cde4",
+      "name": "SCA Dependencies sections - Portfolios",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488367616,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    },
+    {
+      "id": "6a1d996f031816bdf557cde5",
+      "name": "SCA Dependency Risks - Portfolios",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488369664,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    },
+    {
+      "id": "6a1d996f031816bdf557cde6",
+      "name": "SBOM - Projects and Portfolios",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488370688,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    },
+    {
+      "id": "6a1d996f031816bdf557cde7",
+      "name": "SCA - IDE Integration",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488387072,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c916"
+    }
+  ],
+  "creationMethod": null
+}

@@ -1,0 +1,76 @@
+{
+  "id": "6a1feb3297ffa9da90393028",
+  "idMemberCreator": "6889d48cd74e87a6e79c7465",
+  "data": {
+    "idCard": "6a1d996f031816bdf557c8c0",
+    "idAuthor": "6889d48cd74e87a6e79c7465",
+    "text": "In already informed all AEs to add Bashar as optional to the 1:1s",
+    "textData": {
+      "emoji": {}
+    },
+    "card": {
+      "id": "6a1d996f031816bdf557c8c0",
+      "name": "AE weekly 1-1s",
+      "idShort": 41,
+      "shortLink": "Iqewuyxv"
+    },
+    "board": {
+      "id": "6a1d996f031816bdf557c834",
+      "name": "Solutions Engineering onboarding - 2026 Bashar Al-Fallouji",
+      "shortLink": "NzzPI83k"
+    },
+    "list": {
+      "id": "6a1d996f031816bdf557c82d",
+      "name": "Pre-setup for PoC -- Week 0"
+    }
+  },
+  "agenticIdentity": null,
+  "appCreator": null,
+  "type": "commentCard",
+  "date": "2026-06-03T08:52:02.629Z",
+  "limits": {
+    "reactions": {
+      "perAction": {
+        "status": "ok",
+        "disableAt": 900,
+        "warnAt": 720
+      },
+      "uniquePerAction": {
+        "status": "ok",
+        "disableAt": 17,
+        "warnAt": 14
+      }
+    }
+  },
+  "memberCreator": {
+    "id": "6889d48cd74e87a6e79c7465",
+    "aaId": "712020:453c6a54-25f2-4a66-8f67-d69bb70bb7af",
+    "activityBlocked": false,
+    "avatarHash": "546a4f5cb6c27ad9f2acde1a882d7b6d",
+    "avatarUrl": "https://trello-members.s3.amazonaws.com/6889d48cd74e87a6e79c7465/546a4f5cb6c27ad9f2acde1a882d7b6d",
+    "bio": "",
+    "bioData": {
+      "emoji": {}
+    },
+    "confirmed": true,
+    "fullName": "Mathias Conradt",
+    "idEnterprise": "5e7b85d60e998e399d7050e0",
+    "idEnterprisesDeactivated": [],
+    "idMemberReferrer": null,
+    "idPremOrgsAdmin": [],
+    "initials": "MC",
+    "memberType": "normal",
+    "nonPublic": {
+      "fullName": "Mathias Conradt",
+      "initials": "MC",
+      "avatarUrl": "https://trello-members.s3.amazonaws.com/6889d48cd74e87a6e79c7465/58a66772a7667e2d43e80ee6dbf4913f",
+      "avatarHash": "58a66772a7667e2d43e80ee6dbf4913f"
+    },
+    "nonPublicAvailable": true,
+    "products": [],
+    "url": "https://trello.com/u/mathiasconradt_sonar",
+    "username": "mathiasconradt_sonar",
+    "dateLastImpression": "2026-06-08T17:50:40.250Z",
+    "status": "disconnected"
+  }
+}

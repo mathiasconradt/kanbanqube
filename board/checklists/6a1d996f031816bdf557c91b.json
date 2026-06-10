@@ -1,0 +1,201 @@
+{
+  "id": "6a1d996f031816bdf557c91b",
+  "name": "Components/dashboards to learn",
+  "idBoard": "6a1d996f031816bdf557c834",
+  "idCard": "6a1d996f031816bdf557c866",
+  "pos": 140737488355328,
+  "limits": {
+    "checkItems": {
+      "perChecklist": {
+        "status": "ok",
+        "disableAt": 200,
+        "warnAt": 160
+      }
+    }
+  },
+  "checkItems": [
+    {
+      "id": "6a1d996f031816bdf557cdb8",
+      "name": "Overview & Projects Page",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488355328,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdb9",
+      "name": "Rules",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488357376,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdba",
+      "name": "Quality Profiles",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488358400,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdbb",
+      "name": "Quality Gates",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488358912,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdbc",
+      "name": "Project Home Page",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488359424,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdbd",
+      "name": "Issues",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488359168,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdbe",
+      "name": "HotSpots",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488359040,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdbf",
+      "name": "Security Reports",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488375808,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc0",
+      "name": "Measures",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488519168,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc1",
+      "name": "Portfolios",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488502784,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc2",
+      "name": "AI Code Fix",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488359296,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc3",
+      "name": "Dashboards",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488535552,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc4",
+      "name": "JIRA Integration",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488551936,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    },
+    {
+      "id": "6a1d996f031816bdf557cdc5",
+      "name": "Slack Integration",
+      "nameData": {
+        "emoji": {}
+      },
+      "pos": 140737488568320,
+      "state": "incomplete",
+      "due": null,
+      "dueReminder": -1,
+      "idMember": "6a1d996f031816bdf557c83b",
+      "idChecklist": "6a1d996f031816bdf557c91b"
+    }
+  ],
+  "creationMethod": null
+}
