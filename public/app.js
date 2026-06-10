@@ -514,7 +514,14 @@ function renderCard(card) {
   for (const badge of buildCardBadges(card)) {
     const badgeNode = document.createElement("span");
     badgeNode.className = "badge";
-    badgeNode.append(createIcon(badge.icon));
+    if (badge.symbol) {
+      const symbol = document.createElement("span");
+      symbol.className = "badge-symbol";
+      symbol.textContent = badge.symbol;
+      badgeNode.append(symbol);
+    } else {
+      badgeNode.append(createIcon(badge.icon));
+    }
     if (badge.text) {
       const text = document.createElement("span");
       text.textContent = badge.text;
@@ -2218,7 +2225,7 @@ function buildCardBadges(card) {
   const badges = [];
   if (card.badges?.description) badges.push({ icon: "description", text: "" });
   if (card.badges?.comments) badges.push({ icon: "comment", text: String(card.badges.comments) });
-  if (card.badges?.checkItems) badges.push({ icon: "checklist", text: `${card.badges.checkItemsChecked || 0}/${card.badges.checkItems}` });
+  if (card.badges?.checkItems) badges.push({ symbol: "☑", text: `${card.badges.checkItemsChecked || 0}/${card.badges.checkItems}` });
   if (card.attachments?.length) badges.push({ icon: "attachment", text: String(card.attachments.length) });
   return badges;
 }
