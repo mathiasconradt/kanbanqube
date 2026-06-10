@@ -514,7 +514,12 @@ function renderCard(card) {
   for (const badge of buildCardBadges(card)) {
     const badgeNode = document.createElement("span");
     badgeNode.className = "badge";
-    badgeNode.textContent = badge;
+    badgeNode.append(createIcon(badge.icon));
+    if (badge.text) {
+      const text = document.createElement("span");
+      text.textContent = badge.text;
+      badgeNode.append(text);
+    }
     footer.append(badgeNode);
   }
 
@@ -748,7 +753,7 @@ function renderLabelsEditor(card) {
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "icon-button";
-    removeButton.textContent = "🗑";
+    removeButton.append(createIcon("trash"));
     removeButton.addEventListener("click", () => {
       deleteLabel(label.id);
       queueSave("Label removed");
@@ -801,7 +806,7 @@ function renderAttachments(card) {
 
     const icon = document.createElement("span");
     icon.className = "attachment-icon";
-    icon.textContent = isImageAttachment(attachment) ? "IMG" : "FILE";
+    icon.append(createIcon(isImageAttachment(attachment) ? "image" : "file"));
 
     const main = document.createElement("span");
     main.className = "attachment-main";
@@ -862,7 +867,7 @@ function renderChecklists(card) {
     const removeChecklistButton = document.createElement("button");
     removeChecklistButton.type = "button";
     removeChecklistButton.className = "icon-button";
-    removeChecklistButton.textContent = "🗑";
+    removeChecklistButton.append(createIcon("trash"));
     removeChecklistButton.addEventListener("click", () => {
       state.board.checklists = state.board.checklists.filter((item) => item.id !== checklist.id);
       card.idChecklists = card.idChecklists.filter((checklistId) => checklistId !== checklist.id);
@@ -2211,11 +2216,32 @@ function cardElementAfter(container, y) {
 
 function buildCardBadges(card) {
   const badges = [];
-  if (card.badges?.description) badges.push("≡");
-  if (card.badges?.comments) badges.push(`💬 ${card.badges.comments}`);
-  if (card.badges?.checkItems) badges.push(`☑ ${card.badges.checkItemsChecked || 0}/${card.badges.checkItems}`);
-  if (card.attachments?.length) badges.push(`📎 ${card.attachments.length}`);
+  if (card.badges?.description) badges.push({ icon: "description", text: "" });
+  if (card.badges?.comments) badges.push({ icon: "comment", text: String(card.badges.comments) });
+  if (card.badges?.checkItems) badges.push({ icon: "checklist", text: `${card.badges.checkItemsChecked || 0}/${card.badges.checkItems}` });
+  if (card.attachments?.length) badges.push({ icon: "attachment", text: String(card.attachments.length) });
   return badges;
+}
+
+function createIcon(name) {
+  const paths = {
+    description: ["M4 6h16M4 12h12M4 18h9"],
+    comment: ["M5 5.5h14v9H8.5L5 18V5.5Z"],
+    checklist: ["M9 7h11M9 12h11M9 17h11M4 7.2l1.2 1.2L7.5 6M4 12.2l1.2 1.2 2.3-2.4M4 17.2l1.2 1.2 2.3-2.4"],
+    attachment: ["M8.5 12.5 14.8 6.2a3 3 0 0 1 4.2 4.2l-7.8 7.8a5 5 0 0 1-7.1-7.1l7.5-7.5"],
+    trash: ["M3 6h18m-2 0-.9 13.15A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.85L5 6m3 0V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6m-6 4v7m4-7v7"],
+    file: ["M7 3h7l4 4v14H7V3Zm7 0v5h5"],
+    image: ["M4 5h16v14H4V5Zm3 10 3.2-3.2 2.3 2.3 2.1-2.1L19 16.4M8.5 9.5h.01"]
+  };
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  for (const value of paths[name] || paths.description) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", value);
+    svg.append(path);
+  }
+  return svg;
 }
 
 function coverUrlForCard(card) {
