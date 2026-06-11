@@ -214,12 +214,21 @@ button {
 .topbar-actions,
 .board-meta,
 .lane-actions,
+.archive-header-actions,
 .modal-footer,
 .panel-header,
 .settings-meta {
   display: flex;
   gap: 0.65rem;
   align-items: center;
+}
+
+.archive-header-actions {
+  flex: 0 0 auto;
+}
+
+#promptDialog .modal-footer {
+  margin-top: 1rem;
 }
 
 .primary-button,

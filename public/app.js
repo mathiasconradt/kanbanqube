@@ -75,6 +75,7 @@ const syncLogCloseButton = document.getElementById("syncLogCloseButton");
 const archiveDialog = document.getElementById("archiveDialog");
 const archiveList = document.getElementById("archiveList");
 const closeArchiveButton = document.getElementById("closeArchiveButton");
+const deleteAllArchivedButton = document.getElementById("deleteAllArchivedButton");
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
@@ -247,6 +248,7 @@ function wireEvents() {
   boardTitle.addEventListener("click", startBoardTitleEdit);
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
   closeArchiveButton.addEventListener("click", () => archiveDialog.close());
+  deleteAllArchivedButton.addEventListener("click", deleteAllArchivedCards);
   saveSettingsButton.addEventListener("click", saveSettings);
   importBoardButton.addEventListener("click", () => importBoardInput.click());
   importBoardInput.addEventListener("change", () => {
@@ -620,6 +622,8 @@ function renderCardDialog() {
 function renderArchiveDialog() {
   archiveList.textContent = "";
   const cards = archivedCards();
+  deleteAllArchivedButton.disabled = cards.length === 0;
+  deleteAllArchivedButton.hidden = cards.length === 0;
 
   if (cards.length === 0) {
     const empty = document.createElement("div");
@@ -689,11 +693,13 @@ function renderLabelsEditor(card) {
 
   const assignedLabels = labelsForCard(card);
   if (assignedLabels.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state label-summary-trigger";
-    empty.textContent = "No labels assigned.";
-    empty.addEventListener("click", openLabelEditor);
-    cardLabels.append(empty);
+    if (!state.labelEditorOpen) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state label-summary-trigger";
+      empty.textContent = "No labels assigned.";
+      empty.addEventListener("click", openLabelEditor);
+      cardLabels.append(empty);
+    }
   } else {
     for (const label of assignedLabels) {
       const pill = document.createElement("button");
@@ -724,6 +730,7 @@ function renderLabelsEditor(card) {
   searchInput.type = "search";
   searchInput.placeholder = "Search labels…";
   searchInput.value = state.labelSearchTerm;
+  searchInput.addEventListener("keydown", stopLabelEditorShortcut);
   searchInput.addEventListener("input", () => {
     state.labelSearchTerm = searchInput.value;
     renderCardDialog();
@@ -773,11 +780,21 @@ function renderLabelsEditor(card) {
     nameInput.value = label.name || "";
     nameInput.placeholder = "Label name";
     nameInput.style.backgroundColor = colorForLabel(label.color);
+    let committedName = label.name || "";
+    nameInput.addEventListener("keydown", stopLabelEditorShortcut);
     nameInput.addEventListener("input", () => {
-      label.name = nameInput.value.trim();
-      queueSave("Label updated");
-      renderCardDialog();
-      renderBoard();
+      label.name = nameInput.value;
+    });
+    nameInput.addEventListener("blur", () => {
+      const trimmedName = nameInput.value.trim();
+      if (label.name !== trimmedName) {
+        label.name = trimmedName;
+      }
+      if (committedName !== label.name) {
+        committedName = label.name;
+        queueSave("Label updated");
+        renderBoard();
+      }
     });
 
     const colorSelect = document.createElement("select");
@@ -786,9 +803,10 @@ function renderLabelsEditor(card) {
       const option = document.createElement("option");
       option.value = color;
       option.textContent = color.replaceAll("_", " ");
-      option.selected = color === label.color;
+        option.selected = color === label.color;
       colorSelect.append(option);
     }
+    colorSelect.addEventListener("keydown", stopLabelEditorShortcut);
     colorSelect.addEventListener("change", () => {
       label.color = colorSelect.value;
       queueSave("Label updated");
@@ -827,6 +845,14 @@ function renderLabelsEditor(card) {
   panel.append(createButton);
 
   appendLabelEditorPanel(panel);
+}
+
+function stopLabelEditorShortcut(event) {
+  event.stopPropagation();
+  if (event.key === "Enter") {
+    event.preventDefault();
+    event.currentTarget.blur();
+  }
 }
 
 function appendLabelEditorPanel(panel) {
@@ -1461,6 +1487,27 @@ async function deleteArchivedCard(cardId) {
   render();
 }
 
+async function deleteAllArchivedCards() {
+  const cards = archivedCards();
+  if (cards.length === 0) return;
+
+  const confirmed = await openConfirmDialog({
+    label: "Delete archive",
+    title: "Delete all archived cards?",
+    message: `Delete ${cards.length} archived card${cards.length === 1 ? "" : "s"} permanently? This cannot be undone.`,
+    confirmLabel: "Delete all",
+    danger: true
+  });
+  if (!confirmed) return;
+
+  for (const card of cards) {
+    removeCardCompletely(card.id);
+  }
+  state.selectedCardId = null;
+  queueSave("Archived cards deleted");
+  render();
+}
+
 async function deleteLane(listId) {
   const list = listById(listId);
   if (!list) return;
@@ -1623,11 +1670,7 @@ function toggleKeyboardLabel(card, labelIndex) {
 }
 
 function sortedBoardLabels() {
-  return [...(state.board?.labels || [])].sort((left, right) => {
-    const leftName = (left.name || left.color || "").toLowerCase();
-    const rightName = (right.name || right.color || "").toLowerCase();
-    return leftName.localeCompare(rightName);
-  });
+  return [...(state.board?.labels || [])];
 }
 
 function setKeyboardCard(cardId, shouldRender = true) {
