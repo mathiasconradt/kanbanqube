@@ -8,6 +8,8 @@ BRIEFING.md
 trello_export
 screenshots
 board.json
+board/
+uploads/
 .mcp.json
 .codex/config.toml
 .DS_Store
