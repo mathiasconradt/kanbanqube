@@ -1,7 +1,7 @@
 class Kanbanqube < Formula
   desc "Local-first Kanban board backed by normal files"
   homepage "https://github.com/mathiasconradt/kanbanqube"
-  version "1.0.12"
+  version "1.0.13"
   url "https://github.com/mathiasconradt/kanbanqube/releases/download/v#{version}/kanbanqube-#{version}.tgz"
   sha256 "8ceb33620ffaef44b49079c437c93e48ed57e3cf1c8ecf73d596fb0c818f7939"
   license "Apache-2.0"
