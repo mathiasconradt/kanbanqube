@@ -278,6 +278,4 @@ brew install mathiasconradt/kanbanqube/kanbanqube
 
 ## Star History
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=mathiasconradt/kanbanqube&type=timeline&logscale&legend=top-left)](https://www.star-history.com/?repos=mathiasconradt%2Fkanbanqube&type=timeline&logscale=&legend=top-left)
+[![Star History Chart](https://api.star-history.com/chart?repos=mathiasconradt/kanbanqube&type=timeline&logscale&legend=top-left&nocache)](https://www.star-history.com/?repos=mathiasconradt%2Fkanbanqube&type=timeline&logscale=&legend=top-left)
