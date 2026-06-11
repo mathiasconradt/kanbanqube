@@ -9,7 +9,7 @@
 
 KanbanQube is a local-first Kanban board app for solo users and very small teams. A board lives as normal files in a regular vault folder on your machine and can optionally be placed inside a Git repository, so changes can be versioned and synced with tools you already use.
 
-The app provides lanes, cards, labels, checklists, comments, card covers, file attachments, archived cards, search, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
+The app provides lanes, cards, labels, checklists, comments, due dates, assignees, card covers, file attachments, archived cards, search, keyboard navigation, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
 
 ![KanbanQube board screenshot](screenshot.png)
 
@@ -26,6 +26,7 @@ The app provides lanes, cards, labels, checklists, comments, card covers, file a
 - [Trello Import](#trello-import)
 - [Demo Board](#demo-board)
 - [Identity](#identity)
+- [Assignees And Due Dates](#assignees-and-due-dates)
 - [Attachments And Covers](#attachments-and-covers)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Development](#development)
@@ -144,6 +145,7 @@ Use the board view for quick work:
 - Click the board title or lane title to rename it inline.
 - Click a card to open its details.
 - Settings can enable inline editing for existing card titles in board lanes.
+- Set due dates and assignees in card details. Cards show due dates and assigned user avatars directly in the board view.
 
 ## Git Sync
 
@@ -209,6 +211,16 @@ git config --global user.email
 ```
 
 That name is used for comments and activity entries. The settings dialog shows the detected name and email as read-only values.
+
+KanbanQube also reads commit authors from the vault Git repository and makes them available as assignable users. Git can usually provide the author name and email address from existing commits. If the vault has no Git history, KanbanQube still includes your own detected Git identity.
+
+User avatars are loaded from Gravatar based on email address. If no Gravatar image exists, the app falls back to initials.
+
+## Assignees And Due Dates
+
+Open a card to assign users and set a due date. Assigned users are shown as small avatars on the card in board view, with their name available on hover.
+
+Due dates are stored on the card and shown below the card title in board view. Completed cards keep the due date visible in a completed state, while overdue open cards are highlighted.
 
 ## Attachments And Covers
 
