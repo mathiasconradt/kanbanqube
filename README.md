@@ -23,7 +23,7 @@ The app provides lanes, cards, labels, checklists, comments, card covers, file a
 - [Vaults](#vaults)
 - [Board Workflow](#board-workflow)
 - [Git Sync](#git-sync)
-- [Import](#import)
+- [Trello Import](#trello-import)
 - [Demo Board](#demo-board)
 - [Identity](#identity)
 - [Attachments And Covers](#attachments-and-covers)
@@ -125,7 +125,7 @@ vault/
   uploads/
 ```
 
-If `board/` does not exist, KanbanQube creates it automatically. If an older `board.json` exists, KanbanQube imports it into the split `board/` layout the first time it starts. The original `board.json` is left in place but is no longer the active storage file. If `uploads/` does not exist, it is created when the first file is uploaded.
+If `board/` does not exist, KanbanQube creates it automatically. If `uploads/` does not exist, it is created when the first file is uploaded.
 
 Uploaded filenames are made unique while preserving the original name in the UI. For example:
 
@@ -180,9 +180,9 @@ git commit -m "Initialize KanbanQube board"
 git push -u origin main
 ```
 
-## Import
+## Trello Import
 
-KanbanQube can import a board export JSON from Settings. Import is only enabled when the current board has no cards. This keeps accidental replacement of an active board from happening inside the app.
+KanbanQube can import a Trello board export JSON from Settings. Import is only enabled when the current board has no cards. This keeps accidental replacement of an active board from happening inside the app.
 
 Imported data is normalized and written into the split `board/` vault layout.
 
