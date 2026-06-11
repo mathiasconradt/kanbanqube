@@ -10,6 +10,7 @@ const { createBoardService } = require("./services/boardService");
 const { createGitSyncService } = require("./services/gitSyncService");
 const { createImportService } = require("./services/importService");
 const { createUploadService } = require("./services/uploadService");
+const { createUserService } = require("./services/userService");
 
 function createApp(config) {
   const app = express();
@@ -17,6 +18,7 @@ function createApp(config) {
   const gitSyncService = createGitSyncService(config);
   const importService = createImportService(config);
   const uploadService = createUploadService(config, boardService);
+  const userService = createUserService(config);
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "5mb", type: "application/json" }));
@@ -27,7 +29,8 @@ function createApp(config) {
     boardService,
     gitSyncService,
     importService,
-    uploadService
+    uploadService,
+    userService
   }));
 
   app.get(`/${config.demoBoardFileName}`, (_request, response) => {
@@ -62,7 +65,8 @@ function createApp(config) {
       boardService,
       gitSyncService,
       importService,
-      uploadService
+      uploadService,
+      userService
     }
   };
 }

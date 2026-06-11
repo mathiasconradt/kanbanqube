@@ -1,6 +1,6 @@
 "use strict";
 
-const crypto = require("node:crypto");
+const { gravatarUrlForEmail } = require("../utils/userUtils");
 
 function createConfigController(config, gitService) {
   async function getConfig(_request, response) {
@@ -22,13 +22,6 @@ function createConfigController(config, gitService) {
   };
 }
 
-function gravatarUrlForEmail(email) {
-  if (typeof email !== "string" || !email.trim()) return "";
-  const hash = crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
-  return `https://www.gravatar.com/avatar/${hash}?s=64&d=404`;
-}
-
 module.exports = {
-  createConfigController,
-  gravatarUrlForEmail
+  createConfigController
 };

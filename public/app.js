@@ -24,6 +24,7 @@ const SYNC_TIMESTAMP_FORMAT = {
 const state = {
   board: null,
   config: null,
+  users: [],
   currentUserName: localStorage.getItem(USER_STORAGE_KEY) || "",
   currentUserEmail: localStorage.getItem(USER_EMAIL_STORAGE_KEY) || "",
   showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
@@ -81,6 +82,7 @@ const deleteAllArchivedButton = document.getElementById("deleteAllArchivedButton
 
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
+const cardDueInput = document.getElementById("cardDueInput");
 const archivedCardBanner = document.getElementById("archivedCardBanner");
 const cardDetailsCover = document.getElementById("cardDetailsCover");
 const removeCoverButton = document.getElementById("removeCoverButton");
@@ -92,6 +94,7 @@ const attachmentDropZone = document.getElementById("attachmentDropZone");
 const attachmentsContainer = document.getElementById("attachmentsContainer");
 const editDescriptionButton = document.getElementById("editDescriptionButton");
 const checklistsContainer = document.getElementById("checklistsContainer");
+const assigneesContainer = document.getElementById("assigneesContainer");
 const cardLabels = document.getElementById("cardLabels");
 const labelEditorContainer = document.getElementById("labelEditorContainer");
 const activityList = document.getElementById("activityList");
@@ -169,9 +172,10 @@ try {
 }
 
 async function bootstrap() {
-  const [boardResponse, configResponse] = await Promise.all([
+  const [boardResponse, configResponse, usersResponse] = await Promise.all([
     fetch("/api/board"),
-    fetch("/api/config")
+    fetch("/api/config"),
+    fetch("/api/users")
   ]);
 
   if (!boardResponse.ok) {
@@ -180,6 +184,7 @@ async function bootstrap() {
 
   state.board = await boardResponse.json();
   state.config = configResponse.ok ? await configResponse.json() : { boardFile: "board.json", gitRemote: null, gitUserName: null, gitUserEmail: null };
+  state.users = usersResponse.ok ? (await usersResponse.json()).users || [] : [];
   hydrateIdentityFromGitConfig();
   applyIconStyle();
   settingsBoardFile.textContent = `Storage: ${state.config.workspacePath || "current folder"}`;
@@ -319,6 +324,7 @@ function wireEvents() {
     renderBoard();
     renderCardDialog();
   });
+  cardDueInput.addEventListener("change", updateSelectedCardDueDate);
 
   promptCancelButton.addEventListener("click", () => promptDialog.close("cancel"));
   appDialogCloseButton.addEventListener("click", () => appDialog.close("cancel"));
@@ -570,6 +576,7 @@ function renderCard(card, options = {}) {
   for (const badge of buildCardBadges(card)) {
     const badgeNode = document.createElement("span");
     badgeNode.className = "badge";
+    if (badge.className) badgeNode.classList.add(badge.className);
     if (badge.symbol) {
       const symbol = document.createElement("span");
       symbol.className = "badge-symbol";
@@ -585,6 +592,7 @@ function renderCard(card, options = {}) {
     }
     footer.append(badgeNode);
   }
+  renderBoardCardAssignees(card, footer);
 
   node.addEventListener("click", () => {
     setKeyboardCard(card.id, true);
@@ -615,6 +623,7 @@ function renderCardDialog() {
   if (!card) return;
 
   cardTitleInput.value = card.name || "";
+  cardDueInput.value = dateInputValue(card.due);
   archivedCardBanner.hidden = !isCardArchived(card);
   const coverUrl = coverUrlForCard(card);
   cardDetailsCover.hidden = !coverUrl;
@@ -628,10 +637,119 @@ function renderCardDialog() {
   editDescriptionButton.textContent = state.descriptionEditing ? "Done" : "Edit";
   archiveCardButton.hidden = isCardArchived(card);
 
+  renderAssignees(card);
   renderLabelsEditor(card);
   renderAttachments(card);
   renderChecklists(card);
   renderActivity(card);
+}
+
+function renderBoardCardAssignees(card, footer) {
+  const users = assignedUsersForCard(card).slice(0, 4);
+  if (users.length === 0) return;
+
+  const list = document.createElement("div");
+  list.className = "card-assignee-list";
+  for (const user of users) {
+    list.append(createUserAvatar(user, "small-user-avatar"));
+  }
+  footer.append(list);
+}
+
+function updateSelectedCardDueDate() {
+  const card = getSelectedCard();
+  if (!card) return;
+
+  const previousDue = card.due ?? null;
+  card.due = cardDueInput.value ? `${cardDueInput.value}T12:00:00.000Z` : null;
+  card.dueComplete = card.due ? Boolean(card.dueComplete) : false;
+  if (previousDue === card.due) return;
+
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { due: previousDue },
+    due: card.due
+  });
+  queueSave(card.due ? "Due date updated" : "Due date removed");
+  renderBoard();
+}
+
+function renderAssignees(card) {
+  assigneesContainer.textContent = "";
+  if (state.users.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No Git users found yet.";
+    assigneesContainer.append(empty);
+    return;
+  }
+
+  card.kanbanQubeAssignees = Array.isArray(card.kanbanQubeAssignees) ? card.kanbanQubeAssignees : [];
+  for (const user of state.users) {
+    assigneesContainer.append(createAssigneeRow(card, user));
+  }
+}
+
+function createAssigneeRow(card, user) {
+  const row = document.createElement("label");
+  row.className = "assignee-row";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = card.kanbanQubeAssignees.includes(user.id);
+  checkbox.addEventListener("change", () => {
+    toggleCardAssignee(card, user.id, checkbox.checked);
+  });
+
+  const text = document.createElement("span");
+  text.className = "assignee-name";
+  text.textContent = user.email ? `${user.name || user.email} (${user.email})` : user.name || "Unknown user";
+
+  row.append(checkbox, createUserAvatar(user, "assignee-avatar"), text);
+  return row;
+}
+
+function toggleCardAssignee(card, userId, shouldAssign) {
+  const previousAssignees = Array.isArray(card.kanbanQubeAssignees) ? card.kanbanQubeAssignees : [];
+  card.kanbanQubeAssignees = shouldAssign
+    ? [...new Set([...previousAssignees, userId])]
+    : previousAssignees.filter((candidate) => candidate !== userId);
+  touchCard(card);
+  pushAction("updateCard", {
+    idCard: card.id,
+    card: cardActionSnapshot(card),
+    list: { id: card.idList, name: listById(card.idList)?.name || "" },
+    old: { kanbanQubeAssignees: previousAssignees },
+    kanbanQubeAssignees: card.kanbanQubeAssignees
+  });
+  queueSave("Assignees updated");
+  renderBoard();
+}
+
+function createUserAvatar(user, className) {
+  const avatar = document.createElement("span");
+  avatar.className = className;
+  avatar.dataset.tooltip = user.email ? `${user.name} <${user.email}>` : user.name;
+
+  const image = document.createElement("img");
+  image.alt = "";
+  image.hidden = !user.avatarUrl;
+  if (user.avatarUrl) image.src = user.avatarUrl;
+
+  const fallback = document.createElement("span");
+  fallback.textContent = user.initials || initialsFor(user.name || user.email || "User");
+  fallback.hidden = Boolean(user.avatarUrl);
+
+  image.addEventListener("error", () => {
+    image.hidden = true;
+    fallback.hidden = false;
+  });
+
+  avatar.append(image, fallback);
+  return avatar;
 }
 
 function renderArchiveDialog() {
@@ -2377,6 +2495,7 @@ async function reloadBoardAfterSync() {
   }
 
   state.board = await response.json();
+  state.users = await loadUsers();
   state.editingBoardTitle = false;
   state.editingBoardTitleValue = "";
   state.editingLaneTitleId = null;
@@ -2391,6 +2510,13 @@ async function reloadBoardAfterSync() {
   }
 
   render();
+}
+
+async function loadUsers() {
+  const response = await fetch("/api/users");
+  if (!response.ok) return state.users || [];
+  const payload = await response.json();
+  return Array.isArray(payload.users) ? payload.users : [];
 }
 
 async function saveBoardNow() {
@@ -2494,6 +2620,13 @@ function labelsForCard(card) {
   return (card.idLabels || []).map((labelId) => labels.get(labelId)).filter(Boolean);
 }
 
+function assignedUsersForCard(card) {
+  const users = new Map((state.users || []).map((user) => [user.id, user]));
+  return (Array.isArray(card.kanbanQubeAssignees) ? card.kanbanQubeAssignees : [])
+    .map((userId) => users.get(userId))
+    .filter(Boolean);
+}
+
 function checklistsForCard(cardId) {
   return (state.board.checklists || []).filter((checklist) => checklist.idCard === cardId);
 }
@@ -2543,6 +2676,25 @@ function isCardDone(card) {
 
 function isCardArchived(card) {
   return Boolean(card?.closed);
+}
+
+function dateInputValue(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : "";
+}
+
+function formatDueDate(value) {
+  const input = dateInputValue(value);
+  if (!input) return "";
+  const date = new Date(`${input}T12:00:00`);
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function dueBadgeClass(card) {
+  if (card.dueComplete) return "badge-due-complete";
+  const input = dateInputValue(card.due);
+  if (!input) return "";
+  const today = new Date().toISOString().slice(0, 10);
+  return input < today ? "badge-due-overdue" : "";
 }
 
 function archivedCards() {
@@ -2730,6 +2882,7 @@ function cardElementAfter(container, y) {
 
 function buildCardBadges(card) {
   const badges = [];
+  if (card.due) badges.push({ icon: "clock", text: formatDueDate(card.due), className: dueBadgeClass(card) });
   if (card.badges?.description) badges.push({ icon: "description", text: "" });
   if (card.badges?.comments) badges.push({ icon: "comment", text: String(card.badges.comments) });
   if (card.badges?.checkItems) badges.push({ symbol: "☑", text: `${card.badges.checkItemsChecked || 0}/${card.badges.checkItems}` });
@@ -2739,6 +2892,7 @@ function buildCardBadges(card) {
 
 function createIcon(name) {
   const paths = {
+    clock: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v5l3 1.8"],
     description: ["M4 6h16M4 12h12M4 18h9"],
     comment: ["M5 5.5h14v9H8.5L5 18V5.5Z"],
     checklist: ["M9 7h11M9 12h11M9 17h11M4 7.2l1.2 1.2L7.5 6M4 12.2l1.2 1.2 2.3-2.4M4 17.2l1.2 1.2 2.3-2.4"],

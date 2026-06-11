@@ -40,7 +40,6 @@
 
       <section class="board-header">
         <div>
-          <p class="eyebrow">Git-synced board</p>
           <div class="board-title-shell">
             <h1 id="boardTitle">KanbanQube Board</h1>
             <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" hidden />
@@ -57,6 +56,10 @@
           <div>
             <p class="modal-label">Card details</p>
             <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" />
+            <label class="card-due-field">
+              <span>Due date</span>
+              <input id="cardDueInput" type="date" />
+            </label>
           </div>
           <button id="closeCardButton" type="button" class="icon-button" aria-label="Close card dialog">✕</button>
         </header>
@@ -97,6 +100,13 @@
           </section>
 
           <aside class="modal-sidebar">
+            <section class="sidebar-panel">
+              <div class="panel-header">
+                <h2>Assignees</h2>
+              </div>
+              <div id="assigneesContainer" class="assignees-container"></div>
+            </section>
+
             <section class="sidebar-panel">
               <div class="panel-header">
                 <h2>Labels</h2>
