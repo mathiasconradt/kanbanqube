@@ -31,6 +31,10 @@
           <button id="syncButton" class="primary-button" type="button">Sync</button>
           <button id="archiveButton" class="ghost-button" type="button">Archive</button>
           <button id="settingsButton" class="ghost-button" type="button">Settings</button>
+          <div id="userAvatarButton" class="user-avatar-button" aria-label="Current user">
+            <img id="userAvatarImage" alt="" hidden />
+            <span id="userAvatarFallback">?</span>
+          </div>
         </div>
       </header>
 
@@ -41,9 +45,6 @@
             <h1 id="boardTitle">KanbanQube Board</h1>
             <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" hidden />
           </div>
-        </div>
-        <div class="board-meta">
-          <span id="userBadge" class="meta-badge">Guest</span>
         </div>
       </section>
 
@@ -116,7 +117,10 @@
               <div id="activityList" class="activity-list"></div>
             </section>
 
-            <button id="deleteCardButton" type="button" class="danger-button">Delete card</button>
+            <div class="card-detail-actions">
+              <button id="archiveCardButton" type="button" class="ghost-button">Archive card</button>
+              <button id="deleteCardButton" type="button" class="danger-button">Delete card</button>
+            </div>
           </aside>
         </div>
       </form>
@@ -133,12 +137,12 @@
         </header>
 
         <label class="field">
-          <span>Your name</span>
+          <span>Your name (read-only, from Git config)</span>
           <input id="settingsUserName" type="text" maxlength="120" readonly />
         </label>
 
         <label class="field">
-          <span>Your email</span>
+          <span>Your email (read-only, from Git config)</span>
           <input id="settingsUserEmail" type="email" maxlength="200" readonly />
         </label>
 
@@ -305,11 +309,18 @@
             <h3 class="card-title">Task</h3>
             <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
           </div>
-          <button class="card-archive-button" type="button" aria-label="Archive card" data-tooltip="Archive">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20.25 7.5v10.125c0 1.036-.84 1.875-1.875 1.875H5.625A1.875 1.875 0 0 1 3.75 17.625V7.5m16.5 0V5.625c0-1.036-.84-1.875-1.875-1.875H5.625A1.875 1.875 0 0 0 3.75 5.625V7.5m16.5 0h-16.5m8.25 4.5v3m0 0 1.5-1.5M12 15l-1.5-1.5" />
-            </svg>
-          </button>
+          <div class="card-hover-actions">
+            <button class="card-archive-button card-hover-action-button" type="button" aria-label="Archive card" data-tooltip="Archive">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.25 7.5v10.125c0 1.036-.84 1.875-1.875 1.875H5.625A1.875 1.875 0 0 1 3.75 17.625V7.5m16.5 0V5.625c0-1.036-.84-1.875-1.875-1.875H5.625A1.875 1.875 0 0 0 3.75 5.625V7.5m16.5 0h-16.5m8.25 4.5v3m0 0 1.5-1.5M12 15l-1.5-1.5" />
+              </svg>
+            </button>
+            <button class="card-delete-button card-hover-action-button" type="button" aria-label="Delete card" data-tooltip="Delete">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h18m-2 0-.9 13.15A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.85L5 6m3 0V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6m-6 4v7m4-7v7" />
+              </svg>
+            </button>
+          </div>
         </div>
         <p class="card-description"></p>
         <footer class="card-footer"></footer>

@@ -61,12 +61,14 @@ const aboutImage = document.getElementById("aboutImage");
 const faviconLink = document.getElementById("faviconLink");
 const boardTitle = document.getElementById("boardTitle");
 const boardTitleInlineInput = document.getElementById("boardTitleInlineInput");
-const userBadge = document.getElementById("userBadge");
 const searchInput = document.getElementById("searchInput");
 const saveStatus = document.getElementById("saveStatus");
 const syncButton = document.getElementById("syncButton");
 const archiveButton = document.getElementById("archiveButton");
 const settingsButton = document.getElementById("settingsButton");
+const userAvatarButton = document.getElementById("userAvatarButton");
+const userAvatarImage = document.getElementById("userAvatarImage");
+const userAvatarFallback = document.getElementById("userAvatarFallback");
 const syncLogDialog = document.getElementById("syncLogDialog");
 const syncLogContent = document.getElementById("syncLogContent");
 const syncLogTimestamp = document.getElementById("syncLogTimestamp");
@@ -97,6 +99,7 @@ const addLabelButton = document.getElementById("addLabelButton");
 const commentInput = document.getElementById("commentInput");
 const addCommentButton = document.getElementById("addCommentButton");
 const addChecklistButton = document.getElementById("addChecklistButton");
+const archiveCardButton = document.getElementById("archiveCardButton");
 const deleteCardButton = document.getElementById("deleteCardButton");
 const closeCardButton = document.getElementById("closeCardButton");
 
@@ -179,8 +182,7 @@ async function bootstrap() {
   state.config = configResponse.ok ? await configResponse.json() : { boardFile: "board.json", gitRemote: null, gitUserName: null, gitUserEmail: null };
   hydrateIdentityFromGitConfig();
   applyIconStyle();
-  const storageLabel = state.config.storagePath ? `${state.config.storagePath}/` : (state.config.boardFile || "board.json");
-  settingsBoardFile.textContent = `Storage: ${storageLabel}`;
+  settingsBoardFile.textContent = `Storage: ${state.config.workspacePath || "current folder"}`;
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
   wireEvents();
@@ -244,6 +246,10 @@ function wireEvents() {
   });
 
   settingsButton.addEventListener("click", openSettingsDialog);
+  userAvatarImage.addEventListener("error", () => {
+    userAvatarImage.hidden = true;
+    userAvatarFallback.hidden = false;
+  });
   archiveButton.addEventListener("click", openArchiveDialog);
   boardTitle.addEventListener("click", startBoardTitleEdit);
   closeSettingsButton.addEventListener("click", () => settingsDialog.close());
@@ -266,6 +272,7 @@ function wireEvents() {
 
   closeCardButton.addEventListener("click", () => cardDialog.close());
   removeCoverButton.addEventListener("click", removeCoverFromSelectedCard);
+  archiveCardButton.addEventListener("click", archiveSelectedCard);
   deleteCardButton.addEventListener("click", deleteSelectedCard);
   addLabelButton.addEventListener("click", toggleLabelEditor);
   addCommentButton.addEventListener("click", addCommentToSelectedCard);
@@ -370,7 +377,7 @@ function renderHeader() {
   boardTitle.classList.toggle("is-inline-editable", true);
   boardTitleInlineInput.hidden = !state.editingBoardTitle;
   boardTitleInlineInput.value = state.editingBoardTitleValue;
-  userBadge.textContent = state.currentUserName.trim() || "Guest";
+  renderUserAvatar();
   const archivedCount = archivedCards().length;
   archiveButton.textContent = archivedCount ? `Archive (${archivedCount})` : "Archive";
   const canSync = Boolean(state.config?.gitRemote);
@@ -420,8 +427,8 @@ function renderBoard() {
     laneNode.querySelector(".lane-count").textContent = String(cardsForList(list.id).length);
 
     const cardList = laneNode.querySelector(".card-list");
-    for (const card of cards) {
-      const cardNode = renderCard(card);
+    for (const [cardIndex, card] of cards.entries()) {
+      const cardNode = renderCard(card, { labelTooltipBelow: cardIndex === 0 });
       cardList.append(cardNode);
     }
 
@@ -473,7 +480,7 @@ async function createLane() {
   render();
 }
 
-function renderCard(card) {
+function renderCard(card, options = {}) {
   const node = cardTemplate.content.firstElementChild.cloneNode(true);
   node.dataset.cardId = card.id;
   node.classList.toggle("is-done", isCardDone(card));
@@ -487,6 +494,8 @@ function renderCard(card) {
     labelNode.className = "card-label";
     labelNode.style.background = colorForLabel(label.color);
     labelNode.title = label.name || label.color;
+    labelNode.dataset.tooltip = label.name || label.color;
+    labelNode.classList.toggle("tooltip-below", Boolean(options.labelTooltipBelow));
     cardLabelsStrip.append(labelNode);
   }
 
@@ -508,10 +517,15 @@ function renderCard(card) {
   });
 
   const archiveButton = node.querySelector(".card-archive-button");
-  archiveButton.hidden = !done;
   archiveButton.addEventListener("click", (event) => {
     event.stopPropagation();
-    archiveCard(card);
+    archiveCard(card, { force: true });
+  });
+
+  const cardDeleteButton = node.querySelector(".card-delete-button");
+  cardDeleteButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    deleteBoardCard(card.id);
   });
 
   const titleNode = node.querySelector(".card-title");
@@ -612,6 +626,7 @@ function renderCardDialog() {
   cardDescriptionDisplay.hidden = state.descriptionEditing;
   cardDescriptionInput.hidden = !state.descriptionEditing;
   editDescriptionButton.textContent = state.descriptionEditing ? "Done" : "Edit";
+  archiveCardButton.hidden = isCardArchived(card);
 
   renderLabelsEditor(card);
   renderAttachments(card);
@@ -690,32 +705,48 @@ function renderArchiveDialog() {
 function renderLabelsEditor(card) {
   cardLabels.textContent = "";
   labelEditorContainer.textContent = "";
-
-  const assignedLabels = labelsForCard(card);
-  if (assignedLabels.length === 0) {
-    if (!state.labelEditorOpen) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state label-summary-trigger";
-      empty.textContent = "No labels assigned.";
-      empty.addEventListener("click", openLabelEditor);
-      cardLabels.append(empty);
-    }
-  } else {
-    for (const label of assignedLabels) {
-      const pill = document.createElement("button");
-      pill.type = "button";
-      pill.className = "label-pill";
-      pill.textContent = label.name || label.color;
-      pill.style.background = colorForLabel(label.color);
-      pill.addEventListener("click", openLabelEditor);
-      cardLabels.append(pill);
-    }
-  }
+  renderLabelSummary(card);
 
   addLabelButton.textContent = state.labelEditorOpen ? "×" : "+";
   addLabelButton.setAttribute("aria-label", state.labelEditorOpen ? "Close labels panel" : "Open labels panel");
   if (!state.labelEditorOpen) return;
 
+  appendLabelEditorPanel(createLabelEditorPanel(card));
+}
+
+function renderLabelSummary(card) {
+  const assignedLabels = labelsForCard(card);
+  if (assignedLabels.length === 0) {
+    if (!state.labelEditorOpen) {
+      cardLabels.append(createEmptyLabelSummary());
+    }
+    return;
+  }
+
+  for (const label of assignedLabels) {
+    cardLabels.append(createLabelPill(label));
+  }
+}
+
+function createEmptyLabelSummary() {
+  const empty = document.createElement("div");
+  empty.className = "empty-state label-summary-trigger";
+  empty.textContent = "No labels assigned.";
+  empty.addEventListener("click", openLabelEditor);
+  return empty;
+}
+
+function createLabelPill(label) {
+  const pill = document.createElement("button");
+  pill.type = "button";
+  pill.className = "label-pill";
+  pill.textContent = label.name || label.color;
+  pill.style.background = colorForLabel(label.color);
+  pill.addEventListener("click", openLabelEditor);
+  return pill;
+}
+
+function createLabelEditorPanel(card) {
   const labels = sortedBoardLabels();
   const searchTerm = state.labelSearchTerm.trim().toLowerCase();
   const filteredLabels = searchTerm
@@ -724,7 +755,30 @@ function renderLabelsEditor(card) {
 
   const panel = document.createElement("section");
   panel.className = "label-editor-panel";
+  panel.append(createLabelSearchInput());
 
+  if (labels.length === 0) {
+    panel.append(createEmptyLabelsMessage(), createLabelCreateButton());
+    return panel;
+  }
+
+  const list = document.createElement("div");
+  list.className = "label-editor-list";
+  for (const label of filteredLabels) {
+    list.append(createLabelEditorRow(card, label));
+  }
+
+  if (filteredLabels.length === 0) {
+    panel.append(createNoMatchingLabelsMessage());
+  } else {
+    panel.append(list);
+  }
+
+  panel.append(createLabelCreateButton());
+  return panel;
+}
+
+function createLabelSearchInput() {
   const searchInput = document.createElement("input");
   searchInput.className = "label-search-input";
   searchInput.type = "search";
@@ -735,116 +789,119 @@ function renderLabelsEditor(card) {
     state.labelSearchTerm = searchInput.value;
     renderCardDialog();
   });
-  panel.append(searchInput);
+  return searchInput;
+}
 
-  if (labels.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No labels yet. Add one for this card.";
-    panel.append(empty);
-    const createButton = document.createElement("button");
-    createButton.type = "button";
-    createButton.className = "ghost-button";
-    createButton.textContent = "Create a new label";
-    createButton.addEventListener("click", addLabelToSelectedCard);
-    panel.append(createButton);
-    appendLabelEditorPanel(panel);
-    return;
-  }
-
-  const list = document.createElement("div");
-  list.className = "label-editor-list";
-
-  for (const label of filteredLabels) {
-    const row = document.createElement("div");
-    row.className = "label-editor-row";
-
-    const toggle = document.createElement("input");
-    toggle.className = "label-toggle";
-    toggle.type = "checkbox";
-    toggle.checked = card.idLabels.includes(label.id);
-    toggle.addEventListener("change", () => {
-      if (toggle.checked) {
-        if (!card.idLabels.includes(label.id)) card.idLabels.push(label.id);
-      } else {
-        card.idLabels = card.idLabels.filter((labelId) => labelId !== label.id);
-      }
-      touchCard(card);
-      queueSave("Labels updated");
-      renderCardDialog();
-    });
-
-    const nameInput = document.createElement("input");
-    nameInput.className = "label-name-input";
-    nameInput.type = "text";
-    nameInput.value = label.name || "";
-    nameInput.placeholder = "Label name";
-    nameInput.style.backgroundColor = colorForLabel(label.color);
-    let committedName = label.name || "";
-    nameInput.addEventListener("keydown", stopLabelEditorShortcut);
-    nameInput.addEventListener("input", () => {
-      label.name = nameInput.value;
-    });
-    nameInput.addEventListener("blur", () => {
-      const trimmedName = nameInput.value.trim();
-      if (label.name !== trimmedName) {
-        label.name = trimmedName;
-      }
-      if (committedName !== label.name) {
-        committedName = label.name;
-        queueSave("Label updated");
-        renderBoard();
-      }
-    });
-
-    const colorSelect = document.createElement("select");
-    colorSelect.className = "label-color-select";
-    for (const color of labelColorOptions()) {
-      const option = document.createElement("option");
-      option.value = color;
-      option.textContent = color.replaceAll("_", " ");
-        option.selected = color === label.color;
-      colorSelect.append(option);
-    }
-    colorSelect.addEventListener("keydown", stopLabelEditorShortcut);
-    colorSelect.addEventListener("change", () => {
-      label.color = colorSelect.value;
-      queueSave("Label updated");
-      renderCardDialog();
-      renderBoard();
-    });
-
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.className = "icon-button";
-    removeButton.append(createIcon("trash"));
-    removeButton.addEventListener("click", () => {
-      deleteLabel(label.id);
-      queueSave("Label removed");
-      render();
-    });
-
-    row.append(toggle, nameInput, colorSelect, removeButton);
-    list.append(row);
-  }
-
-  if (filteredLabels.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No labels match that search.";
-    panel.append(empty);
-  } else {
-    panel.append(list);
-  }
-
+function createLabelCreateButton() {
   const createButton = document.createElement("button");
   createButton.type = "button";
   createButton.className = "ghost-button";
   createButton.textContent = "Create a new label";
   createButton.addEventListener("click", addLabelToSelectedCard);
-  panel.append(createButton);
+  return createButton;
+}
 
-  appendLabelEditorPanel(panel);
+function createEmptyLabelsMessage() {
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+  empty.textContent = "No labels yet. Add one for this card.";
+  return empty;
+}
+
+function createNoMatchingLabelsMessage() {
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+  empty.textContent = "No labels match that search.";
+  return empty;
+}
+
+function createLabelEditorRow(card, label) {
+  const row = document.createElement("div");
+  row.className = "label-editor-row";
+  row.append(
+    createLabelToggle(card, label),
+    createLabelNameInput(label),
+    createLabelColorSelect(label),
+    createLabelRemoveButton(label)
+  );
+  return row;
+}
+
+function createLabelToggle(card, label) {
+  const toggle = document.createElement("input");
+  toggle.className = "label-toggle";
+  toggle.type = "checkbox";
+  toggle.checked = card.idLabels.includes(label.id);
+  toggle.addEventListener("change", () => {
+    if (toggle.checked) {
+      if (!card.idLabels.includes(label.id)) card.idLabels.push(label.id);
+    } else {
+      card.idLabels = card.idLabels.filter((labelId) => labelId !== label.id);
+    }
+    touchCard(card);
+    queueSave("Labels updated");
+    renderCardDialog();
+  });
+  return toggle;
+}
+
+function createLabelNameInput(label) {
+  const nameInput = document.createElement("input");
+  nameInput.className = "label-name-input";
+  nameInput.type = "text";
+  nameInput.value = label.name || "";
+  nameInput.placeholder = "Label name";
+  nameInput.style.backgroundColor = colorForLabel(label.color);
+  let committedName = label.name || "";
+  nameInput.addEventListener("keydown", stopLabelEditorShortcut);
+  nameInput.addEventListener("input", () => {
+    label.name = nameInput.value;
+  });
+  nameInput.addEventListener("blur", () => {
+    const trimmedName = nameInput.value.trim();
+    if (label.name !== trimmedName) {
+      label.name = trimmedName;
+    }
+    if (committedName !== label.name) {
+      committedName = label.name;
+      queueSave("Label updated");
+      renderBoard();
+    }
+  });
+  return nameInput;
+}
+
+function createLabelColorSelect(label) {
+  const colorSelect = document.createElement("select");
+  colorSelect.className = "label-color-select";
+  for (const color of labelColorOptions()) {
+    const option = document.createElement("option");
+    option.value = color;
+    option.textContent = color.replaceAll("_", " ");
+    option.selected = color === label.color;
+    colorSelect.append(option);
+  }
+  colorSelect.addEventListener("keydown", stopLabelEditorShortcut);
+  colorSelect.addEventListener("change", () => {
+    label.color = colorSelect.value;
+    queueSave("Label updated");
+    renderCardDialog();
+    renderBoard();
+  });
+  return colorSelect;
+}
+
+function createLabelRemoveButton(label) {
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "icon-button";
+  removeButton.append(createIcon("trash"));
+  removeButton.addEventListener("click", () => {
+    deleteLabel(label.id);
+    queueSave("Label removed");
+    render();
+  });
+  return removeButton;
 }
 
 function stopLabelEditorShortcut(event) {
@@ -1455,6 +1512,13 @@ function archiveCard(card, options = {}) {
   render();
 }
 
+function archiveSelectedCard() {
+  const card = getSelectedCard();
+  if (!card || isCardArchived(card)) return;
+  archiveCard(card, { force: true });
+  cardDialog.close();
+}
+
 function restoreArchivedCard(cardId) {
   const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
   if (!card || !isCardArchived(card)) return;
@@ -1687,6 +1751,14 @@ function setKeyboardCard(cardId, shouldRender = true) {
 async function deleteSelectedCard() {
   const card = getSelectedCard();
   if (!card) return;
+  if (await deleteBoardCard(card.id)) {
+    cardDialog.close();
+  }
+}
+
+async function deleteBoardCard(cardId) {
+  const card = (state.board?.cards || []).find((candidate) => candidate.id === cardId);
+  if (!card) return false;
   const confirmed = await openConfirmDialog({
     label: "Delete card",
     title: "Delete card?",
@@ -1694,11 +1766,11 @@ async function deleteSelectedCard() {
     confirmLabel: "Delete",
     danger: true
   });
-  if (!confirmed) return;
+  if (!confirmed) return false;
   removeCardCompletely(card.id);
   queueSave("Card deleted");
-  cardDialog.close();
   render();
+  return true;
 }
 
 function addChecklistToSelectedCard() {
@@ -2824,14 +2896,31 @@ function hydrateIdentityFromGitConfig() {
   const gitUserName = storageSafeText(state.config?.gitUserName);
   const gitUserEmail = storageSafeText(state.config?.gitUserEmail);
 
-  if (!state.currentUserName.trim() && gitUserName) {
+  if (gitUserName) {
     state.currentUserName = gitUserName;
     localStorage.setItem(USER_STORAGE_KEY, gitUserName);
   }
 
-  if (!state.currentUserEmail.trim() && gitUserEmail) {
+  if (gitUserEmail) {
     state.currentUserEmail = gitUserEmail;
     localStorage.setItem(USER_EMAIL_STORAGE_KEY, gitUserEmail);
+  }
+}
+
+function renderUserAvatar() {
+  const userName = state.currentUserName.trim() || "Guest";
+  userAvatarButton.dataset.tooltip = userName;
+  userAvatarButton.setAttribute("aria-label", userName);
+  userAvatarFallback.textContent = initialsFor(userName);
+
+  const avatarUrl = storageSafeText(state.config?.gravatarUrl);
+  if (avatarUrl && userAvatarImage.src !== avatarUrl) {
+    userAvatarImage.hidden = false;
+    userAvatarFallback.hidden = true;
+    userAvatarImage.src = avatarUrl;
+  } else if (!avatarUrl) {
+    userAvatarImage.hidden = true;
+    userAvatarFallback.hidden = false;
   }
 }
 
