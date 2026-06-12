@@ -276,6 +276,7 @@ function wireEvents() {
   boardScroller.addEventListener("drop", handleLaneDrop);
 
   closeCardButton.addEventListener("click", () => cardDialog.close());
+  cardDialog.addEventListener("click", closeCardDialogOnBackdropClick);
   removeCoverButton.addEventListener("click", removeCoverFromSelectedCard);
   archiveCardButton.addEventListener("click", archiveSelectedCard);
   deleteCardButton.addEventListener("click", deleteSelectedCard);
@@ -361,6 +362,12 @@ function wireEvents() {
 function openAboutDialog() {
   if (!aboutDialog.open) {
     aboutDialog.showModal();
+  }
+}
+
+function closeCardDialogOnBackdropClick(event) {
+  if (event.target === cardDialog) {
+    cardDialog.close();
   }
 }
 
