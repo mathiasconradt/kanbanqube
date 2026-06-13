@@ -1,12 +1,13 @@
 "use strict";
 
 const path = require("node:path");
+const os = require("node:os");
 
 function resolveWorkspaceDirectory(argument) {
   if (typeof argument === "string" && argument.trim()) {
     return path.resolve(argument);
   }
-  return process.cwd();
+  return path.join(os.homedir(), ".kanbanqube");
 }
 
 function createConfig(options = {}) {

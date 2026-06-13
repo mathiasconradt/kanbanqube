@@ -11,6 +11,7 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log("");
   console.log("Usage:");
   console.log("  kanbanqube [vault-directory]");
+  console.log("  Default vault: ~/.kanbanqube");
   console.log("");
   console.log("Environment:");
   console.log("  PORT=3888  HTTP port to listen on");
@@ -23,16 +24,18 @@ if (process.argv.includes("--version") || process.argv.includes("-v")) {
 }
 
 async function main() {
-  const config = createConfig({ appDir: __dirname, workspaceArgument: process.argv[2] });
-  const { app, services } = createApp(config);
+  try {
+    const config = createConfig({ appDir: __dirname, workspaceArgument: process.argv[2] });
+    const { app, services } = createApp(config);
 
-  await services.boardService.ensureBoardStorage();
-  http.createServer(app).listen(config.port, () => {
-    console.log(`KanbanQube running on http://localhost:${config.port} (workspace: ${config.workspaceDir})`);
-  });
+    await services.boardService.ensureBoardStorage();
+    http.createServer(app).listen(config.port, () => {
+      console.log(`KanbanQube running on http://localhost:${config.port} (workspace: ${config.workspaceDir})`);
+    });
+  } catch (error) {
+    console.error(error.message || error);
+    process.exit(1);
+  }
 }
 
-main().catch((error) => {
-  console.error(error.message || error);
-  process.exit(1);
-});
+main(); // NOSONAR: CommonJS CLI entry point cannot use top-level await.

@@ -79,10 +79,17 @@ Then open:
 http://localhost:3888
 ```
 
-If no path is provided, KanbanQube uses the current working directory as the vault:
+If no path is provided, KanbanQube uses a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
 
 ```sh
 npx kanbanqube
+```
+
+Examples:
+
+```text
+macOS/Linux: ~/.kanbanqube
+Windows: C:\Users\<you>\.kanbanqube
 ```
 
 You can choose a different port:
@@ -133,7 +140,7 @@ First check where `npx` is installed:
 command -v npx
 ```
 
-Create `~/Library/LaunchAgents/com.mathiasconradt.kanbanqube.plist` and adjust the vault path if needed:
+Create `~/Library/LaunchAgents/com.mathiasconradt.kanbanqube.plist`. This example omits a vault path, so KanbanQube uses the default `~/.kanbanqube` vault:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -148,7 +155,6 @@ Create `~/Library/LaunchAgents/com.mathiasconradt.kanbanqube.plist` and adjust t
     <array>
       <string>/opt/homebrew/bin/npx</string>
       <string>kanbanqube</string>
-      <string>/Users/mathias.conradt/Documents/kanbanqube_vault</string>
     </array>
 
     <key>EnvironmentVariables</key>
@@ -199,6 +205,8 @@ launchctl bootout gui/$(id -u)/com.mathiasconradt.kanbanqube
 ```
 
 The example runs KanbanQube on `http://localhost:3888`. If that port is already used, change the `PORT` value in the plist.
+
+To use a custom vault path with LaunchAgent, add it as a third `ProgramArguments` string. Use an absolute path; `launchd` does not expand `~` there.
 
 ## Vaults
 
@@ -337,7 +345,13 @@ Board view shortcuts are ignored while typing in inputs or while a dialog is ope
 
 ## Development
 
-Start the app from the repository:
+Start the app from the repository with the default `~/.kanbanqube` vault:
+
+```sh
+npm start
+```
+
+Or pass a custom vault path:
 
 ```sh
 npm start -- /path/to/your/vault
