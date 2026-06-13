@@ -6,6 +6,9 @@ const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
 const INLINE_CARD_TITLE_EDIT_STORAGE_KEY = "kanbanqube.inlineCardTitleEdit";
 const GIT_SYNC_IN_BACKGROUND_STORAGE_KEY = "kanbanqube.gitSyncInBackground";
 const ICON_STYLE_STORAGE_KEY = "kanbanqube.iconStyle";
+const LANE_WIDTH_STORAGE_KEY = "kanbanqube.laneWidth";
+const LANE_DEFAULT_WIDTH = 270;
+const LANE_MAX_WIDTH = LANE_DEFAULT_WIDTH * 2;
 const ICON_PATHS = {
   "3d": "/icon_3d.png",
   flat: "/icon_flat.png"
@@ -51,7 +54,9 @@ const state = {
   editingCardTitleId: null,
   editingCardTitleValue: "",
   pendingNewCardIds: new Set(),
-  drag: null
+  drag: null,
+  laneResize: null,
+  laneWidth: laneWidthFromStorage()
 };
 
 const boardScroller = document.getElementById("boardScroller");
@@ -182,6 +187,7 @@ const laneColorPicker = document.createElement("div");
 laneColorPicker.className = "lane-color-picker";
 laneColorPicker.hidden = true;
 document.body.append(laneColorPicker);
+applyLaneWidth();
 
 try {
   await bootstrap();
@@ -471,6 +477,7 @@ function renderBoard() {
     laneNode.querySelector(".add-card-button").addEventListener("click", () => addCard(list.id));
     wireLaneCollapseButton(laneNode.querySelector(".lane-collapse-button"), list);
     wireLaneColorButton(laneNode.querySelector(".lane-color-button"), list);
+    wireLaneResizeHandle(laneNode.querySelector(".lane-resize-handle"));
     laneNode.querySelector(".delete-lane-button").addEventListener("click", () => deleteLane(list.id));
 
     enableCardDnD(laneNode, list.id);
@@ -498,6 +505,68 @@ function applyLaneColor(laneNode, list) {
   if (!color) return;
   laneNode.style.setProperty("--lane-background", color.background);
   laneNode.style.setProperty("--lane-border-color", color.swatch);
+}
+
+function wireLaneResizeHandle(handle) {
+  handle.addEventListener("pointerdown", startLaneResize);
+  handle.addEventListener("keydown", resizeLanesWithKeyboard);
+}
+
+function startLaneResize(event) {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  event.stopPropagation();
+  state.laneResize = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startWidth: state.laneWidth
+  };
+  document.body.classList.add("is-resizing-lane");
+  event.currentTarget.setPointerCapture(event.pointerId);
+  event.currentTarget.addEventListener("pointermove", resizeLanes);
+  event.currentTarget.addEventListener("pointerup", stopLaneResize, { once: true });
+  event.currentTarget.addEventListener("pointercancel", stopLaneResize, { once: true });
+}
+
+function resizeLanes(event) {
+  if (!state.laneResize || event.pointerId !== state.laneResize.pointerId) return;
+  state.laneWidth = clampLaneWidth(state.laneResize.startWidth + event.clientX - state.laneResize.startX);
+  applyLaneWidth();
+}
+
+function stopLaneResize(event) {
+  event.currentTarget.removeEventListener("pointermove", resizeLanes);
+  document.body.classList.remove("is-resizing-lane");
+  if (state.laneResize && event.pointerId === state.laneResize.pointerId) {
+    localStorage.setItem(LANE_WIDTH_STORAGE_KEY, String(state.laneWidth));
+  }
+  state.laneResize = null;
+}
+
+function resizeLanesWithKeyboard(event) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  if (event.key === "Home") {
+    state.laneWidth = LANE_DEFAULT_WIDTH;
+  } else if (event.key === "End") {
+    state.laneWidth = LANE_MAX_WIDTH;
+  } else {
+    state.laneWidth = clampLaneWidth(state.laneWidth + (event.key === "ArrowRight" ? 12 : -12));
+  }
+  applyLaneWidth();
+  localStorage.setItem(LANE_WIDTH_STORAGE_KEY, String(state.laneWidth));
+}
+
+function applyLaneWidth() {
+  document.documentElement.style.setProperty("--lane-width", `${state.laneWidth}px`);
+}
+
+function laneWidthFromStorage() {
+  return clampLaneWidth(Number(localStorage.getItem(LANE_WIDTH_STORAGE_KEY)) || LANE_DEFAULT_WIDTH);
+}
+
+function clampLaneWidth(width) {
+  return Math.min(LANE_MAX_WIDTH, Math.max(LANE_DEFAULT_WIDTH, Math.round(width)));
 }
 
 function wireLaneCollapseButton(button, list) {
@@ -2953,7 +3022,7 @@ function enableCardDnD(laneNode, listId) {
 function enableLaneDnD(laneNode) {
   laneNode.addEventListener("dragstart", (event) => {
     if (event.target.closest(".card")) return;
-    if (event.target.closest("button, input, textarea, select")) return;
+    if (event.target.closest("button, input, textarea, select, .lane-resize-handle")) return;
     state.drag = { type: "lane", listId: laneNode.dataset.listId };
     laneNode.classList.add("dragging");
     event.dataTransfer.effectAllowed = "move";
