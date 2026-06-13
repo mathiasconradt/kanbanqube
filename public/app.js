@@ -446,7 +446,9 @@ function renderBoard() {
     laneTitle.hidden = isEditingLaneTitle;
     laneTitleInput.hidden = !isEditingLaneTitle;
     laneTitleInput.value = state.editingLaneTitleValue;
-    laneTitle.addEventListener("click", () => startLaneTitleEdit(list.id));
+    laneTitle.addEventListener("click", () => {
+      if (!isLaneCollapsed(list)) startLaneTitleEdit(list.id);
+    });
     laneTitleInput.addEventListener("click", (event) => {
       event.stopPropagation();
     });
@@ -3015,9 +3017,10 @@ function enableCardDnD(laneNode, listId) {
   });
 
   laneNode.addEventListener("dragover", (event) => {
-    if (state.drag?.type !== "card" || laneNode.classList.contains("is-collapsed")) return;
+    if (state.drag?.type !== "card") return;
     event.preventDefault();
     event.stopPropagation();
+    laneNode.classList.toggle("is-card-drop-target", laneNode.classList.contains("is-collapsed"));
     if (event.target.closest(".card-list")) return;
     const dragging = document.querySelector(`.card[data-card-id="${state.drag.cardId}"]`);
     if (dragging && !cardList.contains(dragging)) {
@@ -3025,10 +3028,18 @@ function enableCardDnD(laneNode, listId) {
     }
   });
 
+  laneNode.addEventListener("dragleave", (event) => {
+    if (state.drag?.type !== "card") return;
+    if (!laneNode.contains(event.relatedTarget)) {
+      laneNode.classList.remove("is-card-drop-target");
+    }
+  });
+
   laneNode.addEventListener("drop", (event) => {
-    if (state.drag?.type !== "card" || laneNode.classList.contains("is-collapsed")) return;
+    if (state.drag?.type !== "card") return;
     event.preventDefault();
     event.stopPropagation();
+    laneNode.classList.remove("is-card-drop-target");
     dropCardIntoList(cardList, listId);
   });
 }
