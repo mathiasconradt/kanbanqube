@@ -15,6 +15,7 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 
 ## Table Of Contents
 
+- [Features](#features)
 - [Requirements](#requirements)
 - [Run With npx](#run-with-npx)
 - [Install](#install)
@@ -33,6 +34,24 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 - [Build](#build)
 - [Release Automation](#release-automation)
 - [Star History](#star-history)
+
+## Features
+
+- Local-first board vaults stored as normal files
+- Configurable lanes and inline lane-title editing
+- Cards with descriptions, comments, checklists, labels, due dates, and assignees
+- Drag-and-drop card movement between lanes
+- Board keyboard navigation and shortcuts
+- Search across cards
+- File attachments stored in the vault `uploads/` folder
+- Image attachments as optional card covers
+- Archive view with restore, delete, and delete-all actions
+- Git sync for versioning and syncing vault changes
+- User detection from Git config and Git commit authors
+- Gravatar avatars with initials fallback
+- Empty-board demo import
+- Import from Trello board export (JSON) into an empty board
+- Optional macOS LaunchAgent background startup
 
 ## Requirements
 
