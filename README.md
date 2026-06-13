@@ -295,9 +295,11 @@ git config --global user.name
 git config --global user.email
 ```
 
+If no Git name is configured, KanbanQube falls back to the current system username returned by `whoami`. Email is optional; if no email is configured, the app still uses the detected name.
+
 That name is used for comments and activity entries. The settings dialog shows the detected name and email as read-only values.
 
-KanbanQube also reads commit authors from the vault Git repository and makes them available as assignable users. Git can usually provide the author name and email address from existing commits. If the vault has no Git history, KanbanQube still includes your own detected Git identity.
+KanbanQube also reads commit authors from the vault Git repository and makes them available as assignable users. Git can usually provide the author name and email address from existing commits. If the vault has no Git history, KanbanQube still includes your own detected identity.
 
 User avatars are loaded from Gravatar based on email address. If no Gravatar image exists, the app falls back to initials.
 

@@ -3,6 +3,7 @@
 const { createGitService } = require("./gitService");
 const { gravatarUrlForEmail, initialsForUser, userIdForIdentity } = require("../utils/userUtils");
 const { nonEmptyString } = require("../utils/stringUtils");
+const { systemUserName } = require("../utils/systemIdentity");
 
 function createUserService(config) {
   const gitService = createGitService(config);
@@ -24,7 +25,7 @@ async function addCurrentGitUser(config, gitService, usersByKey) {
     gitService.gitUserName(config.workspaceDir),
     gitService.gitUserEmail(config.workspaceDir)
   ]);
-  addUser(usersByKey, name, email, true);
+  addUser(usersByKey, name || await systemUserName(), email, true);
 }
 
 async function addCommitAuthors(config, gitService, usersByKey) {
