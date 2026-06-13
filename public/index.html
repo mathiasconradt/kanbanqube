@@ -56,10 +56,6 @@
           <div>
             <p class="modal-label">Card details</p>
             <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" />
-            <label class="card-due-field">
-              <span>Due date</span>
-              <input id="cardDueInput" type="date" />
-            </label>
           </div>
           <button id="closeCardButton" type="button" class="icon-button" aria-label="Close card dialog">✕</button>
         </header>
@@ -100,6 +96,23 @@
           </section>
 
           <aside class="modal-sidebar">
+            <section class="sidebar-panel card-due-panel">
+              <div class="panel-header">
+                <h2>Due date</h2>
+              </div>
+              <label class="card-due-field">
+                <span class="sr-only">Due date</span>
+                <span class="card-due-control">
+                  <input id="cardDueInput" type="date" />
+                  <button id="cardDuePickerButton" class="card-due-picker-button" type="button" aria-label="Open due date calendar">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 3v3m10-3v3M4.5 9.5h15M6.5 5.5h11A2.5 2.5 0 0 1 20 8v10a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18V8a2.5 2.5 0 0 1 2.5-2.5Z" />
+                    </svg>
+                  </button>
+                </span>
+              </label>
+            </section>
+
             <section class="sidebar-panel">
               <div class="panel-header">
                 <h2>Assignees</h2>

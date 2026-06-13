@@ -53,6 +53,8 @@ const state = {
   editingLaneTitleValue: "",
   editingCardTitleId: null,
   editingCardTitleValue: "",
+  editingCommentId: null,
+  editingCommentText: "",
   pendingNewCardIds: new Set(),
   drag: null,
   laneResize: null,
@@ -88,6 +90,7 @@ const deleteAllArchivedButton = document.getElementById("deleteAllArchivedButton
 const cardDialog = document.getElementById("cardDialog");
 const cardTitleInput = document.getElementById("cardTitleInput");
 const cardDueInput = document.getElementById("cardDueInput");
+const cardDuePickerButton = document.getElementById("cardDuePickerButton");
 const archivedCardBanner = document.getElementById("archivedCardBanner");
 const cardDetailsCover = document.getElementById("cardDetailsCover");
 const removeCoverButton = document.getElementById("removeCoverButton");
@@ -353,6 +356,7 @@ function wireEvents() {
     renderCardDialog();
   });
   cardDueInput.addEventListener("change", updateSelectedCardDueDate);
+  cardDuePickerButton.addEventListener("click", openDueDatePicker);
 
   promptCancelButton.addEventListener("click", () => promptDialog.close("cancel"));
   appDialogCloseButton.addEventListener("click", () => appDialog.close("cancel"));
@@ -937,6 +941,13 @@ function updateSelectedCardDueDate() {
   renderBoard();
 }
 
+function openDueDatePicker() {
+  cardDueInput.focus();
+  if (typeof cardDueInput.showPicker === "function") {
+    cardDueInput.showPicker();
+  }
+}
+
 function renderAssignees(card) {
   assigneesContainer.textContent = "";
   if (state.users.length === 0) {
@@ -1511,17 +1522,94 @@ function renderActivity(card) {
 
     const detail = document.createElement("div");
     const detailText = action.data?.text || action.data?.attachment?.name || action.data?.checkItem?.name || action.data?.listAfter?.name || action.data?.list?.name || "";
-    appendFormattedText(detail, detailText);
+    if (state.editingCommentId === action.id) {
+      detail.append(createCommentEditor(action));
+    } else {
+      appendFormattedText(detail, detailText);
+    }
 
     const time = document.createElement("time");
     time.dateTime = action.date;
     time.textContent = new Date(action.date).toLocaleString();
 
+    const canManageComment = action.type === "commentCard" && canCurrentUserManageComment(action);
     entry.append(title);
     if (detailText) entry.append(detail);
+    if (canManageComment && state.editingCommentId !== action.id) {
+      entry.append(createCommentActions(action));
+    }
     entry.append(time);
     activityList.append(entry);
   }
+}
+
+function createCommentActions(action) {
+  const actions = document.createElement("div");
+  actions.className = "comment-actions";
+
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "ghost-button";
+  editButton.textContent = "Edit";
+  editButton.addEventListener("click", () => {
+    state.editingCommentId = action.id;
+    state.editingCommentText = action.data?.text || "";
+    renderCardDialog();
+  });
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "ghost-button comment-delete-button";
+  deleteButton.textContent = "Delete";
+  deleteButton.addEventListener("click", () => deleteCommentAction(action.id));
+
+  actions.append(editButton, deleteButton);
+  return actions;
+}
+
+function createCommentEditor(action) {
+  const editor = document.createElement("div");
+  editor.className = "comment-editor";
+
+  const textarea = document.createElement("textarea");
+  textarea.value = state.editingCommentText;
+  textarea.rows = 4;
+  textarea.addEventListener("input", () => {
+    state.editingCommentText = textarea.value;
+  });
+  textarea.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      saveEditedComment(action.id);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelCommentEdit();
+    }
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "comment-actions";
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "button";
+  saveButton.className = "primary-button";
+  saveButton.textContent = "Save";
+  saveButton.addEventListener("click", () => saveEditedComment(action.id));
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "ghost-button";
+  cancelButton.textContent = "Cancel";
+  cancelButton.addEventListener("click", cancelCommentEdit);
+
+  actions.append(saveButton, cancelButton);
+  editor.append(textarea, actions);
+  requestAnimationFrame(() => {
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  });
+  return editor;
 }
 
 function addCommentToSelectedCard() {
@@ -1546,6 +1634,78 @@ function addCommentToSelectedCard() {
   commentInput.value = "";
   queueSave("Comment added");
   render();
+}
+
+async function deleteCommentAction(actionId) {
+  const action = commentActionById(actionId);
+  if (!action || !canCurrentUserManageComment(action)) return;
+  const confirmed = await openConfirmDialog({
+    label: "Delete comment",
+    title: "Delete comment?",
+    message: "Delete this comment permanently?",
+    confirmLabel: "Delete",
+    danger: true
+  });
+  if (!confirmed) return;
+
+  const card = cardForAction(action);
+  state.board.actions = (state.board.actions || []).filter((candidate) => candidate.id !== actionId);
+  if (card) {
+    touchCard(card);
+    updateCommentBadge(card);
+  }
+  if (state.editingCommentId === actionId) {
+    cancelCommentEdit(false);
+  }
+  queueSave("Comment deleted");
+  render();
+}
+
+function saveEditedComment(actionId) {
+  const action = commentActionById(actionId);
+  if (!action || !canCurrentUserManageComment(action)) return;
+  const text = state.editingCommentText.trim();
+  if (!text) return;
+
+  action.data.text = text;
+  action.date = new Date().toISOString();
+  action.data.dateLastEdited = action.date;
+  const card = cardForAction(action);
+  if (card) touchCard(card);
+  cancelCommentEdit(false);
+  queueSave("Comment updated");
+  render();
+}
+
+function cancelCommentEdit(shouldRender = true) {
+  state.editingCommentId = null;
+  state.editingCommentText = "";
+  if (shouldRender) renderCardDialog();
+}
+
+function commentActionById(actionId) {
+  return (state.board.actions || []).find((action) => action.id === actionId && action.type === "commentCard") || null;
+}
+
+function cardForAction(action) {
+  const cardId = action?.data?.idCard || action?.data?.card?.id;
+  return (state.board.cards || []).find((card) => card.id === cardId) || null;
+}
+
+function updateCommentBadge(card) {
+  if (!card.badges) card.badges = {};
+  card.badges.comments = actionsForCard(card.id).filter((action) => action.type === "commentCard").length;
+}
+
+function canCurrentUserManageComment(action) {
+  const member = action.memberCreator || {};
+  const currentEmail = state.currentUserEmail.trim().toLowerCase();
+  const actionEmail = String(member.email || "").trim().toLowerCase();
+  if (currentEmail && actionEmail) return currentEmail === actionEmail;
+
+  const currentName = state.currentUserName.trim();
+  const actionName = String(member.fullName || member.username || "").trim();
+  return Boolean(currentName && actionName && (currentName === actionName || slugify(currentName) === actionName));
 }
 
 function addLabelToSelectedCard() {
@@ -2854,6 +3014,8 @@ function ensureCurrentUserMember() {
       }
     };
     state.board.members.push(member);
+  } else if (!member.email && state.currentUserEmail.trim()) {
+    member.email = state.currentUserEmail.trim();
   }
   return member;
 }

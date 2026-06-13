@@ -29,6 +29,18 @@
   box-sizing: border-box;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html,
 body {
   margin: 0;
@@ -221,6 +233,14 @@ button {
   display: flex;
   gap: 0.65rem;
   align-items: center;
+}
+
+.panel-header {
+  margin-bottom: 0.83em;
+}
+
+.panel-header h2 {
+  margin: 0;
 }
 
 .user-avatar-button {
@@ -1326,21 +1346,59 @@ button {
 }
 
 .card-due-field {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
   gap: 0.5rem;
-  margin-top: 0.45rem;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
-.card-due-field input {
-  min-height: calc(32px * var(--ui-scale));
-  padding: 0.25rem 0.45rem;
-  border-radius: calc(10px * var(--ui-scale));
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+.card-due-control {
+  min-height: calc(44px * var(--ui-scale));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: calc(12px * var(--ui-scale));
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.card-due-field .card-due-control input {
+  min-height: calc(44px * var(--ui-scale));
+  border: 0;
+  background: transparent;
   color: var(--text);
+  padding: 0.75rem 0 0.75rem 0.85rem;
+  outline: 0;
+}
+
+.card-due-field .card-due-control input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.card-due-picker-button {
+  width: calc(42px * var(--ui-scale));
+  height: calc(42px * var(--ui-scale));
+  display: inline-grid;
+  place-items: center;
+  margin-right: 0.2rem;
+  border: 0;
+  border-radius: calc(10px * var(--ui-scale));
+  background: transparent;
+  color: var(--muted);
+}
+
+.card-due-picker-button:hover,
+.card-due-picker-button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.card-due-picker-button svg {
+  width: calc(20px * var(--ui-scale));
+  height: calc(20px * var(--ui-scale));
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .archived-card-banner {
@@ -1874,6 +1932,38 @@ button {
   min-height: calc(82px * var(--ui-scale));
   max-height: calc(140px * var(--ui-scale));
   resize: vertical;
+}
+
+.comment-editor {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.comment-editor textarea {
+  width: 100%;
+  min-height: calc(96px * var(--ui-scale));
+  border-radius: calc(12px * var(--ui-scale));
+  border: 1px solid var(--border);
+  background: rgba(12, 15, 21, 0.92);
+  color: var(--text);
+  padding: 0.75rem 0.85rem;
+  resize: vertical;
+  outline: 0;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.comment-actions .ghost-button,
+.comment-actions .primary-button {
+  padding: 0.45rem 0.7rem;
+}
+
+.comment-delete-button {
+  color: #fecaca;
 }
 
 .comment-composer .primary-button {

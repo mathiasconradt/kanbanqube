@@ -7,9 +7,11 @@
 
 ![KanbanQube preview](promo.jpg)
 
-KanbanQube is a local-first Kanban board app for solo users and very small teams. A board lives as normal files in a regular vault folder on your machine and can optionally be placed inside a Git repository, so changes can be versioned and synced with tools you already use.
+KanbanQube is a local-first desktop Kanban board app for solo users and tiny teams. It is designed for normal desktop browser use; there is no dedicated mobile version or mobile app.
 
-The app provides lanes, cards, labels, checklists, comments, due dates, assignees, card covers, file attachments, archived cards, search, keyboard navigation, and a card-detail view. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
+A board lives as normal files in a regular vault folder on your machine and can optionally be placed inside a Git repository, so changes can be versioned and synced with tools you already use. The app intentionally does not provide a strong user-security or RBAC model; it assumes trusted local users or a very small trusted team.
+
+See the [full feature list](#features) below. Uploaded files are stored in an `uploads/` folder, while board data is split into per-object JSON files under `board/` so Git can merge independent card and checklist edits more cleanly.
 
 ![KanbanQube board screenshot](screenshot.png)
 
@@ -40,7 +42,10 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 - Local-first board vaults stored as normal files
 - Configurable lanes and inline lane-title editing
 - Optional lane background colors
+- Collapsible lanes with drag-and-drop support into collapsed lanes
+- Resizable lane width, applied consistently across lanes
 - Cards with descriptions, comments, checklists, labels, due dates, and assignees
+- Comment editing and deletion by the comment author
 - Drag-and-drop card movement between lanes
 - Board keyboard navigation and shortcuts
 - Search across cards
