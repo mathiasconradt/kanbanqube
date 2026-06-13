@@ -146,16 +146,6 @@
           <button id="closeSettingsButton" type="button" class="icon-button" aria-label="Close settings">✕</button>
         </header>
 
-        <label class="field">
-          <span>Your name (read-only, from Git config)</span>
-          <input id="settingsUserName" type="text" maxlength="120" readonly />
-        </label>
-
-        <label class="field">
-          <span>Your email (read-only, from Git config)</span>
-          <input id="settingsUserEmail" type="email" maxlength="200" readonly />
-        </label>
-
         <fieldset class="field icon-choice-field">
           <legend>App icon</legend>
           <label>
@@ -195,6 +185,7 @@
         </section>
 
         <div class="settings-meta">
+          <span id="settingsUser"></span>
           <span id="settingsBoardFile"></span>
           <span id="settingsRemote"></span>
         </div>

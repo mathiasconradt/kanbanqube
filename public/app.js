@@ -107,8 +107,6 @@ const deleteCardButton = document.getElementById("deleteCardButton");
 const closeCardButton = document.getElementById("closeCardButton");
 
 const settingsDialog = document.getElementById("settingsDialog");
-const settingsUserName = document.getElementById("settingsUserName");
-const settingsUserEmail = document.getElementById("settingsUserEmail");
 const settingsIconStyleInputs = [...document.querySelectorAll("input[name=\"settingsIconStyle\"]")];
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
@@ -116,6 +114,7 @@ const settingsGitSyncInBackground = document.getElementById("settingsGitSyncInBa
 const importBoardInput = document.getElementById("importBoardInput");
 const importBoardButton = document.getElementById("importBoardButton");
 const settingsImportHelp = document.getElementById("settingsImportHelp");
+const settingsUser = document.getElementById("settingsUser");
 const settingsBoardFile = document.getElementById("settingsBoardFile");
 const settingsRemote = document.getElementById("settingsRemote");
 const saveSettingsButton = document.getElementById("saveSettingsButton");
@@ -204,6 +203,7 @@ async function bootstrap() {
   state.users = usersResponse.ok ? (await usersResponse.json()).users || [] : [];
   hydrateIdentityFromGitConfig();
   applyIconStyle();
+  settingsUser.textContent = userMetaText();
   settingsBoardFile.textContent = `Storage: ${state.config.workspacePath || "current folder"}`;
   settingsRemote.textContent = state.config.gitRemote ? `Remote: ${state.config.gitRemote}` : "Remote: not configured";
 
@@ -2359,8 +2359,7 @@ function saveSettings() {
 }
 
 function openSettingsDialog() {
-  settingsUserName.value = state.currentUserName;
-  settingsUserEmail.value = state.currentUserEmail;
+  settingsUser.textContent = userMetaText();
   for (const input of settingsIconStyleInputs) {
     input.checked = input.value === state.iconStyle;
   }
@@ -3214,6 +3213,12 @@ function hydrateIdentityFromGitConfig() {
     state.currentUserEmail = gitUserEmail;
     localStorage.setItem(USER_EMAIL_STORAGE_KEY, gitUserEmail);
   }
+}
+
+function userMetaText() {
+  const name = state.currentUserName.trim() || "Guest";
+  const email = state.currentUserEmail.trim();
+  return email ? `User: ${name} (${email})` : `User: ${name}`;
 }
 
 function renderUserAvatar() {
