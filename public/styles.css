@@ -526,6 +526,14 @@ button {
   box-shadow: var(--shadow);
 }
 
+.lane.is-collapsed {
+  width: 56px;
+  min-width: 56px;
+  min-height: min(560px, calc(100vh - 135px));
+  display: flex;
+  padding: 0.75rem 0.35rem;
+}
+
 .lane.dragging,
 .card.dragging {
   opacity: 0.4;
@@ -538,10 +546,22 @@ button {
   gap: 0.75rem;
 }
 
+.lane.is-collapsed .lane-header {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .lane-actions {
   opacity: 0;
   pointer-events: none;
   transition: opacity 140ms ease;
+}
+
+.lane.is-collapsed .lane-actions {
+  order: -1;
+  flex-direction: column;
 }
 
 .lane-header:hover .lane-actions,
@@ -581,12 +601,39 @@ button {
   opacity: 1;
 }
 
+.lane.is-collapsed .lane-actions .icon-button::after {
+  right: auto;
+  left: calc(100% + 0.5rem);
+}
+
+.lane-collapse-icon-expand {
+  display: none;
+}
+
+.lane.is-collapsed .lane-collapse-icon-collapse,
+.lane.is-collapsed .lane-color-button,
+.lane.is-collapsed .delete-lane-button {
+  display: none;
+}
+
+.lane.is-collapsed .lane-collapse-icon-expand {
+  display: block;
+}
+
 .lane-title-row {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.lane.is-collapsed .lane-title-row {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
 }
 
 .lane-title {
@@ -596,9 +643,17 @@ button {
   min-width: 0;
 }
 
+.lane.is-collapsed .lane-title {
+  line-height: 1.1;
+}
+
 .lane-count {
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+.lane.is-collapsed .lane-count {
+  font-size: 1.05rem;
 }
 
 .card-list {
@@ -606,6 +661,11 @@ button {
   display: grid;
   gap: 0.7rem;
   padding-right: 0.15rem;
+}
+
+.lane.is-collapsed .card-list,
+.lane.is-collapsed .add-card-button {
+  display: none;
 }
 
 .card {

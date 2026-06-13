@@ -429,6 +429,7 @@ function renderBoard() {
     const laneNode = laneTemplate.content.firstElementChild.cloneNode(true);
     laneNode.dataset.listId = list.id;
     applyLaneColor(laneNode, list);
+    laneNode.classList.toggle("is-collapsed", isLaneCollapsed(list));
     const laneTitle = laneNode.querySelector(".lane-title");
     const laneTitleInput = laneNode.querySelector(".lane-title-inline-input");
     const isEditingLaneTitle = state.editingLaneTitleId === list.id;
@@ -466,6 +467,7 @@ function renderBoard() {
     }
 
     laneNode.querySelector(".add-card-button").addEventListener("click", () => addCard(list.id));
+    wireLaneCollapseButton(laneNode.querySelector(".lane-collapse-button"), list);
     wireLaneColorButton(laneNode.querySelector(".lane-color-button"), list);
     laneNode.querySelector(".delete-lane-button").addEventListener("click", () => deleteLane(list.id));
 
@@ -494,6 +496,36 @@ function applyLaneColor(laneNode, list) {
   if (!color) return;
   laneNode.style.setProperty("--lane-background", color.background);
   laneNode.style.setProperty("--lane-border-color", color.swatch);
+}
+
+function wireLaneCollapseButton(button, list) {
+  const collapsed = isLaneCollapsed(list);
+  button.setAttribute("aria-label", collapsed ? "Expand lane" : "Collapse lane");
+  button.setAttribute("aria-expanded", String(!collapsed));
+  button.dataset.tooltip = collapsed ? "Expand" : "Collapse";
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleLaneCollapsed(list.id);
+  });
+}
+
+function toggleLaneCollapsed(listId) {
+  const list = listById(listId);
+  if (!list) return;
+  const wasCollapsed = isLaneCollapsed(list);
+  list.kanbanQubeCollapsed = !wasCollapsed;
+  pushAction("updateList", {
+    list: { id: list.id, name: list.name, kanbanQubeCollapsed: list.kanbanQubeCollapsed },
+    old: { kanbanQubeCollapsed: wasCollapsed },
+    board: { id: state.board.id, name: state.board.name }
+  });
+  queueSave(list.kanbanQubeCollapsed ? "Lane collapsed" : "Lane expanded");
+  closeLaneColorPicker();
+  renderBoard();
+}
+
+function isLaneCollapsed(list) {
+  return Boolean(list?.kanbanQubeCollapsed);
 }
 
 function wireLaneColorButton(button, list) {
