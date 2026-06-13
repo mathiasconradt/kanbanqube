@@ -19,7 +19,7 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 - [Run With npx](#run-with-npx)
 - [Install](#install)
 - [Homebrew](#homebrew)
-- [Build](#build)
+- [Run On macOS Login](#run-on-macos-login)
 - [Vaults](#vaults)
 - [Board Workflow](#board-workflow)
 - [Git Sync](#git-sync)
@@ -30,6 +30,7 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 - [Attachments And Covers](#attachments-and-covers)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Development](#development)
+- [Build](#build)
 - [Release Automation](#release-automation)
 - [Star History](#star-history)
 
@@ -97,17 +98,82 @@ KanbanQube currently installs as a Homebrew formula for the Node.js command-line
 xattr -cr "/Applications/KanbanQube.app"
 ```
 
-## Build
+## Run On macOS Login
 
-KanbanQube has no frontend build step. The app is plain Node.js plus static browser assets.
+Use a macOS LaunchAgent if you want KanbanQube to start automatically in the background when you log in.
 
-Validate the server and browser JavaScript:
+First check where `npx` is installed:
 
 ```sh
-npm test
+command -v npx
 ```
 
-Package managers can install it directly because `package.json` exposes the `kanbanqube` executable through the `bin` field.
+Create `~/Library/LaunchAgents/com.mathiasconradt.kanbanqube.plist` and adjust the vault path if needed:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.mathiasconradt.kanbanqube</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/opt/homebrew/bin/npx</string>
+      <string>kanbanqube</string>
+      <string>/Users/mathias.conradt/Documents/kanbanqube_vault</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+      <key>PORT</key>
+      <string>3888</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/mathias.conradt</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/kanbanqube.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/kanbanqube.err.log</string>
+  </dict>
+</plist>
+```
+
+Load and start it:
+
+```sh
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.mathiasconradt.kanbanqube.plist
+launchctl kickstart -k gui/$(id -u)/com.mathiasconradt.kanbanqube
+```
+
+Check status and logs:
+
+```sh
+launchctl print gui/$(id -u)/com.mathiasconradt.kanbanqube
+tail -f /tmp/kanbanqube.out.log
+tail -f /tmp/kanbanqube.err.log
+```
+
+Stop and unload it:
+
+```sh
+launchctl bootout gui/$(id -u)/com.mathiasconradt.kanbanqube
+```
+
+The example runs KanbanQube on `http://localhost:3888`. If that port is already used, change the `PORT` value in the plist.
 
 ## Vaults
 
@@ -262,6 +328,18 @@ Main files:
 - `public/app.js` - board UI behavior
 - `public/styles.css` - app styling
 - `public/index.html` - static app shell
+
+## Build
+
+KanbanQube has no frontend build step. The app is plain Node.js plus static browser assets.
+
+Validate the server and browser JavaScript:
+
+```sh
+npm test
+```
+
+Package managers can install it directly because `package.json` exposes the `kanbanqube` executable through the `bin` field.
 
 ## Release Automation
 
