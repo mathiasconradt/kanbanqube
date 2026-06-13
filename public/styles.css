@@ -540,26 +540,6 @@ button {
   background: transparent;
   cursor: ew-resize;
   touch-action: none;
-  opacity: 0;
-  transition: opacity 140ms ease, background 140ms ease;
-}
-
-.lane:hover .lane-resize-handle,
-.lane-resize-handle:hover,
-.lane-resize-handle:focus-visible,
-.is-resizing-lane .lane-resize-handle {
-  opacity: 1;
-}
-
-.lane-resize-handle::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 4px;
-  width: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
 }
 
 .is-resizing-lane {

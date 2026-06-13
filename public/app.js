@@ -2985,11 +2985,13 @@ function enableCardDnD(laneNode, listId) {
 
   for (const cardNode of cards) {
     cardNode.addEventListener("dragstart", (event) => {
+      event.stopPropagation();
       state.drag = { type: "card", cardId: cardNode.dataset.cardId, sourceListId: listId };
       cardNode.classList.add("dragging");
       event.dataTransfer.effectAllowed = "move";
     });
-    cardNode.addEventListener("dragend", () => {
+    cardNode.addEventListener("dragend", (event) => {
+      event.stopPropagation();
       cardNode.classList.remove("dragging");
     });
   }
@@ -2997,6 +2999,7 @@ function enableCardDnD(laneNode, listId) {
   cardList.addEventListener("dragover", (event) => {
     if (state.drag?.type !== "card") return;
     event.preventDefault();
+    event.stopPropagation();
     const after = cardElementAfter(cardList, event.clientY);
     const dragging = document.querySelector(`.card[data-card-id="${state.drag.cardId}"]`);
     if (!dragging) return;
@@ -3007,6 +3010,30 @@ function enableCardDnD(laneNode, listId) {
   cardList.addEventListener("drop", (event) => {
     if (state.drag?.type !== "card") return;
     event.preventDefault();
+    event.stopPropagation();
+    dropCardIntoList(cardList, listId);
+  });
+
+  laneNode.addEventListener("dragover", (event) => {
+    if (state.drag?.type !== "card" || laneNode.classList.contains("is-collapsed")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.target.closest(".card-list")) return;
+    const dragging = document.querySelector(`.card[data-card-id="${state.drag.cardId}"]`);
+    if (dragging && !cardList.contains(dragging)) {
+      cardList.append(dragging);
+    }
+  });
+
+  laneNode.addEventListener("drop", (event) => {
+    if (state.drag?.type !== "card" || laneNode.classList.contains("is-collapsed")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dropCardIntoList(cardList, listId);
+  });
+}
+
+function dropCardIntoList(cardList, listId) {
     const cardId = state.drag.cardId;
     const card = (state.board.cards || []).find((candidate) => candidate.id === cardId);
     if (!card) return;
@@ -3016,12 +3043,14 @@ function enableCardDnD(laneNode, listId) {
     const sourceListId = previousListId === listId ? null : previousListId;
     reorderCardsFromDom(listId, order, sourceListId, cardId);
     state.drag = null;
-  });
 }
 
 function enableLaneDnD(laneNode) {
   laneNode.addEventListener("dragstart", (event) => {
-    if (event.target.closest(".card")) return;
+    if (event.target.closest(".card")) {
+      event.stopPropagation();
+      return;
+    }
     if (event.target.closest("button, input, textarea, select, .lane-resize-handle")) return;
     state.drag = { type: "lane", listId: laneNode.dataset.listId };
     laneNode.classList.add("dragging");
