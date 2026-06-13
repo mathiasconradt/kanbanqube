@@ -39,6 +39,7 @@ The app provides lanes, cards, labels, checklists, comments, due dates, assignee
 
 - Local-first board vaults stored as normal files
 - Configurable lanes and inline lane-title editing
+- Optional lane background colors
 - Cards with descriptions, comments, checklists, labels, due dates, and assignees
 - Drag-and-drop card movement between lanes
 - Board keyboard navigation and shortcuts

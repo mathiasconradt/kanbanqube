@@ -165,6 +165,23 @@ const labelColorMap = {
   black_dark: "#111827"
 };
 
+const laneColorOptions = [
+  { id: "red", swatch: "#ff5630", background: "#5a1f1f" },
+  { id: "orange", swatch: "#f97316", background: "#5a3715" },
+  { id: "yellow", swatch: "#f59e0b", background: "#4b3b04" },
+  { id: "green", swatch: "#34d399", background: "#15543a" },
+  { id: "cyan", swatch: "#22b8cf", background: "#0e4a5e" },
+  { id: "blue", swatch: "#0c66e4", background: "#123f8c" },
+  { id: "purple", swatch: "#6750c3", background: "#3f2a83" },
+  { id: "pink", swatch: "#ff4fa3", background: "#641b45" },
+  { id: "slate", swatch: "#64748b", background: "#3a465d" }
+];
+
+const laneColorPicker = document.createElement("div");
+laneColorPicker.className = "lane-color-picker";
+laneColorPicker.hidden = true;
+document.body.append(laneColorPicker);
+
 try {
   await bootstrap();
 } catch (error) {
@@ -244,6 +261,8 @@ function wireEvents() {
   });
   aboutImage.addEventListener("click", () => aboutDialog.close());
   document.addEventListener("keydown", handleBoardKeyboardNavigation);
+  document.addEventListener("keydown", closeLaneColorPickerOnEscape);
+  document.addEventListener("click", closeLaneColorPickerOnOutsideClick);
 
   searchInput.addEventListener("input", () => {
     state.searchTerm = searchInput.value.trim().toLowerCase();
@@ -409,6 +428,7 @@ function renderBoard() {
   for (const list of lists) {
     const laneNode = laneTemplate.content.firstElementChild.cloneNode(true);
     laneNode.dataset.listId = list.id;
+    applyLaneColor(laneNode, list);
     const laneTitle = laneNode.querySelector(".lane-title");
     const laneTitleInput = laneNode.querySelector(".lane-title-inline-input");
     const isEditingLaneTitle = state.editingLaneTitleId === list.id;
@@ -446,6 +466,7 @@ function renderBoard() {
     }
 
     laneNode.querySelector(".add-card-button").addEventListener("click", () => addCard(list.id));
+    wireLaneColorButton(laneNode.querySelector(".lane-color-button"), list);
     laneNode.querySelector(".delete-lane-button").addEventListener("click", () => deleteLane(list.id));
 
     enableCardDnD(laneNode, list.id);
@@ -463,6 +484,133 @@ function renderBoard() {
   button.addEventListener("click", createLane);
   addLaneCard.append(button);
   boardScroller.append(addLaneCard);
+}
+
+function applyLaneColor(laneNode, list) {
+  const color = laneColorForList(list);
+  laneNode.style.removeProperty("--lane-background");
+  laneNode.style.removeProperty("--lane-border-color");
+  laneNode.classList.toggle("has-lane-color", Boolean(color));
+  if (!color) return;
+  laneNode.style.setProperty("--lane-background", color.background);
+  laneNode.style.setProperty("--lane-border-color", color.swatch);
+}
+
+function wireLaneColorButton(button, list) {
+  const color = laneColorForList(list);
+  button.classList.toggle("has-selected-color", Boolean(color));
+  button.style.setProperty("--lane-color-swatch", color?.swatch || "transparent");
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleLaneColorPicker(list.id, button);
+  });
+}
+
+function toggleLaneColorPicker(listId, anchor) {
+  if (!laneColorPicker.hidden && laneColorPicker.dataset.listId === listId) {
+    closeLaneColorPicker();
+    return;
+  }
+
+  renderLaneColorPicker(listId);
+  laneColorPicker.hidden = false;
+  positionLaneColorPicker(anchor);
+}
+
+function renderLaneColorPicker(listId) {
+  const list = listById(listId);
+  const selectedColorId = laneColorForList(list)?.id || "";
+  laneColorPicker.textContent = "";
+  laneColorPicker.dataset.listId = listId;
+
+  const clearButton = createLaneColorOptionButton({
+    label: "Default lane color",
+    selected: !selectedColorId,
+    onClick: () => setLaneColor(listId, "")
+  });
+  clearButton.classList.add("lane-color-clear-button");
+  clearButton.textContent = "×";
+  laneColorPicker.append(clearButton);
+
+  for (const color of laneColorOptions) {
+    laneColorPicker.append(createLaneColorOptionButton({
+      color,
+      label: `Set ${color.id} lane color`,
+      selected: selectedColorId === color.id,
+      onClick: () => setLaneColor(listId, color.id)
+    }));
+  }
+}
+
+function createLaneColorOptionButton({ color = null, label, selected, onClick }) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "lane-color-option";
+  button.setAttribute("aria-label", label);
+  button.classList.toggle("is-selected", selected);
+  if (color) {
+    button.style.setProperty("--lane-color-option", color.swatch);
+  }
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    onClick();
+  });
+  return button;
+}
+
+function positionLaneColorPicker(anchor) {
+  const rect = anchor.getBoundingClientRect();
+  const pickerRect = laneColorPicker.getBoundingClientRect();
+  const left = Math.min(Math.max(8, rect.left), window.innerWidth - pickerRect.width - 8);
+  const top = Math.min(rect.bottom + 8, window.innerHeight - pickerRect.height - 8);
+  laneColorPicker.style.left = `${left}px`;
+  laneColorPicker.style.top = `${Math.max(8, top)}px`;
+}
+
+function closeLaneColorPicker() {
+  laneColorPicker.hidden = true;
+  laneColorPicker.dataset.listId = "";
+}
+
+function closeLaneColorPickerOnOutsideClick(event) {
+  if (laneColorPicker.hidden) return;
+  if (event.target.closest(".lane-color-picker, .lane-color-button")) return;
+  closeLaneColorPicker();
+}
+
+function closeLaneColorPickerOnEscape(event) {
+  if (event.key === "Escape") {
+    closeLaneColorPicker();
+  }
+}
+
+function setLaneColor(listId, colorId) {
+  const list = listById(listId);
+  if (!list) return;
+  const previousColor = laneColorForList(list)?.id || "";
+  if (previousColor === colorId) {
+    closeLaneColorPicker();
+    return;
+  }
+
+  if (colorId) {
+    list.kanbanQubeColor = colorId;
+  } else {
+    delete list.kanbanQubeColor;
+  }
+  pushAction("updateList", {
+    list: { id: list.id, name: list.name, kanbanQubeColor: list.kanbanQubeColor || null },
+    old: { kanbanQubeColor: previousColor || null },
+    board: { id: state.board.id, name: state.board.name }
+  });
+  queueSave(colorId ? "Lane color updated" : "Lane color removed");
+  closeLaneColorPicker();
+  renderBoard();
+}
+
+function laneColorForList(list) {
+  const colorId = String(list?.kanbanQubeColor || "");
+  return laneColorOptions.find((color) => color.id === colorId) || null;
 }
 
 async function createLane() {
