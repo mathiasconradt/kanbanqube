@@ -171,7 +171,9 @@ const laneColorOptions = [
   { id: "green", swatch: "#34d399", background: "#15543a" },
   { id: "cyan", swatch: "#22b8cf", background: "#0e4a5e" },
   { id: "blue", swatch: "#0c66e4", background: "#123f8c" },
+  { id: "indigo", swatch: "#4f46e5", background: "#312e81" },
   { id: "purple", swatch: "#6750c3", background: "#3f2a83" },
+  { id: "lime", swatch: "#84cc16", background: "#365314" },
   { id: "pink", swatch: "#ff4fa3", background: "#641b45" },
   { id: "slate", swatch: "#64748b", background: "#3a465d" }
 ];
