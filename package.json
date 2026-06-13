@@ -1,6 +1,6 @@
 {
   "name": "kanbanqube",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Local-first Kanban board backed by normal files",
   "license": "Apache-2.0",
   "author": "Mathias Conradt",
