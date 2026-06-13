@@ -13,7 +13,7 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log("  kanbanqube [vault-directory]");
   console.log("");
   console.log("Environment:");
-  console.log("  PORT=3000  HTTP port to listen on");
+  console.log("  PORT=3888  HTTP port to listen on");
   process.exit(0);
 }
 

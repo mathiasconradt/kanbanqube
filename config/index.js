@@ -31,7 +31,7 @@ function createConfig(options = {}) {
     uploadsDirName,
     uploadsDir: path.join(workspaceDir, uploadsDirName),
     sampleExportDir: path.join(workspaceDir, "trello_export"),
-    port: Number(options.port || process.env.PORT || 3000),
+    port: Number(options.port || process.env.PORT || 3888),
     gitExecutableCandidates: [
       "/usr/bin/git",
       "/bin/git",

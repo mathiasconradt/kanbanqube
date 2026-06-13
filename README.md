@@ -50,7 +50,7 @@ npx kanbanqube /path/to/your/vault
 Then open:
 
 ```text
-http://localhost:3000
+http://localhost:3888
 ```
 
 If no path is provided, KanbanQube uses the current working directory as the vault:
