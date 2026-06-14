@@ -131,7 +131,7 @@ npm start
 Install from the project tap:
 
 ```sh
-brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
+brew tap mathiasconradt/kanbanqube
 brew install kanbanqube
 kanbanqube
 ```
