@@ -1,3 +1,4 @@
+restart_service.sh
 copilot_session_id
 codex_session_id
 claude_session_id

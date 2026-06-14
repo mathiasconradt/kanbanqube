@@ -67,10 +67,10 @@ See the [full feature list](#features) below. Uploaded files are stored in an `u
 
 ## Run With npx
 
-Run KanbanQube against a vault folder:
+Start KanbanQube with the default vault:
 
 ```sh
-npx kanbanqube /path/to/your/vault
+npx kanbanqube
 ```
 
 Then open:
@@ -79,20 +79,26 @@ Then open:
 http://localhost:3888
 ```
 
-If no path is provided, KanbanQube uses a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
-
-```sh
-npx kanbanqube
-```
-
-Examples:
+By default, KanbanQube uses a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
 
 ```text
 macOS/Linux: ~/.kanbanqube
 Windows: C:\Users\<you>\.kanbanqube
 ```
 
+Pass a vault path only if you want to use a different folder:
+
+```sh
+npx kanbanqube /path/to/your/vault
+```
+
 You can choose a different port:
+
+```sh
+PORT=4000 npx kanbanqube
+```
+
+Custom port plus custom vault:
 
 ```sh
 PORT=4000 npx kanbanqube /path/to/your/vault
@@ -104,6 +110,12 @@ Global install:
 
 ```sh
 npm install -g kanbanqube
+kanbanqube
+```
+
+Custom vault:
+
+```sh
 kanbanqube /path/to/your/vault
 ```
 
@@ -111,7 +123,7 @@ Local development install from this repository:
 
 ```sh
 npm install
-npm start -- /path/to/your/vault
+npm start
 ```
 
 ## Homebrew
@@ -121,6 +133,12 @@ Install from the project tap:
 ```sh
 brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
 brew install kanbanqube
+kanbanqube
+```
+
+Custom vault:
+
+```sh
 kanbanqube /path/to/your/vault
 ```
 
