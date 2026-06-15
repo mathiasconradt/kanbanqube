@@ -27,8 +27,10 @@ function normalizeBoard(candidate, boardFileName = "board.json") {
   const members = normalizeMembers(source.members);
   const checklists = normalizeChecklists(source.checklists, boardId);
   const cards = normalizeCards(source.cards, boardId, lists, checklists);
+  const cardIds = new Set(cards.map((card) => card.id));
+  const linkedChecklists = checklists.filter((checklist) => cardIds.has(checklist.idCard));
   const actions = normalizeActions(source.actions, boardId, cards, lists, members);
-  const badgeMap = buildBadgeMap(cards, checklists, actions);
+  const badgeMap = buildBadgeMap(cards, linkedChecklists, actions);
 
   const normalizedCards = cards
     .map((card, index) => ({
@@ -70,7 +72,7 @@ function normalizeBoard(candidate, boardFileName = "board.json") {
     memberships: Array.isArray(source.memberships) ? source.memberships : [],
     cards: normalizedCards,
     actions,
-    checklists,
+    checklists: linkedChecklists,
     customFields: Array.isArray(source.customFields) ? source.customFields : [],
     pinned: Boolean(source.pinned),
     pluginData: Array.isArray(source.pluginData) ? source.pluginData : [],
@@ -96,21 +98,25 @@ function normalizeBoard(candidate, boardFileName = "board.json") {
 function normalizeLists(candidateLists, boardId) {
   const defaults = defaultBoardSkeleton().lists;
   const source = Array.isArray(candidateLists) && candidateLists.length > 0 ? candidateLists : defaults;
-  return source.map((list, index) => ({
-    ...list,
-    id: nonEmptyString(list.id) || createHexId(),
-    name: nonEmptyString(list.name) || `Lane ${index + 1}`,
-    closed: Boolean(list.closed),
-    color: list.color ?? null,
-    idBoard: nonEmptyString(list.idBoard) || boardId,
-    pos: normalizePos(list.pos, index)
-  }));
+  return source
+    .filter((list) => !list?.closed)
+    .map((list, index) => ({
+      ...list,
+      id: nonEmptyString(list.id) || createHexId(),
+      name: nonEmptyString(list.name) || `Lane ${index + 1}`,
+      closed: false,
+      color: list.color ?? null,
+      idBoard: nonEmptyString(list.idBoard) || boardId,
+      pos: normalizePos(list.pos, index)
+    }));
 }
 
 function normalizeCards(candidateCards, boardId, lists, checklists) {
   const listIds = new Set(lists.map((list) => list.id));
   const checklistIds = new Set(checklists.map((checklist) => checklist.id));
-  return (Array.isArray(candidateCards) ? candidateCards : []).map((card, index) => {
+  return (Array.isArray(candidateCards) ? candidateCards : [])
+    .filter((card) => listIds.has(card?.idList))
+    .map((card, index) => {
     const cardId = nonEmptyString(card.id) || createHexId();
     const targetListId = listIds.has(card.idList) ? card.idList : lists[0]?.id || null;
     const shortLink = nonEmptyString(card.shortLink) || cardId.slice(-8);
@@ -199,7 +205,9 @@ function normalizeActions(candidateActions, boardId, cards, lists, members) {
   const listMap = new Map(lists.map((list) => [list.id, list]));
   const memberMap = new Map(members.map((member) => [member.id, member]));
 
-  return (Array.isArray(candidateActions) ? candidateActions : []).map((action) => {
+  return (Array.isArray(candidateActions) ? candidateActions : [])
+    .filter((action) => action?.type === "commentCard")
+    .map((action) => {
     const cardId = action?.data?.idCard || action?.data?.card?.id || null;
     const listId = action?.data?.list?.id || action?.data?.listAfter?.id || action?.data?.listBefore?.id || null;
     return {

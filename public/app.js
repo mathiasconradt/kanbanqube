@@ -2117,22 +2117,17 @@ async function deleteLane(listId) {
   const confirmed = await openConfirmDialog({
     label: "Delete lane",
     title: "Delete lane?",
-    message: `Delete "${list.name}" and archive ${cardCount} card(s) in it?`,
+    message: `Delete "${list.name}" and permanently delete ${cardCount} card(s) in it? This cannot be undone.`,
     confirmLabel: "Delete",
     danger: true
   });
   if (!confirmed) return;
 
-  list.closed = true;
-  list.dateClosed = new Date().toISOString();
   for (const card of allCardsForList(listId)) {
-    card.closed = true;
+    removeCardCompletely(card.id);
   }
-  pushAction("updateList", {
-    list: { id: list.id, name: list.name },
-    old: { closed: false },
-    board: { id: state.board.id, name: state.board.name }
-  });
+  state.board.lists = (state.board.lists || []).filter((candidate) => candidate.id !== listId);
+  if (state.editingLaneTitleId === listId) cancelLaneTitleEdit(false);
   queueSave("Lane deleted");
   render();
 }
@@ -2702,10 +2697,10 @@ function commitLaneTitleEdit(listId) {
   renderBoard();
 }
 
-function cancelLaneTitleEdit() {
+function cancelLaneTitleEdit(shouldRender = true) {
   state.editingLaneTitleId = null;
   state.editingLaneTitleValue = "";
-  renderBoard();
+  if (shouldRender) renderBoard();
 }
 
 function startCardTitleEdit(cardId) {
@@ -2986,6 +2981,7 @@ function touchCard(card) {
 }
 
 function pushAction(type, data) {
+  if (type !== "commentCard") return;
   const member = ensureCurrentUserMember();
   state.board.actions.unshift({
     id: createHexId(),
