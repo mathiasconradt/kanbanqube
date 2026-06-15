@@ -10,9 +10,14 @@ const packageIconPath = path.resolve(__dirname, "..", "node_modules", "kanbanqub
 const sourceIconPath = fs.existsSync(repoIconPath) ? repoIconPath : packageIconPath;
 const outputDir = path.resolve(__dirname, "..", "assets", "icons");
 const outputPath = path.join(outputDir, "kanbanqube-icon.icns");
+const sipsPath = "/usr/bin/sips";
 
 if (!fs.existsSync(sourceIconPath)) {
   throw new Error("Could not find icon_flat.png.");
+}
+
+if (!fs.existsSync(sipsPath)) {
+  throw new Error("Could not find /usr/bin/sips.");
 }
 
 fs.mkdirSync(outputDir, { recursive: true });
@@ -21,7 +26,7 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kanbanqube-icon-"));
 const resizedPngPath = path.join(tempDir, "icon_1024.png");
 
 try {
-  childProcess.execFileSync("sips", [
+  childProcess.execFileSync(sipsPath, [
     "-z",
     "1024",
     "1024",
