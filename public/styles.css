@@ -721,6 +721,7 @@ button {
 }
 
 .card {
+  position: relative;
   padding: 0.9rem;
   border-radius: calc(16px * var(--ui-scale));
   background: var(--panel-2);
@@ -750,6 +751,20 @@ button {
   gap: 0.35rem;
   min-height: 8px;
   margin-bottom: 0.8rem;
+}
+
+.card:has(.card-cover.has-cover) .card-label-strip {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.9rem;
+  right: 0.9rem;
+  z-index: 2;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.card:has(.card-cover.has-cover) .card-label {
+  pointer-events: auto;
 }
 
 .card-label {

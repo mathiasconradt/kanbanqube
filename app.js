@@ -47,7 +47,7 @@ function createApp(config) {
     }
     const filePath = path.join(config.uploadsDir, fileName);
     response.type(mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream");
-    response.sendFile(filePath, (error) => {
+    response.sendFile(filePath, { dotfiles: "allow" }, (error) => {
       if (error) next(error);
     });
   });
