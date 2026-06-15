@@ -17,6 +17,7 @@
         </div>
 
         <label class="search-shell" for="searchInput">
+          <span class="sr-only">Search cards</span>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0-2a8.5 8.5 0 1 0 5.31 15.13l4.03 4.04 1.41-1.41-4.04-4.03A8.5 8.5 0 0 0 10.5 2Z"/>
           </svg>
@@ -38,7 +39,7 @@
         <div>
           <div class="board-title-shell">
             <h1 id="boardTitle">KanbanQube Board</h1>
-            <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" hidden />
+            <input id="boardTitleInlineInput" class="inline-title-input board-title-inline-input" type="text" maxlength="200" aria-label="Board title" hidden />
           </div>
         </div>
         <button id="saveStatus" class="save-status-button" type="button">Loading board…</button>
@@ -52,7 +53,7 @@
         <header class="modal-header">
           <div>
             <p class="modal-label">Card details</p>
-            <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" />
+            <input id="cardTitleInput" class="title-input" type="text" maxlength="200" placeholder="Task" aria-label="Card title" />
           </div>
           <button id="closeCardButton" type="button" class="icon-button" aria-label="Close card dialog">✕</button>
         </header>
@@ -70,7 +71,7 @@
                 <button id="editDescriptionButton" class="ghost-button" type="button">Edit</button>
               </div>
               <div id="cardDescriptionDisplay" class="description-display"></div>
-              <textarea id="cardDescriptionInput" class="description-editor" rows="8" placeholder="Add a description" hidden></textarea>
+              <textarea id="cardDescriptionInput" class="description-editor" rows="8" placeholder="Add a description" aria-label="Card description" hidden></textarea>
             </section>
 
             <section class="attachments-panel">
@@ -78,7 +79,7 @@
                 <h2>Attachments</h2>
                 <button id="addAttachmentButton" class="ghost-button" type="button">Add files</button>
               </div>
-              <input id="attachmentInput" type="file" multiple hidden />
+              <input id="attachmentInput" type="file" multiple aria-label="Attachment files" hidden />
               <div id="attachmentDropZone" class="attachment-drop-zone">Drop files here</div>
               <div id="attachmentsContainer" class="attachments-list"></div>
             </section>
@@ -131,7 +132,7 @@
                 <h2>Activity</h2>
               </div>
               <div class="comment-composer">
-                <textarea id="commentInput" rows="3" placeholder="Write a comment"></textarea>
+                <textarea id="commentInput" rows="3" placeholder="Write a comment" aria-label="Comment"></textarea>
                 <button id="addCommentButton" class="primary-button" type="button">Add comment</button>
               </div>
               <div id="activityList" class="activity-list"></div>
@@ -176,7 +177,7 @@
             <h3>Import Trello board JSON</h3>
             <p id="settingsImportHelp">Available only while the board has no cards.</p>
           </div>
-          <input id="importBoardInput" type="file" accept="application/json,.json" hidden />
+          <input id="importBoardInput" type="file" accept="application/json,.json" aria-label="Import Trello board JSON" hidden />
           <button id="importBoardButton" type="button" class="ghost-button">Import JSON</button>
         </section>
 
@@ -280,7 +281,7 @@
         <header class="lane-header">
           <div class="lane-title-row">
             <h2 class="lane-title">Lane</h2>
-            <input class="inline-title-input lane-title-inline-input" type="text" maxlength="200" hidden />
+            <input class="inline-title-input lane-title-inline-input" type="text" maxlength="200" aria-label="Lane title" hidden />
             <span class="lane-count"></span>
           </div>
           <div class="lane-actions">
@@ -316,7 +317,7 @@
           <div class="card-title-main">
             <button class="card-done-toggle" type="button" aria-label="Mark task done"></button>
             <h3 class="card-title">Task</h3>
-            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" hidden />
+            <input class="inline-title-input card-title-inline-input" type="text" maxlength="200" placeholder="Task" aria-label="Card title" hidden />
           </div>
           <div class="card-hover-actions">
             <button class="card-archive-button card-hover-action-button" type="button" aria-label="Archive card" data-tooltip="Archive">

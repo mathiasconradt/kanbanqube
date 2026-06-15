@@ -19,10 +19,10 @@ See the [full feature list](#features) below. Uploaded files are stored in an `u
 
 - [Features](#features)
 - [Requirements](#requirements)
+- [Quick Start](#quick-start)
 - [Run With npx](#run-with-npx)
-- [Install](#install)
-- [Desktop App](#desktop-app)
-- [Homebrew](#homebrew)
+- [Install With Homebrew](#install-with-homebrew)
+- [Global npm Install](#global-npm-install)
 - [Run On macOS Login](#run-on-macos-login)
 - [Vaults](#vaults)
 - [Board Workflow](#board-workflow)
@@ -67,9 +67,33 @@ See the [full feature list](#features) below. Uploaded files are stored in an `u
 - Git, if you want repository sync
 - A folder to use as your board vault
 
+## Quick Start
+
+Choose one mode:
+
+| Mode | npx | Homebrew |
+| --- | --- | --- |
+| Lightweight browser/server | `npx kanbanqube` then open `http://localhost:3888` | `brew tap mathiasconradt/kanbanqube`, `brew install kanbanqube`, `kanbanqube`, then open `http://localhost:3888` |
+| Desktop window | `npx kanbanqube-desktop` | `brew tap mathiasconradt/kanbanqube`, `brew install --cask kanbanqube-desktop`, then open `KanbanQube.app` |
+
+Both modes use the same default vault folder:
+
+```text
+macOS/Linux: ~/.kanbanqube
+Windows: C:\Users\<you>\.kanbanqube
+```
+
+Pass a vault path only if you want to use a different folder:
+
+```sh
+npx kanbanqube /path/to/your/vault
+npx kanbanqube-desktop /path/to/your/vault
+kanbanqube /path/to/your/vault
+```
+
 ## Run With npx
 
-Start KanbanQube with the default vault:
+Lightweight browser/server mode:
 
 ```sh
 npx kanbanqube
@@ -81,7 +105,13 @@ Then open:
 http://localhost:3888
 ```
 
-By default, KanbanQube uses a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
+Desktop window mode:
+
+```sh
+npx kanbanqube-desktop
+```
+
+By default, both commands use a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
 
 ```text
 macOS/Linux: ~/.kanbanqube
@@ -106,49 +136,13 @@ Custom port plus custom vault:
 PORT=4000 npx kanbanqube /path/to/your/vault
 ```
 
-## Install
-
-Global install:
-
-```sh
-npm install -g kanbanqube
-kanbanqube
-```
-
-Custom vault:
-
-```sh
-kanbanqube /path/to/your/vault
-```
-
-Local development install from this repository:
-
-```sh
-npm install
-npm start
-```
-
-## Desktop App
-
-KanbanQube also has an optional desktop wrapper. It uses Electron, starts the local KanbanQube server in the background, and opens the board in a desktop window.
-
-Run it without cloning the repository:
-
-```sh
-npx kanbanqube-desktop
-```
-
-Custom vault:
-
-```sh
-npx kanbanqube-desktop /path/to/your/vault
-```
-
 The desktop package depends on the normal `kanbanqube` package and downloads Electron, so it is much larger than the lightweight browser/server package. Use `npx kanbanqube` if you prefer the smallest install.
 
-## Homebrew
+## Install With Homebrew
 
-Install from the project tap:
+Homebrew supports both modes from the same tap.
+
+Lightweight browser/server mode:
 
 ```sh
 brew tap mathiasconradt/kanbanqube
@@ -156,16 +150,54 @@ brew install kanbanqube
 kanbanqube
 ```
 
+Then open:
+
+```text
+http://localhost:3888
+```
+
 Custom vault:
 
 ```sh
 kanbanqube /path/to/your/vault
 ```
 
-KanbanQube currently installs as a Homebrew formula for the Node.js command-line server, not as a macOS app cask. If a future app cask or manual macOS app zip is added, the cask should remove the macOS quarantine attribute during install. If you download an app release zip manually and macOS says the app is damaged, run:
+Desktop window mode:
+
+```sh
+brew tap mathiasconradt/kanbanqube
+brew install --cask kanbanqube-desktop
+```
+
+Then open `KanbanQube.app` from `/Applications` or Launchpad.
+
+The cask removes the macOS quarantine attribute during install. If you download the app release zip manually and macOS says the app is damaged, run:
 
 ```sh
 xattr -cr "/Applications/KanbanQube.app"
+```
+
+## Global npm Install
+
+Install the lightweight browser/server command globally:
+
+```sh
+npm install -g kanbanqube
+kanbanqube
+```
+
+Install the desktop command globally:
+
+```sh
+npm install -g kanbanqube-desktop
+kanbanqube-desktop
+```
+
+Local development install from this repository:
+
+```sh
+npm install
+npm start
 ```
 
 ## Run On macOS Login
@@ -383,7 +415,13 @@ Board view shortcuts are ignored while typing in inputs or while a dialog is ope
 
 ## Development
 
-Start the app from the repository with the default `~/.kanbanqube` vault:
+Install repository dependencies:
+
+```sh
+npm install
+```
+
+Start the lightweight browser/server app from the repository with the default `~/.kanbanqube` vault:
 
 ```sh
 npm start
@@ -408,30 +446,67 @@ npm install --prefix desktop
 npm run desktop
 ```
 
+Run desktop checks:
+
+```sh
+npm test --prefix desktop
+```
+
+Package the desktop app locally on macOS:
+
+```sh
+npm run package:mac --prefix desktop
+```
+
 Main files:
 
 - `server.js` - HTTP server, vault storage, upload handling, Git sync
+- `desktop/main.js` - Electron desktop wrapper
+- `desktop/package.json` - separate `kanbanqube-desktop` npm package
+- `Casks/kanbanqube-desktop.rb` - Homebrew cask for the packaged macOS app
 - `public/app.js` - board UI behavior
 - `public/styles.css` - app styling
 - `public/index.html` - static app shell
 
 ## Build
 
-KanbanQube has no frontend build step. The app is plain Node.js plus static browser assets.
+KanbanQube has no frontend build step. The lightweight app is plain Node.js plus static browser assets. The desktop package is an Electron wrapper that starts the same local server and opens it in a desktop window.
 
-Validate the server and browser JavaScript:
+Validate the lightweight browser/server package:
 
 ```sh
 npm test
 ```
 
-Package managers can install it directly because `package.json` exposes the `kanbanqube` executable through the `bin` field.
+Validate the desktop package:
+
+```sh
+npm test --prefix desktop
+```
+
+Dry-run package contents:
+
+```sh
+npm pack --dry-run
+npm pack --dry-run ./desktop
+```
+
+Package managers can install the lightweight app because root `package.json` exposes the `kanbanqube` executable through the `bin` field. The desktop package has its own `desktop/package.json` and exposes the `kanbanqube-desktop` executable.
+
+The Homebrew cask build packages the Electron app for both Apple Silicon and Intel macOS:
+
+```sh
+npm run package:mac --prefix desktop
+```
 
 ## Release Automation
 
-KanbanQube is prepared for npm and Homebrew releases.
+KanbanQube is prepared for npm and Homebrew releases. The release publishes two npm packages and two Homebrew install options:
 
-For `npx`, the browser/server package is published to npm as `kanbanqube` under the npm account `mathiasconradt`. The optional Electron desktop package is published as `kanbanqube-desktop`.
+- `kanbanqube` - lightweight browser/server command
+- `kanbanqube-desktop` - optional Electron desktop command
+- `Formula/kanbanqube.rb` - Homebrew formula for the lightweight command
+- `Casks/kanbanqube-desktop.rb` - Homebrew cask for the packaged macOS app
 
 Required GitHub secrets:
 
@@ -441,9 +516,15 @@ Release flow:
 
 1. A non-bot push to `main` runs the version bump workflow.
 2. The workflow bumps the patch version in `package.json` and `package-lock.json`.
-3. It updates `desktop/package.json`, keeps the desktop package dependency pinned to the same `kanbanqube` version, updates the Homebrew formula version, and pushes a matching `vX.Y.Z` tag.
+3. It updates `desktop/package.json`, keeps `kanbanqube-desktop` pinned to the same `kanbanqube` version, updates the Homebrew formula and cask versions, and pushes a matching `vX.Y.Z` tag.
 4. The release workflow runs for that tag.
-5. It runs tests, publishes both npm packages, creates the npm tarball release asset, and updates the Homebrew formula SHA on `main`.
+5. It runs root checks and desktop checks.
+6. It publishes `kanbanqube` to npm.
+7. It publishes `kanbanqube-desktop` to npm.
+8. It creates the GitHub release asset from the lightweight package tarball.
+9. It builds macOS desktop app zips for Apple Silicon and Intel.
+10. It uploads those zips to the GitHub release.
+11. It updates the Homebrew formula SHA on `main`.
 
 After release, users can run:
 
@@ -452,6 +533,7 @@ npx kanbanqube
 npx kanbanqube-desktop
 brew tap mathiasconradt/kanbanqube
 brew install kanbanqube
+brew install --cask kanbanqube-desktop
 ```
 
 ## Star History

@@ -108,3 +108,66 @@ jobs:
           git add Formula/kanbanqube.rb
           git commit -m "chore: update Homebrew formula for ${version}"
           git push origin HEAD:main
+
+  desktop-cask:
+    name: Build macOS desktop cask
+    needs: release
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify package version matches tag
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          version="$(node -p "require('./desktop/package.json').version")"
+          if [ "v${version}" != "${RELEASE_TAG}" ]; then
+            echo "desktop/package.json version ${version} does not match tag ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          echo "RELEASE_VERSION=${version}" >> "$GITHUB_ENV"
+
+      - name: Install desktop dependencies
+        run: npm install --prefix desktop
+
+      - name: Package macOS app
+        run: npm run package:mac --prefix desktop
+
+      - name: Create Homebrew cask zips
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent desktop/KanbanQube-darwin-arm64/KanbanQube.app KanbanQube-macOS-arm64.zip
+          ditto -c -k --sequesterRsrc --keepParent desktop/KanbanQube-darwin-x64/KanbanQube.app KanbanQube-macOS-x64.zip
+
+      - name: Publish desktop app release assets
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}
+          files: |
+            KanbanQube-macOS-arm64.zip
+            KanbanQube-macOS-x64.zip
+
+      - name: Update Homebrew desktop cask on main
+        run: |
+          git fetch origin main
+          git checkout main
+          version="${{ env.RELEASE_VERSION }}"
+          ruby -0pi -e "gsub(/version \"[^\"]+\"/, 'version \"' + '${version}' + '\"')" Casks/kanbanqube-desktop.rb
+          if git diff --quiet Casks/kanbanqube-desktop.rb; then
+            echo "Cask already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/kanbanqube-desktop.rb
+          git commit -m "chore: update Homebrew desktop cask for ${version}"
+          git push origin HEAD:main
