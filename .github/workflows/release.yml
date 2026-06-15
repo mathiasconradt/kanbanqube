@@ -9,14 +9,13 @@ on:
         description: "Tag to release, for example v1.0.1"
         required: true
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   release:
     name: Publish npm packages and Homebrew formula
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -113,6 +112,8 @@ jobs:
     name: Build macOS desktop cask
     needs: release
     runs-on: macos-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
