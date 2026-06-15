@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   release:
-    name: Publish npm package and Homebrew formula
+    name: Publish npm packages and Homebrew formula
     runs-on: ubuntu-latest
 
     steps:
@@ -41,8 +41,18 @@ jobs:
           RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           version="$(node -p "require('./package.json').version")"
+          desktop_version="$(node -p "require('./desktop/package.json').version")"
+          desktop_dependency="$(node -p "require('./desktop/package.json').dependencies.kanbanqube")"
           if [ "v${version}" != "${RELEASE_TAG}" ]; then
             echo "package.json version ${version} does not match tag ${RELEASE_TAG}" >&2
+            exit 1
+          fi
+          if [ "${desktop_version}" != "${version}" ]; then
+            echo "desktop/package.json version ${desktop_version} does not match ${version}" >&2
+            exit 1
+          fi
+          if [ "${desktop_dependency}" != "${version}" ]; then
+            echo "kanbanqube-desktop depends on kanbanqube ${desktop_dependency}, expected ${version}" >&2
             exit 1
           fi
           echo "RELEASE_VERSION=${version}" >> "$GITHUB_ENV"
@@ -53,8 +63,16 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Publish to npm
+      - name: Publish server package to npm
         run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Run desktop package checks
+        run: npm test --prefix desktop
+
+      - name: Publish desktop package to npm
+        run: npm publish ./desktop --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

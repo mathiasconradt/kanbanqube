@@ -21,6 +21,7 @@ See the [full feature list](#features) below. Uploaded files are stored in an `u
 - [Requirements](#requirements)
 - [Run With npx](#run-with-npx)
 - [Install](#install)
+- [Desktop App](#desktop-app)
 - [Homebrew](#homebrew)
 - [Run On macOS Login](#run-on-macos-login)
 - [Vaults](#vaults)
@@ -58,6 +59,7 @@ See the [full feature list](#features) below. Uploaded files are stored in an `u
 - Empty-board demo import
 - Import from Trello board export (JSON) into an empty board
 - Optional macOS LaunchAgent background startup
+- Optional Electron desktop window via separate `kanbanqube-desktop` package
 
 ## Requirements
 
@@ -125,6 +127,24 @@ Local development install from this repository:
 npm install
 npm start
 ```
+
+## Desktop App
+
+KanbanQube also has an optional desktop wrapper. It uses Electron, starts the local KanbanQube server in the background, and opens the board in a desktop window.
+
+Run it without cloning the repository:
+
+```sh
+npx kanbanqube-desktop
+```
+
+Custom vault:
+
+```sh
+npx kanbanqube-desktop /path/to/your/vault
+```
+
+The desktop package depends on the normal `kanbanqube` package and downloads Electron, so it is much larger than the lightweight browser/server package. Use `npx kanbanqube` if you prefer the smallest install.
 
 ## Homebrew
 
@@ -381,6 +401,13 @@ Run checks:
 npm test
 ```
 
+Run the desktop wrapper during local development:
+
+```sh
+npm install --prefix desktop
+npm run desktop
+```
+
 Main files:
 
 - `server.js` - HTTP server, vault storage, upload handling, Git sync
@@ -404,25 +431,27 @@ Package managers can install it directly because `package.json` exposes the `kan
 
 KanbanQube is prepared for npm and Homebrew releases.
 
-For `npx`, the package is published to npm as `kanbanqube` under the npm account `mathiasconradt`. The package exposes the `kanbanqube` executable through `package.json`.
+For `npx`, the browser/server package is published to npm as `kanbanqube` under the npm account `mathiasconradt`. The optional Electron desktop package is published as `kanbanqube-desktop`.
 
 Required GitHub secrets:
 
-- `NPM_TOKEN` - npm automation token for publishing `kanbanqube`
+- `NPM_TOKEN` - npm automation token for publishing `kanbanqube` and `kanbanqube-desktop`
 
 Release flow:
 
 1. A non-bot push to `main` runs the version bump workflow.
 2. The workflow bumps the patch version in `package.json` and `package-lock.json`.
-3. It updates the Homebrew formula version and pushes a matching `vX.Y.Z` tag.
+3. It updates `desktop/package.json`, keeps the desktop package dependency pinned to the same `kanbanqube` version, updates the Homebrew formula version, and pushes a matching `vX.Y.Z` tag.
 4. The release workflow runs for that tag.
-5. It runs tests, publishes to npm, creates the npm tarball release asset, and updates the Homebrew formula SHA on `main`.
+5. It runs tests, publishes both npm packages, creates the npm tarball release asset, and updates the Homebrew formula SHA on `main`.
 
 After release, users can run:
 
 ```sh
-npx kanbanqube /path/to/your/vault
-brew install mathiasconradt/kanbanqube/kanbanqube
+npx kanbanqube
+npx kanbanqube-desktop
+brew tap mathiasconradt/kanbanqube
+brew install kanbanqube
 ```
 
 ## Star History

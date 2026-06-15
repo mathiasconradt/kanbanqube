@@ -75,7 +75,11 @@ function safeUploadFileName(value) {
   if (!relativePath || relativePath.includes("\0") || relativePath.includes("/") || relativePath.includes("\\")) {
     throw new Error("Invalid upload path.");
   }
-  return path.basename(relativePath);
+  const fileName = path.basename(relativePath);
+  if (fileName !== relativePath || fileName === "." || fileName === "..") {
+    throw new Error("Invalid upload path.");
+  }
+  return fileName;
 }
 
 function isUploadReferenced(board, storedName) {

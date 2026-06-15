@@ -5,14 +5,10 @@ const USER_EMAIL_STORAGE_KEY = "kanbanqube.userEmail";
 const SHOW_CARD_DESCRIPTIONS_STORAGE_KEY = "kanbanqube.showCardDescriptions";
 const INLINE_CARD_TITLE_EDIT_STORAGE_KEY = "kanbanqube.inlineCardTitleEdit";
 const GIT_SYNC_IN_BACKGROUND_STORAGE_KEY = "kanbanqube.gitSyncInBackground";
-const ICON_STYLE_STORAGE_KEY = "kanbanqube.iconStyle";
 const LANE_WIDTH_STORAGE_KEY = "kanbanqube.laneWidth";
 const LANE_DEFAULT_WIDTH = 270;
 const LANE_MAX_WIDTH = LANE_DEFAULT_WIDTH * 2;
-const ICON_PATHS = {
-  "3d": "/icon_3d.png",
-  flat: "/icon_flat.png"
-};
+const APP_ICON_PATH = "/icon_flat.png";
 const DEMO_BOARD_PATH = "/demo_board.json";
 const SYNC_TIMESTAMP_FORMAT = {
   month: "short",
@@ -33,7 +29,6 @@ const state = {
   showCardDescriptions: localStorage.getItem(SHOW_CARD_DESCRIPTIONS_STORAGE_KEY) === "true",
   inlineCardTitleEdit: localStorage.getItem(INLINE_CARD_TITLE_EDIT_STORAGE_KEY) === "true",
   gitSyncInBackground: localStorage.getItem(GIT_SYNC_IN_BACKGROUND_STORAGE_KEY) === "true",
-  iconStyle: localStorage.getItem(ICON_STYLE_STORAGE_KEY) === "flat" ? "flat" : "3d",
   searchTerm: "",
   labelSearchTerm: "",
   labelEditorOpen: false,
@@ -115,7 +110,6 @@ const deleteCardButton = document.getElementById("deleteCardButton");
 const closeCardButton = document.getElementById("closeCardButton");
 
 const settingsDialog = document.getElementById("settingsDialog");
-const settingsIconStyleInputs = [...document.querySelectorAll("input[name=\"settingsIconStyle\"]")];
 const settingsShowCardDescriptions = document.getElementById("settingsShowCardDescriptions");
 const settingsInlineCardTitleEdit = document.getElementById("settingsInlineCardTitleEdit");
 const settingsGitSyncInBackground = document.getElementById("settingsGitSyncInBackground");
@@ -403,9 +397,8 @@ function closeCardDialogOnBackdropClick(event) {
 }
 
 function applyIconStyle() {
-  const path = ICON_PATHS[state.iconStyle] || ICON_PATHS["3d"];
-  brandIcon.src = path;
-  faviconLink.href = path;
+  brandIcon.src = APP_ICON_PATH;
+  faviconLink.href = APP_ICON_PATH;
 }
 
 function render() {
@@ -2572,18 +2565,10 @@ function unescapeMarkdownText(text) {
 }
 
 function saveSettings() {
-  const nextIconStyle = settingsIconStyleInputs.find((input) => input.checked)?.value === "flat" ? "flat" : "3d";
   const nextShowCardDescriptions = settingsShowCardDescriptions.checked;
   const nextInlineCardTitleEdit = settingsInlineCardTitleEdit.checked;
   const nextGitSyncInBackground = settingsGitSyncInBackground.checked;
   let didPersistLocalSetting = false;
-
-  if (state.iconStyle !== nextIconStyle) {
-    state.iconStyle = nextIconStyle;
-    localStorage.setItem(ICON_STYLE_STORAGE_KEY, nextIconStyle);
-    applyIconStyle();
-    didPersistLocalSetting = true;
-  }
 
   if (state.showCardDescriptions !== nextShowCardDescriptions) {
     state.showCardDescriptions = nextShowCardDescriptions;
@@ -2620,9 +2605,6 @@ function saveSettings() {
 
 function openSettingsDialog() {
   settingsUser.textContent = userMetaText();
-  for (const input of settingsIconStyleInputs) {
-    input.checked = input.value === state.iconStyle;
-  }
   settingsShowCardDescriptions.checked = state.showCardDescriptions;
   settingsInlineCardTitleEdit.checked = state.inlineCardTitleEdit;
   settingsGitSyncInBackground.checked = state.gitSyncInBackground;

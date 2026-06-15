@@ -45,9 +45,8 @@ function createApp(config) {
       next(error);
       return;
     }
-    const filePath = path.join(config.uploadsDir, fileName);
-    response.type(mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream");
-    response.sendFile(filePath, { dotfiles: "allow" }, (error) => {
+    response.type(mimeTypes[path.extname(fileName).toLowerCase()] || "application/octet-stream");
+    response.sendFile(fileName, { dotfiles: "allow", root: config.uploadsDir }, (error) => {
       if (error) next(error);
     });
   });

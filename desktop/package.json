@@ -1,0 +1,48 @@
+{
+  "name": "kanbanqube-desktop",
+  "productName": "KanbanQube",
+  "version": "1.0.23",
+  "description": "Desktop wrapper for KanbanQube",
+  "license": "Apache-2.0",
+  "author": "Mathias Conradt",
+  "homepage": "https://github.com/mathiasconradt/kanbanqube#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathiasconradt/kanbanqube.git",
+    "directory": "desktop"
+  },
+  "bugs": {
+    "url": "https://github.com/mathiasconradt/kanbanqube/issues"
+  },
+  "keywords": [
+    "kanban",
+    "board",
+    "desktop",
+    "electron",
+    "local-first"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "main.js",
+    "README.md",
+    "package.json"
+  ],
+  "main": "main.js",
+  "bin": {
+    "kanbanqube-desktop": "main.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --check main.js",
+    "prepublishOnly": "npm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "electron": "^42.4.0",
+    "kanbanqube": "1.0.23"
+  }
+}
