@@ -2146,51 +2146,56 @@ function openCard(cardId) {
 }
 
 function handleBoardKeyboardNavigation(event) {
-  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "c", "C", "m", "M"].includes(event.key) && !/^[1-9]$/.test(event.key)) return;
+  if (!isBoardShortcutKey(event.key)) return;
   if (isTypingTarget(event.target) || document.querySelector("dialog[open]")) return;
-
-  if (event.key === "Enter") {
-    if (!state.keyboardCardId || !visibleCardById(state.keyboardCardId)) return;
-    event.preventDefault();
-    openCard(state.keyboardCardId);
-    return;
-  }
-
-  if (event.key === " ") {
-    const card = keyboardSelectedVisibleCard();
-    if (!card) return;
-    event.preventDefault();
-    toggleCardDone(card);
-    return;
-  }
-
-  if (event.key === "c" || event.key === "C") {
-    const card = keyboardSelectedVisibleCard();
-    if (!card) return;
-    event.preventDefault();
-    state.keyboardCardId = null;
-    archiveCard(card, { force: true });
-    return;
-  }
-
-  if (event.key === "m" || event.key === "M") {
-    const card = keyboardSelectedVisibleCard();
-    if (!card) return;
-    event.preventDefault();
-    assignCurrentUserToCard(card);
-    return;
-  }
-
-  if (/^[1-9]$/.test(event.key)) {
-    const card = keyboardSelectedVisibleCard();
-    if (!card) return;
-    event.preventDefault();
-    toggleKeyboardLabel(card, Number(event.key) - 1);
-    return;
-  }
+  if (handleSelectedCardShortcut(event)) return;
 
   event.preventDefault();
   moveKeyboardCardSelection(event.key);
+}
+
+function isBoardShortcutKey(key) {
+  return ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "c", "C", "m", "M"].includes(key)
+    || /^[1-9]$/.test(key);
+}
+
+function handleSelectedCardShortcut(event) {
+  if (event.key === "Enter") {
+    if (!state.keyboardCardId || !visibleCardById(state.keyboardCardId)) return true;
+    event.preventDefault();
+    openCard(state.keyboardCardId);
+    return true;
+  }
+
+  const card = keyboardSelectedVisibleCard();
+  if (!card) return false;
+
+  if (event.key === " ") {
+    event.preventDefault();
+    toggleCardDone(card);
+    return true;
+  }
+
+  if (event.key === "c" || event.key === "C") {
+    event.preventDefault();
+    state.keyboardCardId = null;
+    archiveCard(card, { force: true });
+    return true;
+  }
+
+  if (event.key === "m" || event.key === "M") {
+    event.preventDefault();
+    assignCurrentUserToCard(card);
+    return true;
+  }
+
+  if (/^[1-9]$/.test(event.key)) {
+    event.preventDefault();
+    toggleKeyboardLabel(card, Number(event.key) - 1);
+    return true;
+  }
+
+  return false;
 }
 
 function isTypingTarget(target) {

@@ -5,6 +5,19 @@ const path = require("node:path");
 const zlib = require("node:zlib");
 
 const iconSize = 1024;
+const icnsRepresentations = [
+  { type: "icp4", size: 16 },
+  { type: "icp5", size: 32 },
+  { type: "icp6", size: 64 },
+  { type: "ic07", size: 128 },
+  { type: "ic08", size: 256 },
+  { type: "ic09", size: 512 },
+  { type: "ic10", size: 1024 },
+  { type: "ic11", size: 32 },
+  { type: "ic12", size: 64 },
+  { type: "ic13", size: 256 },
+  { type: "ic14", size: 512 }
+];
 const resourceIconPath = path.resolve(__dirname, "..", "resources", "kanbanqube_icon_large.png");
 const repoIconPath = path.resolve(__dirname, "..", "..", "archive", "kanbanqube_icon_large.png");
 const packageIconPath = path.resolve(__dirname, "..", "node_modules", "kanbanqube", "public", "icon_flat.png");
@@ -20,17 +33,51 @@ if (!sourceIconPath) {
 fs.mkdirSync(outputDir, { recursive: true });
 
 const source = readPng(fs.readFileSync(sourceIconPath));
-const canvas = Buffer.alloc(iconSize * iconSize * 4);
-const offsetX = Math.floor((iconSize - source.width) / 2);
-const offsetY = Math.floor((iconSize - source.height) / 2);
+const canvas = normalizeIconCanvas(source);
+const entries = icnsRepresentations.map(({ type, size }) => ({
+  type,
+  png: writePng(size, size, resizeRgba(canvas, iconSize, iconSize, size, size))
+}));
 
-for (let y = 0; y < source.height; y += 1) {
-  const sourceStart = y * source.width * 4;
-  const targetStart = ((offsetY + y) * iconSize + offsetX) * 4;
-  source.rgba.copy(canvas, targetStart, sourceStart, sourceStart + source.width * 4);
+writeIcns(entries, outputPath);
+
+function normalizeIconCanvas(source) {
+  const canvas = Buffer.alloc(iconSize * iconSize * 4);
+  const scale = Math.min(iconSize / source.width, iconSize / source.height, 1);
+  const targetWidth = Math.max(1, Math.round(source.width * scale));
+  const targetHeight = Math.max(1, Math.round(source.height * scale));
+  const resized = scale === 1
+    ? source.rgba
+    : resizeRgba(source.rgba, source.width, source.height, targetWidth, targetHeight);
+  const offsetX = Math.floor((iconSize - targetWidth) / 2);
+  const offsetY = Math.floor((iconSize - targetHeight) / 2);
+
+  for (let y = 0; y < targetHeight; y += 1) {
+    const sourceStart = y * targetWidth * 4;
+    const targetStart = ((offsetY + y) * iconSize + offsetX) * 4;
+    resized.copy(canvas, targetStart, sourceStart, sourceStart + targetWidth * 4);
+  }
+
+  return canvas;
 }
 
-writeIcns(writePng(iconSize, iconSize, canvas), outputPath);
+function resizeRgba(source, sourceWidth, sourceHeight, targetWidth, targetHeight) {
+  const target = Buffer.alloc(targetWidth * targetHeight * 4);
+  const xRatio = sourceWidth / targetWidth;
+  const yRatio = sourceHeight / targetHeight;
+
+  for (let y = 0; y < targetHeight; y += 1) {
+    const sourceY = Math.min(sourceHeight - 1, Math.floor((y + 0.5) * yRatio));
+    for (let x = 0; x < targetWidth; x += 1) {
+      const sourceX = Math.min(sourceWidth - 1, Math.floor((x + 0.5) * xRatio));
+      const sourceIndex = (sourceY * sourceWidth + sourceX) * 4;
+      const targetIndex = (y * targetWidth + x) * 4;
+      source.copy(target, targetIndex, sourceIndex, sourceIndex + 4);
+    }
+  }
+
+  return target;
+}
 
 function readPng(buffer) {
   const signature = buffer.subarray(0, 8).toString("hex");
@@ -221,16 +268,21 @@ function createCrcTable() {
   });
 }
 
-function writeIcns(png, filePath) {
-  const entrySize = 8 + png.length;
-  const totalSize = 8 + entrySize;
+function writeIcns(entries, filePath) {
+  const entrySizeSum = entries.reduce((sum, entry) => sum + 8 + entry.png.length, 0);
+  const totalSize = 8 + entrySizeSum;
   const icon = Buffer.alloc(totalSize);
+  let offset = 8;
 
   icon.write("icns", 0, "ascii");
   icon.writeUInt32BE(totalSize, 4);
-  icon.write("ic10", 8, "ascii");
-  icon.writeUInt32BE(entrySize, 12);
-  png.copy(icon, 16);
+  for (const entry of entries) {
+    const entrySize = 8 + entry.png.length;
+    icon.write(entry.type, offset, "ascii");
+    icon.writeUInt32BE(entrySize, offset + 4);
+    entry.png.copy(icon, offset + 8);
+    offset += entrySize;
+  }
 
   fs.writeFileSync(filePath, icon);
 }
