@@ -5,15 +5,16 @@ const path = require("node:path");
 const zlib = require("node:zlib");
 
 const iconSize = 1024;
-const repoIconPath = path.resolve(__dirname, "..", "..", "public", "icon_flat.png");
+const resourceIconPath = path.resolve(__dirname, "..", "resources", "kanbanqube_icon_large.png");
+const repoIconPath = path.resolve(__dirname, "..", "..", "archive", "kanbanqube_icon_large.png");
 const packageIconPath = path.resolve(__dirname, "..", "node_modules", "kanbanqube", "public", "icon_flat.png");
-const sourceIconPath = fs.existsSync(repoIconPath) ? repoIconPath : packageIconPath;
+const sourceIconPath = [resourceIconPath, repoIconPath, packageIconPath].find((candidate) => fs.existsSync(candidate));
 const outputDir = path.resolve(__dirname, "..", "assets", "icons");
 const outputPath = path.join(outputDir, "kanbanqube-icon.icns");
 const crcTable = createCrcTable();
 
-if (!fs.existsSync(sourceIconPath)) {
-  throw new Error("Could not find icon_flat.png.");
+if (!sourceIconPath) {
+  throw new Error("Could not find KanbanQube icon PNG.");
 }
 
 fs.mkdirSync(outputDir, { recursive: true });

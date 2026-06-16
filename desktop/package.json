@@ -27,6 +27,7 @@
   "files": [
     "cli.js",
     "main.js",
+    "resources/",
     "scripts/",
     "README.md",
     "package.json"

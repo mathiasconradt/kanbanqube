@@ -2,13 +2,16 @@
 "use strict";
 
 const http = require("node:http");
+const fs = require("node:fs");
 const path = require("node:path");
-const { app: electronApp, BrowserWindow, Menu, nativeImage } = require("electron");
+const { app: electronApp, BrowserWindow, Menu, nativeImage, shell } = require("electron");
 const { version: PACKAGE_VERSION } = require("./package.json");
 const APP_NAME = "KanbanQube";
+const GITHUB_URL = "https://github.com/mathiasconradt/kanbanqube";
 
 let server;
 let mainWindow;
+let aboutWindow;
 
 electronApp.name = APP_NAME;
 electronApp.setName(APP_NAME);
@@ -18,14 +21,17 @@ electronApp.setAboutPanelOptions({
   copyright: "Copyright © Mathias Conradt"
 });
 
-function buildApplicationMenu() {
+function buildApplicationMenu(appDir) {
   if (process.platform !== "darwin") return;
 
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {
       label: APP_NAME,
       submenu: [
-        { role: "about", label: `About ${APP_NAME}` },
+        {
+          label: `About ${APP_NAME}`,
+          click: () => showAboutWindow(appDir)
+        },
         { type: "separator" },
         { role: "services" },
         { type: "separator" },
@@ -75,8 +81,14 @@ function buildApplicationMenu() {
 }
 
 function loadAppIcon(appDir) {
-  const icon = nativeImage.createFromPath(path.resolve(appDir, "public", "icon_flat.png"));
+  const icon = nativeImage.createFromPath(resolveResourcePath(appDir, "kanbanqube_icon_large.png", "public/icon_flat.png"));
   return icon.isEmpty() ? null : icon;
+}
+
+function resolveResourcePath(appDir, resourceFileName, fallbackRelativePath) {
+  const packagedResourcePath = path.resolve(__dirname, "resources", resourceFileName);
+  if (fs.existsSync(packagedResourcePath)) return packagedResourcePath;
+  return path.resolve(appDir, fallbackRelativePath);
 }
 
 function safeExternalUrl(value) {
@@ -202,6 +214,125 @@ function createMainWindow(url, appDir) {
   mainWindow.loadURL(url);
 }
 
+function showAboutWindow(appDir) {
+  if (aboutWindow && !aboutWindow.isDestroyed()) {
+    aboutWindow.focus();
+    return;
+  }
+
+  const aboutImageUrl = imageDataUrl(resolveResourcePath(appDir, "about.jpg", "public/about.jpg"));
+  const aboutHtml = aboutDocument(aboutImageUrl);
+  aboutWindow = new BrowserWindow({
+    title: `About ${APP_NAME}`,
+    width: 688,
+    height: 384,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    frame: false,
+    parent: mainWindow || undefined,
+    modal: false,
+    backgroundColor: "#10141a",
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  aboutWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(aboutHtml)}`);
+  aboutWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+    if (targetUrl === GITHUB_URL) {
+      shell.openExternal(GITHUB_URL);
+    }
+    return { action: "deny" };
+  });
+  aboutWindow.on("closed", () => {
+    aboutWindow = null;
+  });
+}
+
+function imageDataUrl(filePath) {
+  const image = fs.readFileSync(filePath);
+  return `data:image/jpeg;base64,${image.toString("base64")}`;
+}
+
+function aboutDocument(imageUrl) {
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>About ${APP_NAME}</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #10141a;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .surface {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+      }
+      img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .meta {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 18px 22px 20px;
+        color: white;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72));
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+        pointer-events: auto;
+      }
+      .details {
+        display: block;
+        font-size: 12px;
+        line-height: 1.35;
+        opacity: 0.86;
+      }
+      .repo-link {
+        display: inline-block;
+        margin-top: 5px;
+        color: white;
+        font-size: 12px;
+        line-height: 1.35;
+        opacity: 0.9;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="surface" role="button" aria-label="Close about dialog" id="aboutSurface">
+      <img src="${imageUrl}" alt="" />
+      <span class="meta">
+        <span class="details">${APP_NAME} · Version ${PACKAGE_VERSION} · © Mathias Conradt · Apache 2.0 License</span>
+        <a class="repo-link" href="${GITHUB_URL}" target="_blank" rel="noopener noreferrer" id="repoLink">${GITHUB_URL}</a>
+      </span>
+    </div>
+    <script>
+      document.getElementById("aboutSurface").addEventListener("click", () => window.close());
+      document.getElementById("repoLink").addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+    </script>
+  </body>
+</html>`;
+}
+
 function stopEmbeddedServer() {
   if (server) {
     server.close();
@@ -212,8 +343,8 @@ function stopEmbeddedServer() {
 async function main() {
   try {
     await electronApp.whenReady();
-    buildApplicationMenu();
     const { appDir, url } = await startEmbeddedServer();
+    buildApplicationMenu(appDir);
     createMainWindow(url, appDir);
 
     electronApp.on("activate", () => {
