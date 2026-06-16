@@ -713,6 +713,7 @@ button {
   display: grid;
   gap: 0.7rem;
   padding-right: 0.15rem;
+  min-width: 0;
 }
 
 .lane.is-collapsed .card-list,
@@ -722,6 +723,9 @@ button {
 
 .card {
   position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0.9rem;
   border-radius: calc(16px * var(--ui-scale));
   background: var(--panel-2);
@@ -819,9 +823,12 @@ button {
 }
 
 .card-title {
+  min-width: 0;
   margin: 0 0 0.45rem;
   font-size: 1.05rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .inline-title-input {
@@ -855,6 +862,7 @@ button {
 }
 
 .card-title-inline-input {
+  min-width: 0;
   margin: 0 0 0.45rem;
   font-size: 1.05rem;
   font-weight: 600;
@@ -867,10 +875,11 @@ button {
 }
 
 .card-title-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 0.6rem;
+  min-width: 0;
 }
 
 .card-title-main {
@@ -917,6 +926,7 @@ button {
 
 .card-hover-actions {
   flex: 0 0 auto;
+  min-width: max-content;
   display: flex;
   align-items: center;
   gap: 0.1rem;
@@ -1010,6 +1020,8 @@ button {
 .card-description {
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -1024,6 +1036,7 @@ button {
 .card-footer {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
   gap: 0.55rem 0.7rem;
   margin-top: 0.9rem;
   color: var(--muted);
@@ -1033,6 +1046,8 @@ button {
 
 .card-assignee-list {
   margin-left: auto;
+  min-width: max-content;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -1126,6 +1141,16 @@ button {
   align-items: center;
   gap: 0.28rem;
   line-height: 1;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  overflow-wrap: anywhere;
+}
+
+.badge span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .badge-due-overdue {

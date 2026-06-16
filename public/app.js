@@ -35,6 +35,7 @@ const state = {
   descriptionEditing: false,
   selectedCardId: null,
   keyboardCardId: null,
+  keyboardCardFocusSource: "keyboard",
   saveTimer: null,
   isSaving: false,
   saveMessage: "Loading board…",
@@ -854,6 +855,13 @@ function renderCard(card, options = {}) {
   node.addEventListener("click", () => {
     setKeyboardCard(card.id, true);
     openCard(card.id);
+  });
+  node.addEventListener("mousemove", () => {
+    if (state.keyboardCardId === card.id && state.keyboardCardFocusSource === "mouse") return;
+    setKeyboardCard(card.id, false, "mouse");
+  });
+  node.addEventListener("mouseleave", () => {
+    clearMouseKeyboardCard(card.id);
   });
   node.addEventListener("dragover", (event) => {
     if (!eventHasFiles(event)) return;
@@ -2138,7 +2146,7 @@ function openCard(cardId) {
 }
 
 function handleBoardKeyboardNavigation(event) {
-  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "c", "C"].includes(event.key) && !/^[1-9]$/.test(event.key)) return;
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", " ", "c", "C", "m", "M"].includes(event.key) && !/^[1-9]$/.test(event.key)) return;
   if (isTypingTarget(event.target) || document.querySelector("dialog[open]")) return;
 
   if (event.key === "Enter") {
@@ -2162,6 +2170,14 @@ function handleBoardKeyboardNavigation(event) {
     event.preventDefault();
     state.keyboardCardId = null;
     archiveCard(card, { force: true });
+    return;
+  }
+
+  if (event.key === "m" || event.key === "M") {
+    const card = keyboardSelectedVisibleCard();
+    if (!card) return;
+    event.preventDefault();
+    assignCurrentUserToCard(card);
     return;
   }
 
@@ -2259,19 +2275,63 @@ function toggleKeyboardLabel(card, labelIndex) {
   renderBoard();
 }
 
+function assignCurrentUserToCard(card) {
+  const user = currentAssignableUser();
+  if (!user) return;
+
+  const previousAssignees = Array.isArray(card.kanbanQubeAssignees) ? card.kanbanQubeAssignees : [];
+  toggleCardAssignee(card, user.id, !previousAssignees.includes(user.id));
+}
+
+function currentAssignableUser() {
+  const currentEmail = state.currentUserEmail.trim().toLowerCase();
+  const currentName = state.currentUserName.trim().toLowerCase();
+  return (state.users || []).find((user) => user.isCurrentUser)
+    || (currentEmail ? (state.users || []).find((user) => String(user.email || "").toLowerCase() === currentEmail) : null)
+    || (currentName ? (state.users || []).find((user) => String(user.name || "").toLowerCase() === currentName) : null)
+    || null;
+}
+
 function sortedBoardLabels() {
   return [...(state.board?.labels || [])];
 }
 
-function setKeyboardCard(cardId, shouldRender = true) {
+function setKeyboardCard(cardId, shouldRender = true, focusSource = "keyboard") {
   state.keyboardCardId = cardId;
-  if (shouldRender) renderBoard();
+  state.keyboardCardFocusSource = focusSource;
+  if (shouldRender) {
+    renderBoard();
+  } else {
+    updateKeyboardCardHighlight(cardId);
+  }
+  if (focusSource === "mouse") return;
   requestAnimationFrame(() => {
     document.querySelector(`.card[data-card-id="${cardId}"]`)?.scrollIntoView({
       block: "nearest",
       inline: "nearest"
     });
   });
+}
+
+function clearMouseKeyboardCard(cardId) {
+  if (state.keyboardCardFocusSource !== "mouse" || state.keyboardCardId !== cardId) return;
+  state.keyboardCardId = null;
+  document.querySelectorAll(".card.is-keyboard-selected").forEach((cardNode) => {
+    cardNode.classList.remove("is-keyboard-selected");
+    cardNode.setAttribute("aria-selected", "false");
+  });
+}
+
+function updateKeyboardCardHighlight(cardId) {
+  document.querySelectorAll(".card.is-keyboard-selected").forEach((cardNode) => {
+    cardNode.classList.remove("is-keyboard-selected");
+    cardNode.setAttribute("aria-selected", "false");
+  });
+
+  const selectedCardNode = document.querySelector(`.card[data-card-id="${cardId}"]`);
+  if (!selectedCardNode) return;
+  selectedCardNode.classList.add("is-keyboard-selected");
+  selectedCardNode.setAttribute("aria-selected", "true");
 }
 
 async function deleteSelectedCard() {

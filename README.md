@@ -415,6 +415,7 @@ Board view shortcuts are ignored while typing in inputs or while a dialog is ope
 | Enter | Open selected card details |
 | Space | Toggle selected card done status |
 | c | Archive selected card |
+| m | Assign or unassign current user on selected card |
 | 1-9 | Toggle the matching label by label-list order |
 
 ## Development
