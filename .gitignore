@@ -59,7 +59,10 @@ build/Release
 node_modules/
 jspm_packages/
 desktop/package-lock.json
-desktop/assets/
+desktop/assets/*
+!desktop/assets/icons/
+desktop/assets/icons/*
+!desktop/assets/icons/kanbanqube-icon.icns
 desktop/KanbanQube-darwin-*/
 
 # Snowpack dependency directory (https://snowpack.dev/)
