@@ -39,8 +39,9 @@
   "scripts": {
     "start": "electron .",
     "prepare:mac-icon": "node scripts/create-mac-icon.js",
-    "package:mac": "npm run prepare:mac-icon && electron-packager . KanbanQube --platform=darwin --arch=arm64,x64 --icon=assets/icons/kanbanqube-icon.icns --overwrite --no-asar --app-bundle-id=com.mathiasconradt.kanbanqube --app-category-type=public.app-category.productivity",
-    "test": "node --check cli.js && node --check main.js && node --check scripts/create-mac-icon.js",
+    "fix:mac-bundle-icon": "node scripts/fix-mac-bundle-icon.js",
+    "package:mac": "npm run prepare:mac-icon && electron-packager . KanbanQube --platform=darwin --arch=arm64,x64 --icon=assets/icons/kanbanqube-icon.icns --overwrite --no-asar --app-bundle-id=com.mathiasconradt.kanbanqube --app-category-type=public.app-category.productivity && npm run fix:mac-bundle-icon",
+    "test": "node --check cli.js && node --check main.js && node --check scripts/create-mac-icon.js && node --check scripts/fix-mac-bundle-icon.js",
     "prepublishOnly": "npm test"
   },
   "publishConfig": {
