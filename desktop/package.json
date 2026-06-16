@@ -1,7 +1,7 @@
 {
   "name": "kanbanqube-desktop",
   "productName": "KanbanQube",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Desktop wrapper for KanbanQube",
   "license": "Apache-2.0",
   "author": "Mathias Conradt",
@@ -51,6 +51,6 @@
   },
   "dependencies": {
     "electron": "^42.4.0",
-    "kanbanqube": "1.0.29"
+    "kanbanqube": "1.0.30"
   }
 }
