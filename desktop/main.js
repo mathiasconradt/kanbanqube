@@ -191,6 +191,10 @@ function createMainWindow(url, appDir) {
     }
   });
 
+  if (process.platform === "darwin" && electronApp.dock && appIcon) {
+    electronApp.dock.setIcon(appIcon);
+  }
+
   mainWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
     const externalUrl = safeExternalUrl(targetUrl);
     if (!externalUrl) return { action: "deny" };
