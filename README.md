@@ -73,8 +73,8 @@ Choose one mode:
 
 | Mode | npx | Homebrew |
 | --- | --- | --- |
-| Lightweight browser/server | `npx kanbanqube` then open `http://localhost:3888` | `brew tap mathiasconradt/kanbanqube`, `brew install kanbanqube`, `kanbanqube`, then open `http://localhost:3888` |
-| Desktop window | `npx kanbanqube-desktop` | `brew tap mathiasconradt/kanbanqube`, `brew install --cask kanbanqube-desktop`, then open `KanbanQube.app` |
+| Lightweight browser/server | `npx kanbanqube` then open `http://localhost:3888` | `brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube`, `brew install kanbanqube`, `kanbanqube`, then open `http://localhost:3888` |
+| Desktop window | `npx kanbanqube-desktop` for quick testing only | Recommended: `brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube`, `brew install --cask kanbanqube-desktop`, then open `KanbanQube.app` |
 
 Both modes use the same default vault folder:
 
@@ -111,6 +111,8 @@ Desktop window mode:
 npx kanbanqube-desktop
 ```
 
+Use this mainly for quick testing. On macOS, `npx kanbanqube-desktop` launches Electron directly, so pinning it to the Dock can pin Electron instead of KanbanQube. For normal desktop use, install the Homebrew cask.
+
 By default, both commands use a `.kanbanqube` folder in the current user's home directory. This works across macOS, Linux, and Windows:
 
 ```text
@@ -145,7 +147,7 @@ Homebrew supports both modes from the same tap.
 Lightweight browser/server mode:
 
 ```sh
-brew tap mathiasconradt/kanbanqube
+brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
 brew install kanbanqube
 kanbanqube
 ```
@@ -165,11 +167,13 @@ kanbanqube /path/to/your/vault
 Desktop window mode:
 
 ```sh
-brew tap mathiasconradt/kanbanqube
+brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
 brew install --cask kanbanqube-desktop
 ```
 
 Then open `KanbanQube.app` from `/Applications` or Launchpad.
+
+This is the recommended desktop installation on macOS because it installs a real `KanbanQube.app`. Dock pinning, app identity, reopen behavior, and the app icon work as expected.
 
 The cask removes the macOS quarantine attribute during install. If you download the app release zip manually and macOS says the app is damaged, run:
 
@@ -531,7 +535,7 @@ After release, users can run:
 ```sh
 npx kanbanqube
 npx kanbanqube-desktop
-brew tap mathiasconradt/kanbanqube
+brew tap mathiasconradt/kanbanqube https://github.com/mathiasconradt/kanbanqube
 brew install kanbanqube
 brew install --cask kanbanqube-desktop
 ```
