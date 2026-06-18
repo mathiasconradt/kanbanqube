@@ -128,27 +128,40 @@ function workspaceArgumentFromCli(argv) {
 
 function loadKanbanQube() {
   const moduleRoots = [
-    () => path.dirname(require.resolve("kanbanqube/package.json")),
-    () => path.resolve(__dirname, "..")
+    () => path.resolve(__dirname, ".."),
+    () => path.dirname(require.resolve("kanbanqube/package.json"))
   ];
 
   for (const resolveRoot of moduleRoots) {
     let appDir;
     try {
       appDir = resolveRoot();
+      if (!isKanbanQubeRoot(appDir)) {
+        continue;
+      }
       return {
         appDir,
         createApp: require(path.join(appDir, "app")).createApp,
         createConfig: require(path.join(appDir, "config")).createConfig
       };
     } catch (error) {
-      if (appDir === path.resolve(__dirname, "..")) {
+      if (appDir && isKanbanQubeRoot(appDir)) {
         throw error;
       }
     }
   }
 
   throw new Error("KanbanQube server package not found.");
+}
+
+function isKanbanQubeRoot(appDir) {
+  try {
+    const packagePath = path.join(appDir, "package.json");
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+    return packageJson.name === "kanbanqube";
+  } catch {
+    return false;
+  }
 }
 
 async function startEmbeddedServer() {
