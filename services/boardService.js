@@ -20,7 +20,7 @@ function createBoardService(config) {
   async function seedBoard() {
     try {
       if (await exists(config.boardFilePath, config.workspaceDir)) {
-        const raw = await fs.readFile(safePathInsideRoot(config.boardFilePath, config.workspaceDir), "utf8");
+        const raw = await fs.readFile(safePathInsideRoot(config.boardFilePath, config.workspaceDir), "utf8"); // NOSONAR: board file is constrained to the vault root.
         return normalizer.normalizeBoard(JSON.parse(raw));
       }
     } catch {
@@ -29,14 +29,14 @@ function createBoardService(config) {
 
     try {
       const sampleExportDir = safePathInsideRoot(config.sampleExportDir, config.workspaceDir);
-      const entries = await fs.readdir(sampleExportDir, { withFileTypes: true });
+      const entries = await fs.readdir(sampleExportDir, { withFileTypes: true }); // NOSONAR: sample directory is constrained to the vault root.
       const sample = entries
         .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".json"))
         .sort((left, right) => left.name.localeCompare(right.name))[0];
 
       if (sample) {
         const samplePath = safePathInsideRoot(path.join(sampleExportDir, sample.name), sampleExportDir);
-        const raw = await fs.readFile(samplePath, "utf8");
+        const raw = await fs.readFile(samplePath, "utf8"); // NOSONAR: sample file is constrained to the sample export directory.
         return normalizer.normalizeBoard(JSON.parse(raw));
       }
     } catch {

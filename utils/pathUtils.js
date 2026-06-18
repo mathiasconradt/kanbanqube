@@ -9,9 +9,12 @@ function canonicalWorkspacePath(candidatePath, allowedRoots) {
     throw new Error("Invalid workspace path.");
   }
 
-  fsSync.mkdirSync(resolvedPath, { recursive: true });
-  const canonicalPath = fsSync.realpathSync(resolvedPath);
   const allowed = allowedRoots.map(canonicalDirectory);
+  if (!allowed.some((rootPath) => isPathInside(resolvedPath, rootPath))) {
+    throw new Error("Workspace path must be inside your home directory, current directory, or temporary directory.");
+  }
+  fsSync.mkdirSync(resolvedPath, { recursive: true }); // NOSONAR: resolvedPath is validated against allowed roots above.
+  const canonicalPath = fsSync.realpathSync(resolvedPath); // NOSONAR: resolvedPath is validated against allowed roots above.
   if (!allowed.some((rootPath) => isPathInside(canonicalPath, rootPath))) {
     throw new Error("Workspace path must be inside your home directory, current directory, or temporary directory.");
   }

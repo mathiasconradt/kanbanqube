@@ -22,7 +22,7 @@ function createBoardRepository(config) {
   }
 
   async function writeSplitBoard(board) {
-    await fs.mkdir(safePathInsideRoot(config.boardDir, config.workspaceDir), { recursive: true });
+    await fs.mkdir(safePathInsideRoot(config.boardDir, config.workspaceDir), { recursive: true }); // NOSONAR: path is constrained to the configured vault root.
     const {
       lists,
       labels,
@@ -46,7 +46,7 @@ function createBoardRepository(config) {
     const directory = safePathInsideRoot(path.join(config.boardDir, name), config.boardDir);
     let entries = [];
     try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
+      entries = await fs.readdir(directory, { withFileTypes: true }); // NOSONAR: directory is constrained to the board data root.
     } catch (error) {
       if (error.code === "ENOENT") return [];
       throw error;
@@ -62,7 +62,7 @@ function createBoardRepository(config) {
 
   async function writeJsonCollection(name, items) {
     const directory = safePathInsideRoot(path.join(config.boardDir, name), config.boardDir);
-    await fs.mkdir(directory, { recursive: true });
+    await fs.mkdir(directory, { recursive: true }); // NOSONAR: directory is constrained to the board data root.
     const desiredFiles = new Set();
 
     for (const item of items) {
@@ -76,7 +76,7 @@ function createBoardRepository(config) {
 
     let entries = [];
     try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
+      entries = await fs.readdir(directory, { withFileTypes: true }); // NOSONAR: directory is constrained to the board data root.
     } catch (error) {
       if (error.code === "ENOENT") return;
       throw error;

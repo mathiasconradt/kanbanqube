@@ -10,7 +10,7 @@ function createGitService(config) {
   async function hasGitRepository(rootPath = config.workspaceDir) {
     try {
       const gitPath = safePathInsideRoot(path.join(rootPath, ".git"), config.workspaceDir);
-      const stat = await fs.stat(gitPath);
+      const stat = await fs.stat(gitPath); // NOSONAR: git path is constrained to the configured vault root.
       return stat.isDirectory() || stat.isFile();
     } catch {
       return false;
