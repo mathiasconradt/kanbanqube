@@ -7,6 +7,7 @@ const { createHexId } = require("../utils/idUtils");
 const { createStoredFileName, displayOriginalFileName } = require("../utils/fileNameUtils");
 const { multipartBoundary, parseMultipartBody } = require("../utils/multipart");
 const { readBody } = require("../utils/requestBody");
+const { safePathInsideRoot } = require("../utils/pathUtils");
 const { nonEmptyString } = require("../utils/stringUtils");
 
 function createUploadService(config, boardService) {
@@ -25,14 +26,14 @@ async function saveUploadedFiles(request, config) {
 
   const body = await readBody(request);
   const parts = parseMultipartBody(body, boundary);
-  await fs.mkdir(config.uploadsDir, { recursive: true });
+  await fs.mkdir(safePathInsideRoot(config.uploadsDir, config.workspaceDir), { recursive: true });
 
   const files = [];
   for (const part of parts) {
     if (!part.filename || part.data.length === 0) continue;
     const originalName = displayOriginalFileName(part.filename);
     const storedName = createStoredFileName(originalName);
-    const filePath = path.join(config.uploadsDir, storedName);
+    const filePath = safePathInsideRoot(path.join(config.uploadsDir, storedName), config.uploadsDir);
     await fs.writeFile(filePath, part.data);
     files.push({
       id: createHexId(),
@@ -56,10 +57,7 @@ async function deleteUploadedFile(fileName, config, boardService) {
     return { deleted: false, referenced: true };
   }
 
-  const filePath = path.join(config.uploadsDir, relativePath);
-  if (!filePath.startsWith(config.uploadsDir)) {
-    throw new Error("Invalid upload path.");
-  }
+  const filePath = safePathInsideRoot(path.join(config.uploadsDir, relativePath), config.uploadsDir);
 
   try {
     await fs.unlink(filePath);

@@ -4,11 +4,13 @@ const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
 const path = require("node:path");
 const { spawn, execFile } = require("node:child_process");
+const { safePathInsideRoot } = require("../utils/pathUtils");
 
 function createGitService(config) {
   async function hasGitRepository(rootPath = config.workspaceDir) {
     try {
-      const stat = await fs.stat(path.join(rootPath, ".git"));
+      const gitPath = safePathInsideRoot(path.join(rootPath, ".git"), config.workspaceDir);
+      const stat = await fs.stat(gitPath);
       return stat.isDirectory() || stat.isFile();
     } catch {
       return false;
@@ -72,9 +74,10 @@ function createGitService(config) {
 
   async function runGit(rootPath, args) {
     const gitExecutable = await resolveGitExecutable();
+    const gitRoot = safePathInsideRoot(rootPath, config.workspaceDir);
     return new Promise((resolve) => {
       const child = spawn(gitExecutable, args, {
-        cwd: rootPath,
+        cwd: gitRoot,
         env: {
           HOME: process.env.HOME || "",
           LANG: process.env.LANG || "en_US.UTF-8",

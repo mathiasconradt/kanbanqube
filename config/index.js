@@ -2,12 +2,13 @@
 
 const path = require("node:path");
 const os = require("node:os");
+const { canonicalWorkspacePath, safePathInsideRoot } = require("../utils/pathUtils");
 
 function resolveWorkspaceDirectory(argument) {
-  if (typeof argument === "string" && argument.trim()) {
-    return path.resolve(argument);
-  }
-  return path.join(os.homedir(), ".kanbanqube");
+  const candidatePath = typeof argument === "string" && argument.trim()
+    ? argument
+    : path.join(os.homedir(), ".kanbanqube");
+  return canonicalWorkspacePath(candidatePath, [os.homedir(), process.cwd(), os.tmpdir(), "/tmp", "/private/tmp"]);
 }
 
 function createConfig(options = {}) {
@@ -23,15 +24,15 @@ function createConfig(options = {}) {
     workspaceDir,
     publicDir: path.join(appDir, "public"),
     boardFileName,
-    boardFilePath: path.join(workspaceDir, boardFileName),
+    boardFilePath: safePathInsideRoot(path.join(workspaceDir, boardFileName), workspaceDir),
     demoBoardFileName,
-    demoBoardFilePath: path.join(appDir, demoBoardFileName),
+    demoBoardFilePath: safePathInsideRoot(path.join(appDir, demoBoardFileName), appDir),
     boardDirName,
-    boardDir: path.join(workspaceDir, boardDirName),
-    boardMetaFilePath: path.join(workspaceDir, boardDirName, "meta.json"),
+    boardDir: safePathInsideRoot(path.join(workspaceDir, boardDirName), workspaceDir),
+    boardMetaFilePath: safePathInsideRoot(path.join(workspaceDir, boardDirName, "meta.json"), workspaceDir),
     uploadsDirName,
-    uploadsDir: path.join(workspaceDir, uploadsDirName),
-    sampleExportDir: path.join(workspaceDir, "trello_export"),
+    uploadsDir: safePathInsideRoot(path.join(workspaceDir, uploadsDirName), workspaceDir),
+    sampleExportDir: safePathInsideRoot(path.join(workspaceDir, "trello_export"), workspaceDir),
     port: Number(options.port ?? process.env.PORT ?? 3888),
     gitExecutableCandidates: [
       "/usr/bin/git",

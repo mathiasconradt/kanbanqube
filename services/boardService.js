@@ -3,6 +3,7 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { exists } = require("../utils/fileUtils");
+const { safePathInsideRoot } = require("../utils/pathUtils");
 const { createBoardNormalizer } = require("./boardNormalizer");
 const { createBoardRepository } = require("../models/boardRepository");
 
@@ -11,15 +12,15 @@ function createBoardService(config) {
   const repository = createBoardRepository(config);
 
   async function ensureBoardStorage() {
-    if (await exists(config.boardMetaFilePath)) return;
+    if (await exists(config.boardMetaFilePath, config.workspaceDir)) return;
     const board = await seedBoard();
     await repository.writeSplitBoard(board);
   }
 
   async function seedBoard() {
     try {
-      if (await exists(config.boardFilePath)) {
-        const raw = await fs.readFile(config.boardFilePath, "utf8");
+      if (await exists(config.boardFilePath, config.workspaceDir)) {
+        const raw = await fs.readFile(safePathInsideRoot(config.boardFilePath, config.workspaceDir), "utf8");
         return normalizer.normalizeBoard(JSON.parse(raw));
       }
     } catch {
@@ -27,13 +28,15 @@ function createBoardService(config) {
     }
 
     try {
-      const entries = await fs.readdir(config.sampleExportDir, { withFileTypes: true });
+      const sampleExportDir = safePathInsideRoot(config.sampleExportDir, config.workspaceDir);
+      const entries = await fs.readdir(sampleExportDir, { withFileTypes: true });
       const sample = entries
         .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".json"))
         .sort((left, right) => left.name.localeCompare(right.name))[0];
 
       if (sample) {
-        const raw = await fs.readFile(path.join(config.sampleExportDir, sample.name), "utf8");
+        const samplePath = safePathInsideRoot(path.join(sampleExportDir, sample.name), sampleExportDir);
+        const raw = await fs.readFile(samplePath, "utf8");
         return normalizer.normalizeBoard(JSON.parse(raw));
       }
     } catch {
