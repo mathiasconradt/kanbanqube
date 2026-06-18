@@ -38,7 +38,7 @@ async function writeTextAtomically(filePath, text, rootPath) {
   const safePath = safePathInsideRoot(filePath, rootPath);
   const directory = path.dirname(safePath);
   const tmpPath = safePathInsideRoot(`${safePath}.${process.pid}.${Date.now()}.tmp`, rootPath);
-  await fs.mkdir(directory, { recursive: true });
+  await fs.mkdir(directory, { recursive: true }); // NOSONAR: directory is derived from safePath constrained to the caller-provided root.
   await fs.writeFile(tmpPath, text, "utf8"); // NOSONAR: tmpPath is constrained to the caller-provided root.
   await fs.rename(tmpPath, safePath); // NOSONAR: both paths are constrained to the caller-provided root.
 }
