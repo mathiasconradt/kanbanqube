@@ -8,7 +8,14 @@ function resolveWorkspaceDirectory(argument) {
   const candidatePath = typeof argument === "string" && argument.trim()
     ? argument
     : path.join(os.homedir(), ".kanbanqube");
-  return canonicalWorkspacePath(candidatePath, [os.homedir(), process.cwd(), os.tmpdir(), "/tmp", "/private/tmp"]);
+  return canonicalWorkspacePath(candidatePath, allowedWorkspaceRoots());
+}
+
+function allowedWorkspaceRoots() {
+  const roots = [os.homedir(), process.cwd(), os.tmpdir()];
+  if (process.platform !== "win32") roots.push("/tmp");
+  if (process.platform === "darwin") roots.push("/private/tmp");
+  return roots;
 }
 
 function createConfig(options = {}) {
@@ -51,6 +58,7 @@ function createConfig(options = {}) {
 }
 
 module.exports = {
+  allowedWorkspaceRoots,
   createConfig,
   resolveWorkspaceDirectory
 };
