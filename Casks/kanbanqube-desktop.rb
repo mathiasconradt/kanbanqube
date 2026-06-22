@@ -1,5 +1,5 @@
 cask "kanbanqube-desktop" do
-  version "1.0.39"
+  version "1.0.40"
   sha256 :no_check
 
   on_arm do
