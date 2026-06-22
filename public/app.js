@@ -348,7 +348,9 @@ function wireEvents() {
     touchCard(card);
     queueSave("Card updated");
     renderBoard();
-    renderCardDialog();
+    if (!state.descriptionEditing) {
+      renderDescriptionDisplay(card.desc);
+    }
   });
   cardDueInput.addEventListener("change", updateSelectedCardDueDate);
   cardDuePickerButton.addEventListener("click", openDueDatePicker);
@@ -894,7 +896,7 @@ function renderCardDialog() {
   cardDetailsCover.hidden = !coverUrl;
   cardDetailsCover.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : "";
   removeCoverButton.hidden = !coverUrl;
-  cardDescriptionInput.value = card.desc || "";
+  syncCardDescriptionInputValue(card.desc || "");
   commentInput.value = "";
   renderDescriptionDisplay(card.desc || "");
   cardDescriptionDisplay.hidden = state.descriptionEditing;
@@ -907,6 +909,13 @@ function renderCardDialog() {
   renderAttachments(card);
   renderChecklists(card);
   renderActivity(card);
+}
+
+function syncCardDescriptionInputValue(value) {
+  if (document.activeElement === cardDescriptionInput) return;
+  if (cardDescriptionInput.value !== value) {
+    cardDescriptionInput.value = value;
+  }
 }
 
 function renderBoardCardAssignees(card, footer) {
