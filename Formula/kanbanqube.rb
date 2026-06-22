@@ -3,7 +3,7 @@ class Kanbanqube < Formula
   homepage "https://github.com/mathiasconradt/kanbanqube"
   version "1.0.40"
   url "https://github.com/mathiasconradt/kanbanqube/releases/download/v#{version}/kanbanqube-#{version}.tgz"
-  sha256 "cdebc30a06688123df1a93c44ee44c68bb982930bec93ae6241e22ce56b97a93"
+  sha256 "5e48407d636d3dfbe1ba4282f2ba373fad242a84e3437817f18e8643434a7335"
   license "Apache-2.0"
 
   depends_on "node"
