@@ -103,6 +103,17 @@ function safeExternalUrl(value) {
   return "";
 }
 
+function systemBrowserUrl(value) {
+  try {
+    const parsedUrl = new URL(value);
+    if (parsedUrl.protocol !== "kanbanqube-external:") return "";
+    const targetUrl = parsedUrl.searchParams.get("url") || "";
+    return safeExternalUrl(targetUrl);
+  } catch {
+    return "";
+  }
+}
+
 function printHelp() {
   console.log("KanbanQube Desktop");
   console.log("");
@@ -209,8 +220,12 @@ function createMainWindow(url, appDir) {
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
-    const externalUrl = safeExternalUrl(targetUrl);
-    if (!externalUrl) return { action: "deny" };
+    const externalUrl = systemBrowserUrl(targetUrl);
+    if (externalUrl) {
+      shell.openExternal(externalUrl).catch(() => {});
+      return { action: "deny" };
+    }
+    if (!safeExternalUrl(targetUrl)) return { action: "deny" };
     return {
       action: "allow",
       overrideBrowserWindowOptions: {

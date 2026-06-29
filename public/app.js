@@ -57,6 +57,8 @@ const state = {
   laneWidth: laneWidthFromStorage()
 };
 
+let linkContextMenu = null;
+
 const boardScroller = document.getElementById("boardScroller");
 const aboutButton = document.getElementById("aboutButton");
 const brandIcon = aboutButton.querySelector("img");
@@ -302,6 +304,9 @@ function wireEvents() {
 
   closeCardButton.addEventListener("click", () => cardDialog.close());
   cardDialog.addEventListener("click", closeCardDialogOnBackdropClick);
+  cardDialog.addEventListener("contextmenu", openLinkContextMenu);
+  document.addEventListener("click", closeLinkContextMenu);
+  document.addEventListener("keydown", closeLinkContextMenuOnEscape);
   removeCoverButton.addEventListener("click", removeCoverFromSelectedCard);
   archiveCardButton.addEventListener("click", archiveSelectedCard);
   deleteCardButton.addEventListener("click", deleteSelectedCard);
@@ -1342,11 +1347,16 @@ function renderAttachments(card) {
   }
 
   for (const attachment of attachments) {
-    const row = document.createElement("a");
+    const row = document.createElement("div");
     row.className = "attachment-row";
-    row.href = attachment.url;
-    row.target = "_blank";
-    row.rel = "noopener noreferrer";
+    row.setAttribute("role", "link");
+    row.tabIndex = 0;
+    row.addEventListener("click", () => openAttachment(attachment));
+    row.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openAttachment(attachment);
+    });
 
     const icon = document.createElement("span");
     icon.className = "attachment-icon";
@@ -1363,6 +1373,9 @@ function renderAttachments(card) {
     meta.textContent = formatAttachmentMeta(attachment);
     main.append(meta);
 
+    const actions = document.createElement("span");
+    actions.className = "attachment-actions";
+
     row.append(icon, main);
     if (isImageAttachment(attachment)) {
       const coverButton = document.createElement("button");
@@ -1375,8 +1388,20 @@ function renderAttachments(card) {
         event.stopPropagation();
         setAttachmentAsCover(card.id, attachment.id);
       });
-      row.append(coverButton);
+      actions.append(coverButton);
     }
+    const downloadButton = document.createElement("button");
+    downloadButton.type = "button";
+    downloadButton.className = "icon-button attachment-download-button";
+    downloadButton.setAttribute("aria-label", `Download ${attachment.name || "attachment"}`);
+    downloadButton.append(createIcon("download"));
+    downloadButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      downloadAttachment(attachment);
+    });
+    actions.append(downloadButton);
+
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.className = "icon-button attachment-delete-button";
@@ -1387,9 +1412,32 @@ function renderAttachments(card) {
       event.stopPropagation();
       removeAttachmentFromCard(card.id, attachment.id);
     });
-    row.append(deleteButton);
+    actions.append(deleteButton);
+    row.append(actions);
     attachmentsContainer.append(row);
   }
+}
+
+function downloadAttachment(attachment) {
+  if (!attachment?.url) return;
+  const url = urlForAttachment(attachment);
+  if (!url) return;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = attachment.name || storedUploadFileName(attachment) || "attachment";
+  link.rel = "noopener noreferrer";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+function openAttachment(attachment) {
+  const url = urlForAttachment(attachment);
+  if (url) openInAppWindow(url);
+}
+
+function urlForAttachment(attachment) {
+  return safeHttpUrl(attachment?.url || "");
 }
 
 function renderChecklists(card) {
@@ -2476,6 +2524,100 @@ function appendFormattedText(container, text) {
   }
 }
 
+function openLinkContextMenu(event) {
+  const link = event.target instanceof Element
+    ? event.target.closest(".description-display a[href], .activity-list a[href]")
+    : null;
+  if (!link) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  const url = link.href;
+  if (!url) return;
+
+  closeLinkContextMenu();
+  linkContextMenu = document.createElement("div");
+  linkContextMenu.className = "link-context-menu";
+  linkContextMenu.setAttribute("role", "menu");
+  linkContextMenu.append(
+    createLinkContextMenuButton("Open in system browser", () => openSystemBrowser(url)),
+    createLinkContextMenuButton("Copy link URL", () => copyLinkUrl(url))
+  );
+  cardDialog.append(linkContextMenu);
+  positionLinkContextMenu(linkContextMenu, event.clientX, event.clientY);
+}
+
+function createLinkContextMenuButton(label, action) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.setAttribute("role", "menuitem");
+  button.textContent = label;
+  button.addEventListener("click", () => {
+    closeLinkContextMenu();
+    action();
+  });
+  return button;
+}
+
+function positionLinkContextMenu(menu, x, y) {
+  const margin = 10;
+  const rect = menu.getBoundingClientRect();
+  const left = Math.min(x, window.innerWidth - rect.width - margin);
+  const top = Math.min(y, window.innerHeight - rect.height - margin);
+  menu.style.left = `${Math.max(margin, left)}px`;
+  menu.style.top = `${Math.max(margin, top)}px`;
+}
+
+function closeLinkContextMenu(event) {
+  if (!linkContextMenu) return;
+  if (event?.target instanceof Element && linkContextMenu.contains(event.target)) return;
+  linkContextMenu.remove();
+  linkContextMenu = null;
+}
+
+function closeLinkContextMenuOnEscape(event) {
+  if (event.key === "Escape") {
+    closeLinkContextMenu();
+  }
+}
+
+function openInAppWindow(url) {
+  const safeUrl = safeHttpUrl(url);
+  if (safeUrl) {
+    window.open(safeUrl, "_blank", "noopener,noreferrer");
+  }
+}
+
+function openSystemBrowser(url) {
+  const safeUrl = safeHttpUrl(url);
+  if (!safeUrl) return;
+  if (navigator.userAgent.includes("Electron/")) {
+    window.open(`kanbanqube-external://open?url=${encodeURIComponent(safeUrl)}`, "_blank", "noopener,noreferrer");
+    return;
+  }
+  window.open(safeUrl, "_blank", "noopener,noreferrer");
+}
+
+function safeHttpUrl(url) {
+  try {
+    const parsedUrl = new URL(url, globalThis.location.origin);
+    if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
+      return parsedUrl.toString();
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+async function copyLinkUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+  } catch {
+    setSaveMessage("Could not copy link URL");
+  }
+}
+
 function parseMarkdownHeading(block) {
   const trimmed = block.trim();
   let level = 0;
@@ -3409,6 +3551,7 @@ function createIcon(name) {
     checklist: ["M9 7h11M9 12h11M9 17h11M4 7.2l1.2 1.2L7.5 6M4 12.2l1.2 1.2 2.3-2.4M4 17.2l1.2 1.2 2.3-2.4"],
     attachment: ["M8.5 12.5 14.8 6.2a3 3 0 0 1 4.2 4.2l-7.8 7.8a5 5 0 0 1-7.1-7.1l7.5-7.5"],
     trash: ["M3 6h18m-2 0-.9 13.15A2 2 0 0 1 16.1 21H7.9a2 2 0 0 1-2-1.85L5 6m3 0V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6m-6 4v7m4-7v7"],
+    download: ["M12 3v11m0 0 4-4m-4 4-4-4M5 19h14"],
     file: ["M7 3h7l4 4v14H7V3Zm7 0v5h5"],
     image: ["M4 5h16v14H4V5Zm3 10 3.2-3.2 2.3 2.3 2.1-2.1L19 16.4M8.5 9.5h.01"]
   };

@@ -1699,7 +1699,7 @@ button {
 
 .attachment-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
@@ -1707,11 +1707,18 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.035);
   color: var(--text);
+  cursor: pointer;
   text-decoration: none;
 }
 
-.attachment-row:hover {
+.attachment-row:hover,
+.attachment-row:focus-visible {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.attachment-row:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.28);
+  outline-offset: 2px;
 }
 
 .attachment-icon {
@@ -1744,6 +1751,12 @@ button {
   font-size: 0.86rem;
 }
 
+.attachment-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .attachment-cover-button {
   min-height: calc(34px * var(--ui-scale));
   padding: 0 0.75rem;
@@ -1758,6 +1771,40 @@ button {
 .attachment-delete-button {
   width: calc(34px * var(--ui-scale));
   height: calc(34px * var(--ui-scale));
+}
+
+.attachment-download-button {
+  width: calc(34px * var(--ui-scale));
+  height: calc(34px * var(--ui-scale));
+}
+
+.link-context-menu {
+  position: fixed;
+  z-index: 3000;
+  display: grid;
+  min-width: calc(210px * var(--ui-scale));
+  padding: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: calc(8px * var(--ui-scale));
+  background: rgba(22, 26, 33, 0.98);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.link-context-menu button {
+  border: 0;
+  border-radius: calc(6px * var(--ui-scale));
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+}
+
+.link-context-menu button:hover,
+.link-context-menu button:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
 }
 
 .checklists-container,
