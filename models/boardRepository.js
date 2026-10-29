@@ -52,11 +52,9 @@ function createBoardRepository(config) {
       throw error;
     }
 
-    const items = [];
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
-      items.push(await readJsonFile(path.join(directory, entry.name), null, directory));
-    }
+    const items = await Promise.all(entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+      .map((entry) => readJsonFile(path.join(directory, entry.name), null, directory)));
     return items.filter(Boolean);
   }
 
@@ -65,14 +63,15 @@ function createBoardRepository(config) {
     await fs.mkdir(directory, { recursive: true }); // NOSONAR: directory is constrained to the board data root.
     const desiredFiles = new Set();
 
-    for (const item of items) {
-      if (!item || typeof item !== "object") continue;
-      const id = nonEmptyString(item.id) || createHexId();
-      item.id = id;
-      const fileName = `${encodeURIComponent(id)}.json`;
-      desiredFiles.add(fileName);
-      await writeJsonIfChanged(path.join(directory, fileName), item, directory);
-    }
+    await Promise.all(items
+      .filter((item) => item && typeof item === "object")
+      .map((item) => {
+        const id = nonEmptyString(item.id) || createHexId();
+        item.id = id;
+        const fileName = `${encodeURIComponent(id)}.json`;
+        desiredFiles.add(fileName);
+        return writeJsonIfChanged(path.join(directory, fileName), item, directory);
+      }));
 
     let entries = [];
     try {
@@ -82,11 +81,9 @@ function createBoardRepository(config) {
       throw error;
     }
 
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name.endsWith(".json") && !desiredFiles.has(entry.name)) {
-        await fs.unlink(safePathInsideRoot(path.join(directory, entry.name), directory));
-      }
-    }
+    await Promise.all(entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json") && !desiredFiles.has(entry.name))
+      .map((entry) => fs.unlink(safePathInsideRoot(path.join(directory, entry.name), directory))));
   }
 
   return {

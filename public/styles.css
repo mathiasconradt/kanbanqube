@@ -101,7 +101,6 @@ button {
   place-items: center;
   border: 0;
   cursor: pointer;
-  transition: transform 140ms ease, filter 140ms ease;
 }
 
 .brand-mark:hover {
@@ -264,7 +263,7 @@ button {
 
 .user-avatar-button img[hidden],
 .user-avatar-button span[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .user-avatar-button img {
@@ -328,7 +327,6 @@ button {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
-  transition: background 140ms ease, transform 140ms ease, border-color 140ms ease;
 }
 
 .primary-button,
@@ -403,7 +401,7 @@ button {
 }
 
 .lane-color-picker[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .lane-color-option {
@@ -828,7 +826,6 @@ button {
   font-size: 1.05rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .inline-title-input {
@@ -844,7 +841,7 @@ button {
 }
 
 .inline-title-input[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .board-title-inline-input {
@@ -949,7 +946,6 @@ button {
   line-height: 1;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .card-hover-action-button::after {
@@ -1021,7 +1017,6 @@ button {
   margin: 0;
   color: var(--muted);
   overflow-wrap: anywhere;
-  word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -1030,7 +1025,7 @@ button {
 }
 
 .card-description[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .card-footer {
@@ -1091,7 +1086,7 @@ button {
 .small-user-avatar > span[hidden],
 .assignee-avatar img[hidden],
 .assignee-avatar > span[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .small-user-avatar img,
@@ -1150,7 +1145,6 @@ button {
 .badge span {
   min-width: 0;
   overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .badge-due-overdue {
@@ -1405,7 +1399,7 @@ button {
 }
 
 .card-details-cover[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .cover-remove-button {
@@ -1584,7 +1578,7 @@ button {
 }
 
 .description-editor[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .description-display.is-empty {
@@ -2042,7 +2036,7 @@ button {
   color: var(--text);
   padding: 1rem;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1.45;
 }
@@ -2065,7 +2059,6 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .archive-item:hover,
@@ -2123,6 +2116,28 @@ button {
 .settings-meta span {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .brand-mark {
+    transition: transform 140ms ease, filter 140ms ease;
+  }
+
+  .primary-button,
+  .ghost-button,
+  .danger-button,
+  .add-card-button,
+  .icon-button {
+    transition: background 140ms ease, transform 140ms ease, border-color 140ms ease;
+  }
+
+  .card-hover-action-button {
+    transition: opacity 140ms ease, color 140ms ease, transform 140ms ease;
+  }
+
+  .archive-item {
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+  }
 }
 
 @media (max-width: 960px) {

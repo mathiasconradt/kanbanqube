@@ -292,7 +292,7 @@ function wireEvents() {
   importBoardInput.addEventListener("change", () => {
     const file = importBoardInput.files?.[0];
     importBoardInput.value = "";
-    if (file) importBoardFromFile(file);
+    if (file) void importBoardFromFile(file);
   });
 
   syncButton.addEventListener("click", syncBoard);
@@ -317,7 +317,7 @@ function wireEvents() {
   attachmentInput.addEventListener("change", () => {
     const files = [...attachmentInput.files];
     attachmentInput.value = "";
-    uploadFilesToSelectedCard(files);
+    void uploadFilesToSelectedCard(files);
   });
   attachmentDropZone.addEventListener("dragover", handleAttachmentDragOver);
   attachmentDropZone.addEventListener("dragleave", handleAttachmentDragLeave);
@@ -796,7 +796,7 @@ function renderCard(card, options = {}) {
   const cardDeleteButton = node.querySelector(".card-delete-button");
   cardDeleteButton.addEventListener("click", (event) => {
     event.stopPropagation();
-    deleteBoardCard(card.id);
+    void deleteBoardCard(card.id);
   });
 
   const titleNode = node.querySelector(".card-title");
@@ -885,7 +885,7 @@ function renderCard(card, options = {}) {
     event.preventDefault();
     event.stopPropagation();
     node.classList.remove("is-file-drop-target");
-    uploadFilesToCard(card.id, [...event.dataTransfer.files]);
+    void uploadFilesToCard(card.id, [...event.dataTransfer.files]);
   });
   return node;
 }
@@ -1090,7 +1090,7 @@ function renderArchiveDialog() {
     deleteButton.textContent = "Delete";
     deleteButton.addEventListener("click", (event) => {
       event.stopPropagation();
-      deleteArchivedCard(card.id);
+      void deleteArchivedCard(card.id);
     });
     actions.append(deleteButton);
 
@@ -1410,7 +1410,7 @@ function renderAttachments(card) {
     deleteButton.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      removeAttachmentFromCard(card.id, attachment.id);
+      void removeAttachmentFromCard(card.id, attachment.id);
     });
     actions.append(deleteButton);
     row.append(actions);
@@ -3452,7 +3452,7 @@ function handleAttachmentDrop(event) {
   event.preventDefault();
   event.stopPropagation();
   attachmentDropZone.classList.remove("is-dragging");
-  uploadFilesToSelectedCard([...event.dataTransfer.files]);
+  void uploadFilesToSelectedCard([...event.dataTransfer.files]);
 }
 
 function handleLaneDragOver(event) {

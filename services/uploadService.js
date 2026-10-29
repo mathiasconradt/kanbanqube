@@ -28,24 +28,24 @@ async function saveUploadedFiles(request, config) {
   const parts = parseMultipartBody(body, boundary);
   await fs.mkdir(safePathInsideRoot(config.uploadsDir, config.workspaceDir), { recursive: true });
 
-  const files = [];
-  for (const part of parts) {
-    if (!part.filename || part.data.length === 0) continue;
-    const originalName = displayOriginalFileName(part.filename);
-    const storedName = createStoredFileName(originalName);
-    const filePath = safePathInsideRoot(path.join(config.uploadsDir, storedName), config.uploadsDir);
-    await fs.writeFile(filePath, part.data);
-    files.push({
-      id: createHexId(),
-      name: originalName,
-      fileName: storedName,
-      url: `/${config.uploadsDirName}/${encodeURIComponent(storedName)}`,
-      mimeType: part.contentType || mimeTypeForFileName(originalName),
-      bytes: part.data.length,
-      date: new Date().toISOString(),
-      isUpload: true
-    });
-  }
+  const files = await Promise.all(parts
+    .filter((part) => part.filename && part.data.length > 0)
+    .map(async (part) => {
+      const originalName = displayOriginalFileName(part.filename);
+      const storedName = createStoredFileName(originalName);
+      const filePath = safePathInsideRoot(path.join(config.uploadsDir, storedName), config.uploadsDir);
+      await fs.writeFile(filePath, part.data);
+      return {
+        id: createHexId(),
+        name: originalName,
+        fileName: storedName,
+        url: `/${config.uploadsDirName}/${encodeURIComponent(storedName)}`,
+        mimeType: part.contentType || mimeTypeForFileName(originalName),
+        bytes: part.data.length,
+        date: new Date().toISOString(),
+        isUpload: true
+      };
+    }));
 
   return files;
 }
