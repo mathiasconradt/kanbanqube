@@ -13,14 +13,12 @@ cask "kanbanqube-desktop" do
   desc "Local-first Kanban board desktop app"
   homepage "https://github.com/mathiasconradt/kanbanqube"
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "KanbanQube.app"
 
-  preflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-cr", "#{staged_path}/KanbanQube.app"],
-                   sudo: false
+  preflight_steps do
+    run "/usr/bin/xattr", args: ["-cr", "{{staged_path}}/KanbanQube.app"]
   end
 
   zap trash: [
